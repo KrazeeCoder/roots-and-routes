@@ -6,9 +6,9 @@ const navItems = [
   { name: "Home", href: "/", isRoute: true },
   { name: "Directory", href: "/directory", isRoute: true },
   { name: "Spotlights", href: "/spotlights", isRoute: true },
-  { name: "Events", href: "#events", isRoute: false },
-  { name: "Suggest a Resource", href: "#suggest", isRoute: false },
-  { name: "About", href: "#about", isRoute: false },
+  { name: "Events", href: "/events", isRoute: true },
+  { name: "Suggest a Resource", href: "/suggest", isRoute: true },
+  { name: "About", href: "/about", isRoute: true },
 ];
 
 export function Layout() {

@@ -79,12 +79,15 @@ export function HeroSection() {
                 />
                 <div className="absolute inset-y-2 right-2 flex items-center">
                   <button
+                    type="button"
                     onClick={() => setActiveFilter(null)}
-                    className="h-full px-4 bg-[#E7D9C3] text-[#334233] rounded-l-xl border border-[#C2B99E] text-sm"
+                    className="h-full px-4 bg-[#E7D9C3] text-[#334233] rounded-l-xl border border-[#C2B99E] text-sm cursor-pointer hover:bg-[#DCD2B8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2 focus:ring-offset-white"
+                    aria-label="Clear search"
                   >
                     Clear
                   </button>
                   <button
+                    type="button"
                     onClick={() => setActiveFilter(activeFilter || "all")}
                     className="h-full px-6 bg-[#334233] text-white rounded-r-xl font-medium hover:bg-[#B36A4C] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-white"
                   >

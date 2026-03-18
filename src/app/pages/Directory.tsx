@@ -3,6 +3,7 @@ import { Search, MapPin, Phone, Globe, Clock, Filter, X, ChevronRight } from "lu
 import { motion, AnimatePresence } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
+import { Button } from "../components/ui/button";
 import { directoryEntries } from "../data/homeData";
 import { ScrollReveal } from "../components/ScrollReveal";
 
@@ -122,12 +123,16 @@ export function Directory() {
                 className="block w-full pl-11 pr-12 py-4 text-base border-2 border-[#5B473A]/40 rounded-xl bg-white/10 backdrop-blur-sm text-white placeholder-[#A7AE8A] focus:outline-none focus:border-[#B36A4C] transition-all"
               />
               {query && (
-                <button
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setQuery("")}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#A7AE8A] hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 mr-2"
+                  aria-label="Clear search"
                 >
                   <X className="w-4 h-4" />
-                </button>
+                </Button>
               )}
             </div>
           </motion.div>
