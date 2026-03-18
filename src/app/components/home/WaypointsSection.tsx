@@ -1,4 +1,5 @@
 import { waypoints } from "../../data/homeData";
+import { ScrollReveal, StaggerGroup, StaggerItem } from "../ScrollReveal";
 
 export function WaypointsSection() {
   return (
@@ -11,44 +12,45 @@ export function WaypointsSection() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <ScrollReveal className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-semibold text-[#334233] mb-4">
             Essential Waypoints
           </h2>
           <p className="text-[#5B473A] text-lg font-light">
             Quickly find support for urgent or everyday needs. Think of these as markers along your path.
           </p>
-        </div>
+        </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" fast>
           {waypoints.map((point) => (
-            <a 
-              key={point.name}
-              href="#"
-              className="group relative bg-[#F6F1E7] p-8 rounded-2xl shadow-sm border border-[#A7AE8A]/20 hover:border-[#B36A4C] hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
-            >
-              {/* Decorative trail marker background accent */}
-              <div className="absolute top-0 right-0 w-16 h-16 bg-[#A7AE8A]/10 rounded-bl-[100px] pointer-events-none transition-transform duration-300 group-hover:scale-110"></div>
-              
-              <div className="w-12 h-12 rounded-xl bg-[#E7D9C3] flex items-center justify-center mb-6 text-[#334233] group-hover:bg-[#B36A4C] group-hover:text-white transition-colors duration-300 shadow-inner">
-                <point.icon className="w-6 h-6" />
-              </div>
-              
-              <h3 className="text-xl font-['Cormorant_Garamond',serif] font-bold text-[#334233] mb-2 group-hover:text-[#B36A4C] transition-colors">
-                {point.name}
-              </h3>
-              
-              <p className="text-[#5B473A] text-sm leading-relaxed">
-                {point.desc}
-              </p>
+            <StaggerItem key={point.name}>
+              <a
+                href="#"
+                className="group relative bg-[#F6F1E7] p-8 rounded-2xl shadow-sm border border-[#A7AE8A]/20 hover:border-[#B36A4C] hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col h-full"
+              >
+                {/* Decorative trail marker background accent */}
+                <div className="absolute top-0 right-0 w-16 h-16 bg-[#A7AE8A]/10 rounded-bl-[100px] pointer-events-none transition-transform duration-300 group-hover:scale-110"></div>
+                
+                <div className="w-12 h-12 rounded-xl bg-[#E7D9C3] flex items-center justify-center mb-6 text-[#334233] group-hover:bg-[#B36A4C] group-hover:text-white transition-colors duration-300 shadow-inner">
+                  <point.icon className="w-6 h-6" />
+                </div>
+                
+                <h3 className="text-xl font-['Cormorant_Garamond',serif] font-bold text-[#334233] mb-2 group-hover:text-[#B36A4C] transition-colors">
+                  {point.name}
+                </h3>
+                
+                <p className="text-[#5B473A] text-sm leading-relaxed">
+                  {point.desc}
+                </p>
 
-              {/* Minimalist arrow link */}
-              <div className="mt-6 flex items-center text-[#B36A4C] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                Explore <span className="ml-1 inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-              </div>
-            </a>
+                {/* Minimalist arrow link */}
+                <div className="mt-6 flex items-center text-[#B36A4C] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  Explore <span className="ml-1 inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </div>
+              </a>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </div>
       
       {/* Bottom organic structure */}
@@ -60,3 +62,4 @@ export function WaypointsSection() {
     </section>
   );
 }
+

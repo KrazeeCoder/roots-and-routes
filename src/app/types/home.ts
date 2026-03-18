@@ -1,5 +1,31 @@
 import type { ComponentType, SVGProps } from "react";
 
+export interface DirectoryEntry {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  address: string;
+  phone?: string;
+  website?: string;
+  hours?: string;
+  tags: string[];
+  image?: string | null;
+}
+
+export interface SpotlightItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  description: string;
+  fullDescription: string;
+  audience: string;
+  location: string;
+  image?: string | null;
+  featured?: boolean;
+}
+
 export interface Waypoint {
   name: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;

@@ -1,13 +1,14 @@
 import { MapPin, Clock } from "lucide-react";
 import { ImageWithFallback } from "../ui/image-with-fallback";
 import { events } from "../../data/homeData";
+import { ScrollReveal, StaggerGroup, StaggerItem } from "../ScrollReveal";
 
 export function EventsSection() {
 
   return (
     <section className="bg-[#E7D9C3]/30 py-24 relative" id="events">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+        <ScrollReveal className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-2xl">
             <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-4">
               Upcoming Events
@@ -20,12 +21,12 @@ export function EventsSection() {
             View Full Calendar
             <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
           </button>
-        </div>
+        </ScrollReveal>
 
         {/* Timeline Layout */}
-        <div className="relative border-l-2 border-[#A7AE8A]/50 pl-6 sm:pl-10 space-y-12 ml-4 sm:ml-6">
+        <StaggerGroup className="relative border-l-2 border-[#A7AE8A]/50 pl-6 sm:pl-10 space-y-12 ml-4 sm:ml-6">
           {events.map((event, index) => (
-            <div key={index} className="relative group">
+            <StaggerItem key={index} className="relative group">
               {/* Timeline Marker */}
               <div className="absolute -left-[35px] sm:-left-[51px] top-1 w-6 h-6 rounded-full bg-[#F6F1E7] border-4 border-[#A7AE8A] group-hover:border-[#B36A4C] group-hover:scale-125 transition-all shadow-sm"></div>
 
@@ -70,10 +71,11 @@ export function EventsSection() {
                   </div>
                 )}
               </div>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </div>
     </section>
   );
 }
+

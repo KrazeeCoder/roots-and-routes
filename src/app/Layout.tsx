@@ -3,12 +3,12 @@ import { Outlet, Link } from "react-router";
 import { Trees, Menu } from "lucide-react";
 
 const navItems = [
-  { name: "Home", href: "/" },
-  { name: "Directory", href: "#directory" },
-  { name: "Spotlights", href: "#spotlights" },
-  { name: "Events", href: "#events" },
-  { name: "Suggest a Resource", href: "#suggest" },
-  { name: "About", href: "#about" },
+  { name: "Home", href: "/", isRoute: true },
+  { name: "Directory", href: "/directory", isRoute: true },
+  { name: "Spotlights", href: "/spotlights", isRoute: true },
+  { name: "Events", href: "#events", isRoute: false },
+  { name: "Suggest a Resource", href: "#suggest", isRoute: false },
+  { name: "About", href: "#about", isRoute: false },
 ];
 
 export function Layout() {
@@ -33,22 +33,33 @@ export function Layout() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8 items-center">
-              {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-sm font-medium text-[#5B473A] hover:text-[#334233] transition-colors relative group"
-                >
-                  {item.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#B36A4C] transition-all group-hover:w-full"></span>
-                </a>
-              ))}
-              <a
-                href="#directory"
+              {navItems.map((item) =>
+                item.isRoute ? (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="text-sm font-medium text-[#5B473A] hover:text-[#334233] transition-colors relative group"
+                  >
+                    {item.name}
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#B36A4C] transition-all group-hover:w-full"></span>
+                  </Link>
+                ) : (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="text-sm font-medium text-[#5B473A] hover:text-[#334233] transition-colors relative group"
+                  >
+                    {item.name}
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#B36A4C] transition-all group-hover:w-full"></span>
+                  </a>
+                )
+              )}
+              <Link
+                to="/directory"
                 className="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-[#334233] hover:bg-[#B36A4C] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
               >
                 Explore Directory
-              </a>
+              </Link>
             </nav>
 
             {/* Mobile menu button */}
@@ -68,11 +79,17 @@ export function Layout() {
         {/* Mobile navigation panel */}
         <div className={`md:hidden transition-max-h duration-300 overflow-hidden ${isMenuOpen ? "max-h-[400px]" : "max-h-0"}`}>
           <div className="px-4 pb-4 space-y-3">
-            {navItems.map((item) => (
-              <a key={item.name} href={item.href} className="block text-base font-medium text-[#334233] hover:text-[#B36A4C]">
-                {item.name}
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.isRoute ? (
+                <Link key={item.name} to={item.href} onClick={() => setIsMenuOpen(false)} className="block text-base font-medium text-[#334233] hover:text-[#B36A4C]">
+                  {item.name}
+                </Link>
+              ) : (
+                <a key={item.name} href={item.href} className="block text-base font-medium text-[#334233] hover:text-[#B36A4C]">
+                  {item.name}
+                </a>
+              )
+            )}
           </div>
         </div>
       </header>
