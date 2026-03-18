@@ -1,7 +1,21 @@
+import { useState } from "react";
 import { Outlet, Link } from "react-router";
-import { Trees, Search, Map, Calendar, HelpCircle, Info, Menu } from "lucide-react";
+import { Trees, Menu } from "lucide-react";
+
+const navItems = [
+  { name: "Home", href: "/" },
+  { name: "Directory", href: "#directory" },
+  { name: "Spotlights", href: "#spotlights" },
+  { name: "Events", href: "#events" },
+  { name: "Suggest a Resource", href: "#suggest" },
+  { name: "About", href: "#about" },
+];
 
 export function Layout() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => setIsMenuOpen((open) => !open);
+
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233] font-['Public_Sans',sans-serif] selection:bg-[#E7D9C3] selection:text-[#334233] flex flex-col">
       {/* Sticky Navigation */}
@@ -19,14 +33,7 @@ export function Layout() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8 items-center">
-              {[
-                { name: "Home", href: "/" },
-                { name: "Directory", href: "#directory" },
-                { name: "Spotlights", href: "#spotlights" },
-                { name: "Events", href: "#events" },
-                { name: "Suggest a Resource", href: "#suggest" },
-                { name: "About", href: "#about" },
-              ].map((item) => (
+              {navItems.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
@@ -46,10 +53,26 @@ export function Layout() {
 
             {/* Mobile menu button */}
             <div className="flex md:hidden items-center">
-              <button className="text-[#334233] hover:text-[#B36A4C] focus:outline-none">
+              <button
+                onClick={toggleMenu}
+                aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={isMenuOpen}
+                className="text-[#334233] hover:text-[#B36A4C] focus:outline-none"
+              >
                 <Menu className="h-6 w-6" />
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Mobile navigation panel */}
+        <div className={`md:hidden transition-max-h duration-300 overflow-hidden ${isMenuOpen ? "max-h-[400px]" : "max-h-0"}`}>
+          <div className="px-4 pb-4 space-y-3">
+            {navItems.map((item) => (
+              <a key={item.name} href={item.href} className="block text-base font-medium text-[#334233] hover:text-[#B36A4C]">
+                {item.name}
+              </a>
+            ))}
           </div>
         </div>
       </header>
@@ -71,14 +94,14 @@ export function Layout() {
               Your community resource hub for local residents. Connecting Bothell through paths of support, opportunity, and shared growth.
             </p>
           </div>
-          
+
           <div>
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Navigation</h3>
             <ul className="space-y-3 text-sm">
-              <li><a href="#" className="hover:text-white transition-colors">Directory</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Spotlights</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Events</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
+              <li><a href="#directory" className="hover:text-white transition-colors">Directory</a></li>
+              <li><a href="#spotlights" className="hover:text-white transition-colors">Spotlights</a></li>
+              <li><a href="#events" className="hover:text-white transition-colors">Events</a></li>
+              <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
             </ul>
           </div>
 
@@ -96,7 +119,7 @@ export function Layout() {
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Connect</h3>
             <ul className="space-y-3 text-sm">
               <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Suggest a Resource</a></li>
+              <li><a href="#suggest" className="hover:text-white transition-colors">Suggest a Resource</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Volunteer</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Newsletter</a></li>
             </ul>

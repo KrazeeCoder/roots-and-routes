@@ -1,24 +1,8 @@
 import { Search, Filter, HandHeart } from "lucide-react";
 import { TopoPattern } from "../TopoPattern";
+import { findPathSteps } from "../../data/homeData";
 
 export function FindPathSection() {
-  const steps = [
-    {
-      icon: Search,
-      title: "Search & Discover",
-      desc: "Use our directory to search for specific needs or browse by category."
-    },
-    {
-      icon: Filter,
-      title: "Filter Your Options",
-      desc: "Narrow down resources by location, eligibility, and current availability."
-    },
-    {
-      icon: HandHeart,
-      title: "Connect to Support",
-      desc: "Get contact info, directions, and next steps to access the help you need."
-    }
-  ];
 
   return (
     <section className="bg-[#334233] text-[#F6F1E7] py-24 relative overflow-hidden">
@@ -42,7 +26,7 @@ export function FindPathSection() {
           <div className="hidden md:block absolute top-1/2 left-12 right-12 h-0.5 bg-gradient-to-r from-[#A7AE8A]/20 via-[#B36A4C] to-[#A7AE8A]/20 -translate-y-1/2 z-0"></div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
-            {steps.map((step, index) => (
+            {findPathSteps.map((step, index) => (
               <div key={index} className="flex flex-col items-center text-center group">
                 {/* Step Icon Container */}
                 <div className="w-24 h-24 rounded-full bg-[#334233] border-4 border-[#5B473A] shadow-[0_0_0_8px_rgba(51,66,51,1)] flex items-center justify-center mb-8 relative transition-transform duration-500 group-hover:scale-110 group-hover:border-[#B36A4C]">

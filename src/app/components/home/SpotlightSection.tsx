@@ -1,5 +1,5 @@
 import { ArrowRight, MapPin, Users } from "lucide-react";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { ImageWithFallback } from "../ui/image-with-fallback";
 
 export function SpotlightSection() {
   return (

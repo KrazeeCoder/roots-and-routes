@@ -1,33 +1,8 @@
-import { CalendarDays, MapPin, Clock } from "lucide-react";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { MapPin, Clock } from "lucide-react";
+import { ImageWithFallback } from "../ui/image-with-fallback";
+import { events } from "../../data/homeData";
 
 export function EventsSection() {
-  const events = [
-    {
-      date: "Oct 15",
-      title: "Autumn Farmer's Market & Resource Fair",
-      time: "9:00 AM - 1:00 PM",
-      location: "Main Street, Bothell",
-      category: "Community Gathering",
-      image: "https://images.unsplash.com/photo-1767274101063-a735a6849afc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaXZlcnNlJTIwY29tbXVuaXR5JTIwZXZlbnR8ZW58MXx8fHwxNzczNzM0OTMyfDA&ixlib=rb-4.1.0&q=80&w=1080"
-    },
-    {
-      date: "Oct 18",
-      title: "Free Legal Aid Clinic",
-      time: "4:00 PM - 7:00 PM",
-      location: "Bothell Library",
-      category: "Legal Support",
-      image: null
-    },
-    {
-      date: "Oct 22",
-      title: "Youth Outdoor Leadership Workshop",
-      time: "10:00 AM - 3:00 PM",
-      location: "Blyth Park",
-      category: "Youth Programs",
-      image: null
-    }
-  ];
 
   return (
     <section className="bg-[#E7D9C3]/30 py-24 relative" id="events">

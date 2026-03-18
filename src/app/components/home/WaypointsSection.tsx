@@ -1,15 +1,6 @@
-import { Wheat, HeartPulse, Home, Users, Briefcase, Calendar } from "lucide-react";
+import { waypoints } from "../../data/homeData";
 
 export function WaypointsSection() {
-  const waypoints = [
-    { name: "Food Assistance", icon: Wheat, desc: "Pantries, meal programs, and fresh produce." },
-    { name: "Health & Wellness", icon: HeartPulse, desc: "Clinics, mental health support, and care." },
-    { name: "Housing Support", icon: Home, desc: "Shelters, rent help, and utility assistance." },
-    { name: "Youth Programs", icon: Users, desc: "After-school activities, mentorship, childcare." },
-    { name: "Job Help", icon: Briefcase, desc: "Resume building, training, and open roles." },
-    { name: "Community Events", icon: Calendar, desc: "Gatherings, workshops, and local markets." },
-  ];
-
   return (
     <section className="bg-[#E7D9C3]/50 py-24 relative overflow-hidden">
       {/* Subtle organic structure: Map contour line separator at the top */}

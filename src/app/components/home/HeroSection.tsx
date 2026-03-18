@@ -1,10 +1,23 @@
+import { useMemo, useState } from "react";
 import { Search, ChevronDown, MapPin } from "lucide-react";
 import { TopoPattern } from "../TopoPattern";
 import { motion } from "motion/react";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { ImageWithFallback } from "../ui/image-with-fallback";
+import { heroFilters } from "../../data/homeData";
 
 export function HeroSection() {
-  const filters = ["Food", "Housing", "Health", "Youth", "Jobs", "Legal", "Events"];
+  const [query, setQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+  const visibleFilters = useMemo(
+    () => heroFilters.filter((item) => item.toLowerCase().includes(query.trim().toLowerCase())),
+    [query]
+  );
+
+  const searchLabel = useMemo(() => {
+    if (!query && !activeFilter) return "Search for a resource above.";
+    return `Showing results for "${query || "all"}" in ${activeFilter || "all categories"}.`;
+  }, [query, activeFilter]);
 
   return (
     <section className="relative overflow-hidden bg-[#F6F1E7] border-b border-[#E7D9C3] pt-12 pb-24 lg:pt-24 lg:pb-32">
@@ -58,11 +71,23 @@ export function HeroSection() {
                 </div>
                 <input
                   type="text"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
                   className="block w-full pl-12 pr-32 py-5 sm:text-lg border-2 border-[#E7D9C3] rounded-2xl bg-white shadow-sm focus:ring-0 focus:border-[#A7AE8A] transition-all text-[#334233] placeholder-[#A7AE8A]"
                   placeholder="What are you looking for?"
+                  aria-label="Search resources"
                 />
                 <div className="absolute inset-y-2 right-2 flex items-center">
-                  <button className="h-full px-6 bg-[#334233] text-white rounded-xl font-medium hover:bg-[#B36A4C] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-white">
+                  <button
+                    onClick={() => setActiveFilter(null)}
+                    className="h-full px-4 bg-[#E7D9C3] text-[#334233] rounded-l-xl border border-[#C2B99E] text-sm"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={() => setActiveFilter(activeFilter || "all")}
+                    className="h-full px-6 bg-[#334233] text-white rounded-r-xl font-medium hover:bg-[#B36A4C] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-white"
+                  >
                     Search
                   </button>
                 </div>
@@ -70,15 +95,27 @@ export function HeroSection() {
 
               {/* Filter Chips */}
               <div className="mt-6 flex flex-wrap gap-2">
-                {filters.map((filter, index) => (
-                  <button
-                    key={filter}
-                    className="px-4 py-1.5 rounded-full border border-[#E7D9C3] bg-white/60 text-[#5B473A] text-sm hover:border-[#B36A4C] hover:text-[#B36A4C] transition-colors"
-                  >
-                    {filter}
-                  </button>
-                ))}
+                {visibleFilters.length > 0 ? (
+                  visibleFilters.map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className={`px-4 py-1.5 rounded-full border text-sm transition-colors ${
+                        activeFilter === filter
+                          ? "bg-[#B36A4C] border-[#B36A4C] text-white"
+                          : "bg-white/60 border-[#E7D9C3] text-[#5B473A] hover:border-[#B36A4C] hover:text-[#B36A4C]"
+                      }`}
+                      aria-pressed={activeFilter === filter}
+                    >
+                      {filter}
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-sm text-[#6F7553]">No filters match your query.</p>
+                )}
               </div>
+
+              <p className="mt-4 text-sm text-[#6F7553]">{searchLabel}</p>
             </motion.div>
           </div>
 
