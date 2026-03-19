@@ -1,8 +1,71 @@
+import { useEffect, useRef, useState } from "react";
 import { HeartPulse, Layers, Users, MapPin, Sparkles } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
+
+interface CountUpProps {
+  end: number;
+  durationMs?: number;
+  suffix?: string;
+}
+
+function CountUp({ end, durationMs = 2000, suffix = "" }: CountUpProps) {
+  const [value, setValue] = useState(0);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const ref = useRef<HTMLSpanElement | null>(null);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setShouldAnimate(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) {
+          setShouldAnimate(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!shouldAnimate) return;
+
+    let frame = 0;
+    const startedAt = performance.now();
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - startedAt) / durationMs, 1);
+      setValue(Math.round(progress * end));
+
+      if (progress < 1) {
+        frame = window.requestAnimationFrame(tick);
+      }
+    };
+
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [durationMs, end, shouldAnimate]);
+
+  return (
+    <span ref={ref}>
+      {value.toLocaleString()}
+      {suffix}
+    </span>
+  );
+}
 
 export function About() {
   return (
@@ -104,7 +167,9 @@ export function About() {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
                   <MapPin className="w-6 h-6" />
                 </div>
-                <div className="text-5xl font-bold text-[#334233]">150+</div>
+                <div className="text-5xl font-bold text-[#334233]">
+                  <CountUp end={150} suffix="+" />
+                </div>
                 <div className="mt-2 text-sm text-[#5B473A]">Verified community resources</div>
               </div>
             </StaggerItem>
@@ -113,7 +178,9 @@ export function About() {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
                   <Users className="w-6 h-6" />
                 </div>
-                <div className="text-5xl font-bold text-[#334233]">1,200+</div>
+                <div className="text-5xl font-bold text-[#334233]">
+                  <CountUp end={1200} suffix="+" />
+                </div>
                 <div className="mt-2 text-sm text-[#5B473A]">Community members reached</div>
               </div>
             </StaggerItem>
@@ -122,7 +189,9 @@ export function About() {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
                   <HeartPulse className="w-6 h-6" />
                 </div>
-                <div className="text-5xl font-bold text-[#334233]">85+</div>
+                <div className="text-5xl font-bold text-[#334233]">
+                  <CountUp end={85} suffix="+" />
+                </div>
                 <div className="mt-2 text-sm text-[#5B473A]">Volunteer hours logged</div>
               </div>
             </StaggerItem>
