@@ -114,7 +114,7 @@ alter table if exists public.events alter column created_by set default auth.uid
 
 alter table if exists public.profiles drop constraint if exists profiles_role_check;
 alter table if exists public.profiles
-add constraint profiles_role_check check (role in ('contributor', 'moderator'));
+add constraint profiles_role_check check (role in ('contributor', 'moderator', 'super_admin'));
 
 create or replace function public.set_updated_at()
 returns trigger
