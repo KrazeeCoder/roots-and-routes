@@ -1,4 +1,4 @@
-export type ContributorRole = "contributor" | "moderator";
+export type ContributorRole = "contributor" | "moderator" | "super_admin";
 
 export type ContentStatus =
   | "draft"

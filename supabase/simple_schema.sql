@@ -10,7 +10,7 @@ $$;
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  role text not null default 'contributor' check (role in ('contributor', 'moderator')),
+  role text not null default 'contributor' check (role in ('contributor', 'moderator', 'super_admin')),
   organization_name text,
   display_name text,
   first_name text,
@@ -113,7 +113,7 @@ alter table if exists public.events alter column created_by set default auth.uid
 
 alter table if exists public.profiles drop constraint if exists profiles_role_check;
 alter table if exists public.profiles
-add constraint profiles_role_check check (role in ('contributor', 'moderator'));
+add constraint profiles_role_check check (role in ('contributor', 'moderator', 'super_admin'));
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -173,7 +173,7 @@ as $$
     select 1
     from public.profiles p
     where p.id = auth.uid()
-      and p.role = 'moderator'
+      and p.role in ('moderator', 'super_admin')
   );
 $$;
 
