@@ -1,0 +1,362 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
+import { KeyRound, Mail, UserRound } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Button } from "../components/ui/button";
+import {
+  getFriendlyAuthError,
+  sendContributorPasswordReset,
+  signInContributor,
+  signUpContributor,
+} from "../data/portalApi";
+import { useAuth } from "../auth/AuthProvider";
+
+type AuthMode = "signin" | "signup" | "forgot";
+
+interface SignUpState {
+  organizationName: string;
+  displayName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+}
+
+const defaultSignUp: SignUpState = {
+  organizationName: "",
+  displayName: "",
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  password: "",
+  confirmPassword: "",
+};
+
+export function ContributorLogin() {
+  const [mode, setMode] = useState<AuthMode>("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [signUp, setSignUp] = useState<SignUpState>(defaultSignUp);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { session } = useAuth();
+
+  const redirectPath = useMemo(() => {
+    const fromPath = (location.state as { from?: string } | null)?.from;
+    return fromPath || "/portal";
+  }, [location.state]);
+
+  useEffect(() => {
+    if (session) {
+      void navigate("/portal", { replace: true });
+    }
+  }, [session, navigate]);
+
+  const handleSignIn = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      await signInContributor(email, password);
+      void navigate(redirectPath, { replace: true });
+    } catch (nextError) {
+      setError(getFriendlyAuthError(nextError));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSignUp = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setMessage(null);
+
+    if (signUp.password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (signUp.password !== signUp.confirmPassword) {
+      setError("Passwords do not match.");
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const result = await signUpContributor({
+        organizationName: signUp.organizationName,
+        displayName: signUp.displayName,
+        firstName: signUp.firstName,
+        middleName: signUp.middleName,
+        lastName: signUp.lastName,
+        email: signUp.email,
+        phone: signUp.phone,
+        password: signUp.password,
+      });
+
+      if (result.session) {
+        void navigate("/portal", { replace: true });
+        return;
+      }
+
+      setMessage("Account created. Check your email to verify, then sign in.");
+      setMode("signin");
+      setEmail(signUp.email);
+      setPassword("");
+    } catch (nextError) {
+      setError(getFriendlyAuthError(nextError));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleForgot = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      await sendContributorPasswordReset(forgotEmail);
+      setMessage("Password reset email sent. Check your inbox.");
+    } catch (nextError) {
+      setError(getFriendlyAuthError(nextError));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F6F1E7] py-12 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-8">
+          <p className="text-sm font-semibold uppercase tracking-wider text-[#6F7553]">Roots & Routes</p>
+          <h1 className="font-['Cormorant_Garamond',serif] text-5xl font-bold text-[#334233]">
+            Contributor Portal
+          </h1>
+          <p className="mt-3 text-[#5B473A]">
+            Contributors can submit and manage resources/events. Public browsing remains open for everyone.
+          </p>
+        </div>
+
+        <Card className="border-[#E7D9C3] bg-white shadow-sm">
+          <CardHeader>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant={mode === "signin" ? "default" : "outline"}
+                onClick={() => setMode("signin")}
+              >
+                Sign In
+              </Button>
+              <Button
+                type="button"
+                variant={mode === "signup" ? "default" : "outline"}
+                onClick={() => setMode("signup")}
+              >
+                Create Account
+              </Button>
+              <Button
+                type="button"
+                variant={mode === "forgot" ? "default" : "outline"}
+                onClick={() => setMode("forgot")}
+              >
+                Forgot Password
+              </Button>
+            </div>
+            <CardTitle className="mt-4">
+              {mode === "signin" && "Sign in to your contributor account"}
+              {mode === "signup" && "Create a contributor account"}
+              {mode === "forgot" && "Reset your password"}
+            </CardTitle>
+            <CardDescription>
+              {mode === "signin" && "Use your contributor credentials."}
+              {mode === "signup" && "New accounts default to contributor role."}
+              {mode === "forgot" && "We'll send a secure reset link to your email."}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            {message ? <p className="text-sm text-[#334233]">{message}</p> : null}
+
+            {mode === "signin" ? (
+              <form className="space-y-4" onSubmit={handleSignIn}>
+                <div>
+                  <Label htmlFor="signin-email">Email</Label>
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="signin-password">Password</Label>
+                  <Input
+                    id="signin-password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" disabled={submitting} className="w-full">
+                  <KeyRound className="w-4 h-4" /> {submitting ? "Signing in..." : "Sign In"}
+                </Button>
+              </form>
+            ) : null}
+
+            {mode === "signup" ? (
+              <form className="space-y-4" onSubmit={handleSignUp}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="signup-org">Organization name</Label>
+                    <Input
+                      id="signup-org"
+                      value={signUp.organizationName}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, organizationName: event.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-display">Display name (optional)</Label>
+                    <Input
+                      id="signup-display"
+                      value={signUp.displayName}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, displayName: event.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="signup-first">First name</Label>
+                    <Input
+                      id="signup-first"
+                      value={signUp.firstName}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, firstName: event.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-middle">Middle name</Label>
+                    <Input
+                      id="signup-middle"
+                      value={signUp.middleName}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, middleName: event.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-last">Last name</Label>
+                    <Input
+                      id="signup-last"
+                      value={signUp.lastName}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, lastName: event.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="signup-email">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      autoComplete="email"
+                      value={signUp.email}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, email: event.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-phone">Phone</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      value={signUp.phone}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, phone: event.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={signUp.password}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, password: event.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="signup-confirm">Confirm password</Label>
+                    <Input
+                      id="signup-confirm"
+                      type="password"
+                      autoComplete="new-password"
+                      value={signUp.confirmPassword}
+                      onChange={(event) => setSignUp((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <Button type="submit" disabled={submitting} className="w-full">
+                  <UserRound className="w-4 h-4" /> {submitting ? "Creating account..." : "Create Account"}
+                </Button>
+              </form>
+            ) : null}
+
+            {mode === "forgot" ? (
+              <form className="space-y-4" onSubmit={handleForgot}>
+                <div>
+                  <Label htmlFor="forgot-email">Email</Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    autoComplete="email"
+                    value={forgotEmail}
+                    onChange={(event) => setForgotEmail(event.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" disabled={submitting} className="w-full">
+                  <Mail className="w-4 h-4" /> {submitting ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </form>
+            ) : null}
+
+            <p className="text-xs text-[#6F7553]">
+              Looking for community resources only? <Link to="/directory" className="text-[#334233] underline">Browse publicly here</Link>.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

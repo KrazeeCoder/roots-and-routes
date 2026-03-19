@@ -1,13 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, MapPin, Phone, Globe, Clock, Filter, X, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
-import { directoryEntries } from "../data/homeData";
-import { ScrollReveal } from "../components/ScrollReveal";
-
-const ALL_CATEGORIES = ["All", "Food", "Health", "Housing", "Youth", "Jobs", "Legal"];
+import { listPublishedResources, mapResourceToDirectoryEntry } from "../data/portalApi";
+import type { DirectoryEntry } from "../types/home";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Food:    "bg-[#A7AE8A]/20 text-[#5B473A] border-[#A7AE8A]/40",
@@ -19,13 +17,36 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export function Directory() {
+  const [entries, setEntries] = useState<DirectoryEntry[]>([]);
+  const [loadingEntries, setLoadingEntries] = useState(true);
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadEntries() {
+      try {
+        const resources = await listPublishedResources();
+        if (cancelled) return;
+        setEntries(resources.map(mapResourceToDirectoryEntry));
+      } catch (error) {
+        console.error("Could not load published resources", error);
+      } finally {
+        if (!cancelled) setLoadingEntries(false);
+      }
+    }
+
+    void loadEntries();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
-    return directoryEntries.filter((entry) => {
+    return entries.filter((entry) => {
       const matchesCategory = activeCategory === "All" || entry.category === activeCategory;
       const matchesQuery =
         !q ||
@@ -34,7 +55,12 @@ export function Directory() {
         entry.tags.some((t) => t.toLowerCase().includes(q));
       return matchesCategory && matchesQuery;
     });
-  }, [query, activeCategory]);
+  }, [query, activeCategory, entries]);
+
+  const allCategories = useMemo(
+    () => ["All", ...Array.from(new Set(entries.map((entry) => entry.category))).sort()],
+    [entries],
+  );
 
   return (
     <div className="min-h-screen bg-[#F6F1E7]">
@@ -167,7 +193,7 @@ export function Directory() {
                 Category
               </h2>
               <ul className="space-y-1.5">
-                {ALL_CATEGORIES.map((cat) => (
+                {allCategories.map((cat) => (
                   <li key={cat}>
                     <button
                       onClick={() => setActiveCategory(cat)}
@@ -180,8 +206,8 @@ export function Directory() {
                       {cat}
                       <span className="float-right text-xs opacity-50">
                         {cat === "All"
-                          ? directoryEntries.length
-                          : directoryEntries.filter((e) => e.category === cat).length}
+                          ? entries.length
+                          : entries.filter((e) => e.category === cat).length}
                       </span>
                     </button>
                   </li>
@@ -196,7 +222,7 @@ export function Directory() {
                   Can't find what you're looking for? Suggest a resource and we'll add it.
                 </p>
                 <a
-                  href="/#suggest"
+                  href="/suggest"
                   className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold hover:bg-[#334233] hover:text-white transition-colors"
                 >
                   Suggest a Resource
@@ -227,7 +253,15 @@ export function Directory() {
               )}
             </div>
 
-            {filtered.length === 0 ? (
+            {loadingEntries ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-24 text-[#6F7553]"
+              >
+                <p className="text-lg font-medium text-[#334233] mb-1">Loading resources...</p>
+              </motion.div>
+            ) : filtered.length === 0 ? (
               <motion.div 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
@@ -280,6 +314,9 @@ export function Directory() {
                         <p className="text-[#5B473A] text-sm leading-relaxed mb-5 flex-grow">
                           {entry.description}
                         </p>
+                        {entry.postedByName ? (
+                          <p className="text-xs text-[#6F7553] mb-4">Posted by {entry.postedByName}</p>
+                        ) : null}
 
                         {/* Tags */}
                         <div className="flex flex-wrap gap-1.5 mb-5">
@@ -339,3 +376,4 @@ export function Directory() {
     </div>
   );
 }
+

@@ -1,13 +1,36 @@
-import { ArrowRight, MapPin, Calendar, Users, Eye } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, MapPin, Users } from "lucide-react";
 import { motion } from "motion/react";
-import { spotlights } from "../data/homeData";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { TopoPattern } from "../components/TopoPattern";
-import { ScrollReveal, StaggerGroup, StaggerItem, variants } from "../components/ScrollReveal";
+import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
+import { listSpotlightItems } from "../data/portalApi";
+import type { SpotlightItem } from "../types/home";
 
 export function Spotlights() {
-  const featured = spotlights.find((s) => s.featured) || spotlights[0];
-  const rest = spotlights.filter((s) => s.id !== featured.id);
+  const [spotlights, setSpotlights] = useState<SpotlightItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSpotlights() {
+      try {
+        const data = await listSpotlightItems();
+        if (cancelled) return;
+        setSpotlights(data);
+      } catch (error) {
+        console.error("Could not load spotlight items", error);
+      }
+    }
+
+    void loadSpotlights();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const featured = useMemo(() => spotlights.find((s) => s.featured) || spotlights[0], [spotlights]);
+  const rest = useMemo(() => spotlights.filter((s) => s.id !== featured?.id), [spotlights, featured]);
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] pb-24">
@@ -101,7 +124,7 @@ export function Spotlights() {
       </section>
 
       {/* ── Featured Spotlight ── */}
-      {featured && (
+      {featured ? (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
           <ScrollReveal>
             <div className="flex items-center gap-4 mb-8">
@@ -163,7 +186,7 @@ export function Spotlights() {
             </div>
           </ScrollReveal>
         </section>
-      )}
+      ) : null}
 
       {/* ── All Spotlights Grid ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">

@@ -11,6 +11,8 @@ export interface DirectoryEntry {
   hours?: string;
   tags: string[];
   image?: string | null;
+  postedByName?: string;
+  status?: "draft" | "pending" | "published" | "rejected" | "archived";
 }
 
 export interface SpotlightItem {
@@ -39,10 +41,13 @@ export interface Step {
 }
 
 export interface EventItem {
+  id?: string;
   date: string;
   title: string;
   time: string;
   location: string;
   category: string;
   image?: string | null;
+  postedByName?: string;
+  status?: "draft" | "pending" | "published" | "rejected" | "archived";
 }

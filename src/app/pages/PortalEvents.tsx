@@ -1,0 +1,358 @@
+import { useEffect, useMemo, useState } from "react";
+import { Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
+import { Button } from "../components/ui/button";
+import { PortalShell } from "../components/portal/PortalShell";
+import { useAuth } from "../auth/AuthProvider";
+import {
+  createEvent,
+  deleteEvent,
+  isModerator,
+  listPortalEvents,
+  updateEvent,
+} from "../data/portalApi";
+import type { ContentStatus, EventRecord } from "../types/portal";
+
+interface EventFormState {
+  title: string;
+  category: string;
+  description: string;
+  location: string;
+  startsAt: string;
+  endsAt: string;
+  imageUrl: string;
+  status: ContentStatus;
+  isSpotlight: boolean;
+}
+
+const defaultForm: EventFormState = {
+  title: "",
+  category: "",
+  description: "",
+  location: "",
+  startsAt: "",
+  endsAt: "",
+  imageUrl: "",
+  status: "pending",
+  isSpotlight: false,
+};
+
+const contributorStatuses: ContentStatus[] = ["draft", "pending", "archived"];
+const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
+
+function toInputDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offset = date.getTimezoneOffset();
+  const normalized = new Date(date.getTime() - offset * 60000);
+  return normalized.toISOString().slice(0, 16);
+}
+
+function toIso(value: string) {
+  if (!value) return null;
+  return new Date(value).toISOString();
+}
+
+export function PortalEvents() {
+  const { user, role } = useAuth();
+  const [events, setEvents] = useState<EventRecord[]>([]);
+  const [form, setForm] = useState<EventFormState>(defaultForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canModerate = isModerator(role);
+  const statuses = canModerate ? moderatorStatuses : contributorStatuses;
+
+  const loadEvents = async () => {
+    if (!user || !role) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await listPortalEvents(role, user.id);
+      setEvents(data);
+    } catch (nextError) {
+      console.error(nextError);
+      setError("Could not load events right now.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadEvents();
+  }, [role, user]);
+
+  const sortedEvents = useMemo(
+    () => [...events].sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()),
+    [events],
+  );
+
+  const resetForm = () => {
+    setEditingId(null);
+    setForm(defaultForm);
+  };
+
+  const startEdit = (event: EventRecord) => {
+    setEditingId(event.id);
+    setForm({
+      title: event.title,
+      category: event.category ?? "",
+      description: event.description ?? "",
+      location: event.location,
+      startsAt: toInputDate(event.starts_at),
+      endsAt: event.ends_at ? toInputDate(event.ends_at) : "",
+      imageUrl: event.image_url ?? "",
+      status: event.status,
+      isSpotlight: event.is_spotlight,
+    });
+  };
+
+  const handleSave = async (submitEvent: React.FormEvent) => {
+    submitEvent.preventDefault();
+    if (!user) return;
+
+    setSaving(true);
+    setError(null);
+
+    const payload = {
+      title: form.title.trim(),
+      category: form.category.trim() || null,
+      description: form.description.trim() || null,
+      location: form.location.trim(),
+      starts_at: toIso(form.startsAt) || new Date().toISOString(),
+      ends_at: toIso(form.endsAt),
+      image_url: form.imageUrl.trim() || null,
+      status: canModerate ? form.status : ("pending" as const),
+      is_spotlight: canModerate ? form.isSpotlight : false,
+    };
+
+    try {
+      if (editingId) {
+        await updateEvent(editingId, payload);
+      } else {
+        await createEvent(payload);
+      }
+
+      resetForm();
+      await loadEvents();
+    } catch (nextError) {
+      console.error(nextError);
+      setError("Could not save this event. Check the required fields and try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (eventId: string) => {
+    const confirmed = window.confirm("Delete this event?");
+    if (!confirmed) return;
+    try {
+      await deleteEvent(eventId);
+      await loadEvents();
+    } catch (nextError) {
+      console.error(nextError);
+      setError("Could not delete this event.");
+    }
+  };
+
+  return (
+    <PortalShell
+      title="Manage Events"
+      description="Create and update upcoming events. Published events appear on public event pages."
+    >
+      <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1fr] gap-8">
+        <Card className="border-[#E7D9C3]">
+          <CardHeader>
+            <CardTitle>{editingId ? "Edit event" : "Create event"}</CardTitle>
+            <CardDescription>Use clear location/time details so attendees can plan confidently.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleSave}>
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="event-title">Title</Label>
+                  <Input
+                    id="event-title"
+                    value={form.title}
+                    onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="event-category">Category</Label>
+                  <Input
+                    id="event-category"
+                    value={form.category}
+                    onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="event-description">Description</Label>
+                <Textarea
+                  id="event-description"
+                  value={form.description}
+                  onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="event-location">Location</Label>
+                  <Input
+                    id="event-location"
+                    value={form.location}
+                    onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="event-image">Image URL</Label>
+                  <Input
+                    id="event-image"
+                    value={form.imageUrl}
+                    onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="event-starts">Starts at</Label>
+                  <Input
+                    id="event-starts"
+                    type="datetime-local"
+                    value={form.startsAt}
+                    onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="event-ends">Ends at (optional)</Label>
+                  <Input
+                    id="event-ends"
+                    type="datetime-local"
+                    value={form.endsAt}
+                    onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="event-status">Status</Label>
+                  <select
+                    id="event-status"
+                    value={form.status}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
+                    }
+                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                    disabled={!canModerate}
+                  >
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {canModerate ? (
+                  <div className="flex items-center gap-2 pt-7">
+                    <input
+                      id="event-spotlight"
+                      type="checkbox"
+                      checked={form.isSpotlight}
+                      onChange={(event) =>
+                        setForm((prev) => ({ ...prev, isSpotlight: event.target.checked }))
+                      }
+                    />
+                    <Label htmlFor="event-spotlight" className="font-normal">
+                      Include in spotlight
+                    </Label>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Button type="submit" disabled={saving}>
+                  <PlusCircle className="w-4 h-4" /> {saving ? "Saving..." : editingId ? "Update Event" : "Create Event"}
+                </Button>
+                {editingId ? (
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel Edit
+                  </Button>
+                ) : null}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#E7D9C3]">
+          <CardHeader>
+            <CardTitle>Your event submissions</CardTitle>
+            <CardDescription>Review status and update details over time.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loading ? <p className="text-sm text-[#6F7553]">Loading events...</p> : null}
+            {!loading && sortedEvents.length === 0 ? (
+              <p className="text-sm text-[#6F7553]">No events yet. Create one to get started.</p>
+            ) : null}
+
+            {sortedEvents.map((event) => (
+              <div key={event.id} className="rounded-2xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-[#6F7553]">{event.category || "Community Event"}</p>
+                    <h3 className="font-semibold text-[#334233]">{event.title}</h3>
+                    <p className="text-sm text-[#5B473A]">
+                      {new Date(event.starts_at).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <p className="text-xs text-[#6F7553] mt-2">
+                      Status: <span className="font-semibold">{event.status}</span>
+                      {event.is_spotlight ? " • Spotlighted" : ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEdit(event)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        void handleDelete(event.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </PortalShell>
+  );
+}

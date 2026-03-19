@@ -9,6 +9,7 @@ const navItems = [
   { name: "Events", href: "/events", isRoute: true },
   { name: "Suggest a Resource", href: "/suggest", isRoute: true },
   { name: "About", href: "/about", isRoute: true },
+  { name: "Contributor Portal", href: "/contributor-login", isRoute: true },
 ];
 
 export function Layout() {
@@ -123,10 +124,10 @@ export function Layout() {
           <div>
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Navigation</h3>
             <ul className="space-y-3 text-sm">
-              <li><a href="#directory" className="hover:text-white transition-colors">Directory</a></li>
-              <li><a href="#spotlights" className="hover:text-white transition-colors">Spotlights</a></li>
-              <li><a href="#events" className="hover:text-white transition-colors">Events</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
+              <li><Link to="/directory" className="hover:text-white transition-colors">Directory</Link></li>
+              <li><Link to="/spotlights" className="hover:text-white transition-colors">Spotlights</Link></li>
+              <li><Link to="/events" className="hover:text-white transition-colors">Events</Link></li>
+              <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
             </ul>
           </div>
 
@@ -144,7 +145,7 @@ export function Layout() {
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Connect</h3>
             <ul className="space-y-3 text-sm">
               <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="#suggest" className="hover:text-white transition-colors">Suggest a Resource</a></li>
+              <li><Link to="/suggest" className="hover:text-white transition-colors">Suggest a Resource</Link></li>
               <li><a href="#" className="hover:text-white transition-colors">Volunteer</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Newsletter</a></li>
             </ul>
