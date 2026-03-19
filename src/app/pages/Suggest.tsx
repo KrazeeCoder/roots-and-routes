@@ -7,7 +7,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion";
-import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
+import { ScrollReveal } from "../components/ScrollReveal";
 
 type SuggestForm = {
   name: string;
@@ -341,7 +341,7 @@ export function Suggest() {
                       </span>
                       <div>
                         <p className="font-semibold text-[#334233]">Email our team</p>
-                        <p className="text-sm text-[#5B473A]">support@rootsandroutes.example (placeholder)</p>
+                        <p className="text-sm text-[#5B473A]">rootsandroutes.bothell@gmail.com</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
