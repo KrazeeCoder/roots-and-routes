@@ -153,10 +153,6 @@ begin
     new.posted_by_name = public.display_name_for(new.created_by);
   end if;
 
-  if tg_table_name = 'resources' and new.tags is null then
-    new.tags = '{}'::text[];
-  end if;
-
   new.updated_at = now();
   return new;
 end;
