@@ -12,6 +12,7 @@ import { Portal } from "./pages/Portal";
 import { PortalResources } from "./pages/PortalResources";
 import { PortalEvents } from "./pages/PortalEvents";
 import { PortalModeration } from "./pages/PortalModeration";
+import { Reference } from "./pages/Reference";
 import { RequireAuth, RequireModerator } from "./auth/RouteGuards";
 
 export const router = createBrowserRouter([
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
       { path: "events", Component: Events },
       { path: "suggest", Component: Suggest },
       { path: "about", Component: About },
+      { path: "reference", Component: Reference },
       { path: "contributor-login", Component: ContributorLogin },
       { path: "reset-password", Component: ResetPassword },
       {

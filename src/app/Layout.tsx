@@ -9,6 +9,7 @@ const navItems = [
   { name: "Events", href: "/events", isRoute: true },
   { name: "Suggest a Resource", href: "/suggest", isRoute: true },
   { name: "About", href: "/about", isRoute: true },
+  { name: "Reference", href: "/reference", isRoute: true },
   { name: "Contributor Portal", href: "/contributor-login", isRoute: true },
 ];
 
@@ -136,6 +137,11 @@ export function Layout() {
               <li>
                 <Link to="/about" className="hover:text-white transition-colors">
                   About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/reference" className="hover:text-white transition-colors">
+                  Reference
                 </Link>
               </li>
             </ul>
