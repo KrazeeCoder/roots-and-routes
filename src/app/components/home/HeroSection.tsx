@@ -166,11 +166,21 @@ export function HeroSection() {
               </svg>
             </div>
             
-            {/* Abstract Topo Badge */}
-            <div className="absolute top-12 -left-6 bg-[#334233] text-[#F6F1E7] p-4 rounded-full shadow-lg z-20 border-4 border-[#F6F1E7]">
-              <div className="text-center w-16 h-16 flex flex-col justify-center items-center rounded-full border border-dashed border-[#A7AE8A]">
-                <span className="block text-2xl font-['Cormorant_Garamond',serif] font-bold leading-none text-[#E7D9C3]">24</span>
-                <span className="block text-[10px] uppercase tracking-wider text-[#A7AE8A] mt-1">Resources</span>
+            {/* Local Guide Accent */}
+            <div className="absolute top-12 -left-10 z-20 hidden sm:block">
+              <div className="rounded-2xl border border-[#E7D9C3] bg-[#F6F1E7]/95 backdrop-blur-sm px-4 py-3 shadow-lg">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[#6F7553]">Local Guide</p>
+                <p className="font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] leading-none mt-1">
+                  Bothell
+                </p>
+                <p className="mt-2 text-xs text-[#5B473A] inline-flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#B36A4C]" />
+                  Community Routes
+                </p>
+              </div>
+
+              <div className="mt-3 ml-2 relative w-20 h-20 rounded-full border border-dashed border-[#A7AE8A]/70 bg-[#E7D9C3]/55">
+                <div className="absolute inset-4 rounded-full border border-[#B36A4C]/45 bg-[#B36A4C]/12" />
               </div>
             </div>
 
