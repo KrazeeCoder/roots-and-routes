@@ -63,7 +63,8 @@ create table if not exists public.events (
 );
 
 -- Ensure required columns also exist for existing deployments.
-alter table if exists public.profiles add column if not exists role text not null default 'contributor';
+alter table if exists public.profiles add column if not exists role public.contributor_role not null default 'contributor';
+alter table if exists public.profiles add column if not exists status text not null default 'pending';
 alter table if exists public.profiles add column if not exists organization_name text;
 alter table if exists public.profiles add column if not exists display_name text;
 alter table if exists public.profiles add column if not exists first_name text;
@@ -113,7 +114,7 @@ alter table if exists public.events alter column created_by set default auth.uid
 
 alter table if exists public.profiles drop constraint if exists profiles_role_check;
 alter table if exists public.profiles
-add constraint profiles_role_check check (role in ('contributor', 'moderator', 'super_admin'));
+add constraint profiles_role_check check (role in ('contributor', 'moderator'));
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -186,25 +187,27 @@ as $$
 begin
   insert into public.profiles (
     id,
-    role,
+    email,
     organization_name,
     display_name,
     first_name,
     middle_name,
     last_name,
-    email,
-    phone
+    phone,
+    role,
+    status
   )
   values (
     new.id,
-    'contributor',
-    new.raw_user_meta_data ->> 'organization_name',
-    new.raw_user_meta_data ->> 'display_name',
-    new.raw_user_meta_data ->> 'first_name',
-    new.raw_user_meta_data ->> 'middle_name',
-    new.raw_user_meta_data ->> 'last_name',
     new.email,
-    new.raw_user_meta_data ->> 'phone'
+    new.raw_user_meta_data->>'organization_name',
+    new.raw_user_meta_data->>'display_name',
+    new.raw_user_meta_data->>'first_name',
+    new.raw_user_meta_data->>'middle_name',
+    new.raw_user_meta_data->>'last_name',
+    new.raw_user_meta_data->>'phone',
+    'contributor',
+    'pending'
   )
   on conflict (id) do nothing;
 
@@ -292,12 +295,15 @@ for select
 to authenticated
 using (created_by = auth.uid() or public.is_moderator());
 
-create policy "resources_insert_own"
+create policy "resources_insert_contributor"
 on public.resources
 for insert
 to authenticated
 with check (
-  created_by = auth.uid()
+  exists (
+    select 1 from public.profiles
+    where id = auth.uid() and status = 'approved'
+  )
   and (
     public.is_moderator()
     or status in ('draft', 'pending', 'archived')
@@ -308,9 +314,15 @@ create policy "resources_update_own_or_moderator"
 on public.resources
 for update
 to authenticated
-using (created_by = auth.uid() or public.is_moderator())
+using (
+  (created_by = auth.uid() and exists (select 1 from public.profiles where id = auth.uid() and status = 'approved'))
+  or public.is_moderator()
+)
 with check (
-  (created_by = auth.uid() or public.is_moderator())
+  (
+    (created_by = auth.uid() and exists (select 1 from public.profiles where id = auth.uid() and status = 'approved'))
+    or public.is_moderator()
+  )
   and (
     public.is_moderator()
     or status in ('draft', 'pending', 'archived')
@@ -344,12 +356,15 @@ for select
 to authenticated
 using (created_by = auth.uid() or public.is_moderator());
 
-create policy "events_insert_own"
+create policy "events_insert_contributor"
 on public.events
 for insert
 to authenticated
 with check (
-  created_by = auth.uid()
+  exists (
+    select 1 from public.profiles
+    where id = auth.uid() and status = 'approved'
+  )
   and (
     public.is_moderator()
     or status in ('draft', 'pending', 'archived')
@@ -360,9 +375,15 @@ create policy "events_update_own_or_moderator"
 on public.events
 for update
 to authenticated
-using (created_by = auth.uid() or public.is_moderator())
+using (
+  (created_by = auth.uid() and exists (select 1 from public.profiles where id = auth.uid() and status = 'approved'))
+  or public.is_moderator()
+)
 with check (
-  (created_by = auth.uid() or public.is_moderator())
+  (
+    (created_by = auth.uid() and exists (select 1 from public.profiles where id = auth.uid() and status = 'approved'))
+    or public.is_moderator()
+  )
   and (
     public.is_moderator()
     or status in ('draft', 'pending', 'archived')

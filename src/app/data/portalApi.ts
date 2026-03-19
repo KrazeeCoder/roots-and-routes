@@ -187,7 +187,7 @@ export async function listModerationResources(): Promise<ResourceRecord[]> {
   const { data, error } = await supabase
     .from("resources")
     .select("*")
-    .in("status", ["draft", "pending", "rejected"])
+    .in("status", ["draft", "pending", "published", "rejected", "archived"])
     .order("updated_at", { ascending: false });
 
   if (error) throw error;
@@ -198,11 +198,32 @@ export async function listModerationEvents(): Promise<EventRecord[]> {
   const { data, error } = await supabase
     .from("events")
     .select("*")
-    .in("status", ["draft", "pending", "rejected"])
+    .in("status", ["draft", "pending", "published", "rejected", "archived"])
     .order("starts_at", { ascending: true });
 
   if (error) throw error;
   return (data ?? []) as EventRecord[];
+}
+
+export async function listPendingProfiles(): Promise<ContributorProfile[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("role", "contributor")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as ContributorProfile[];
+}
+
+export async function updateProfileStatus(userId: string, status: "approved" | "rejected") {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ status })
+    .eq("id", userId);
+
+  if (error) throw error;
 }
 
 export async function createResource(payload: ResourcePayload) {

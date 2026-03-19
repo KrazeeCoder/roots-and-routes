@@ -20,14 +20,19 @@ export function PortalShell({ title, description, children }: PortalShellProps) 
   const { role, profile } = useAuth();
   const location = useLocation();
   const canModerate = isModerator(role);
+  const isApproved = canModerate || profile?.status === "approved";
 
   const handleSignOut = async () => {
     await signOutContributor();
   };
 
-  const navItems = canModerate
+  let navItems = canModerate
     ? [...portalNavItems, { label: "Moderation", href: "/portal/moderation" }]
     : portalNavItems;
+
+  if (!isApproved) {
+    navItems = navItems.filter((item) => item.href === "/portal");
+  }
 
   return (
     <div className="min-h-screen bg-[#F6F1E7]">

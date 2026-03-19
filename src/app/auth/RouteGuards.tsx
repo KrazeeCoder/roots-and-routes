@@ -33,3 +33,18 @@ export function RequireModerator({ children }: PropsWithChildren) {
 
   return <>{children}</>;
 }
+
+export function RequireApproved({ children }: PropsWithChildren) {
+  const { profile, role, loading } = useAuth();
+
+  if (loading) return <GuardLoadingState />;
+
+  // Moderators are always "approved" by nature of their role
+  if (role === "moderator") return <>{children}</>;
+
+  if (!profile || profile.status !== "approved") {
+    return <Navigate to="/portal" replace />;
+  }
+
+  return <>{children}</>;
+}
