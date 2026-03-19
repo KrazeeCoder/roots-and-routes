@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, Link } from "react-router";
+import { Outlet, Link, useLocation } from "react-router";
 import { Trees, Menu } from "lucide-react";
 
 const navItems = [
@@ -15,6 +15,9 @@ export function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen((open) => !open);
+
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233] font-['Public_Sans',sans-serif] selection:bg-[#E7D9C3] selection:text-[#334233] flex flex-col">
@@ -33,27 +36,28 @@ export function Layout() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8 items-center">
-              {navItems.map((item) =>
-                item.isRoute ? (
+              {navItems.map((item) => {
+                const isActive = currentPath === item.href || (item.href === "/" && currentPath === "");
+                const baseClass = "text-sm font-medium transition-colors relative group";
+                const activeClasses = isActive
+                  ? "text-[#334233] font-semibold"
+                  : "text-[#5B473A] hover:text-[#334233]";
+
+                return (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className="text-sm font-medium text-[#5B473A] hover:text-[#334233] transition-colors relative group"
+                    className={`${baseClass} ${activeClasses}`}
                   >
                     {item.name}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#B36A4C] transition-all group-hover:w-full"></span>
+                    <span
+                      className={`absolute -bottom-1 left-0 h-0.5 bg-[#B36A4C] transition-all ${
+                        isActive ? "w-full" : "w-0 group-hover:w-full"
+                      }`}
+                    ></span>
                   </Link>
-                ) : (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className="text-sm font-medium text-[#5B473A] hover:text-[#334233] transition-colors relative group"
-                  >
-                    {item.name}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#B36A4C] transition-all group-hover:w-full"></span>
-                  </a>
-                )
-              )}
+                );
+              })}
               <Link
                 to="/directory"
                 className="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-[#334233] hover:bg-[#B36A4C] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
@@ -79,17 +83,21 @@ export function Layout() {
         {/* Mobile navigation panel */}
         <div className={`md:hidden transition-max-h duration-300 overflow-hidden ${isMenuOpen ? "max-h-[400px]" : "max-h-0"}`}>
           <div className="px-4 pb-4 space-y-3">
-            {navItems.map((item) =>
-              item.isRoute ? (
-                <Link key={item.name} to={item.href} onClick={() => setIsMenuOpen(false)} className="block text-base font-medium text-[#334233] hover:text-[#B36A4C]">
+            {navItems.map((item) => {
+              const isActive = currentPath === item.href || (item.href === "/" && currentPath === "");
+              const activeText = isActive ? "text-[#334233] font-semibold" : "text-[#334233] hover:text-[#B36A4C]";
+
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block text-base font-medium transition-colors ${activeText}`}
+                >
                   {item.name}
                 </Link>
-              ) : (
-                <a key={item.name} href={item.href} className="block text-base font-medium text-[#334233] hover:text-[#B36A4C]">
-                  {item.name}
-                </a>
-              )
-            )}
+              );
+            })}
           </div>
         </div>
       </header>
