@@ -3,14 +3,11 @@ import { Outlet, Link, useLocation } from "react-router";
 import { Trees, Menu } from "lucide-react";
 
 const navItems = [
-  { name: "Home", href: "/", isRoute: true },
   { name: "Directory", href: "/directory", isRoute: true },
-  { name: "Spotlights", href: "/spotlights", isRoute: true },
   { name: "Events", href: "/events", isRoute: true },
-  { name: "Suggest a Resource", href: "/suggest", isRoute: true },
+  { name: "Spotlights", href: "/spotlights", isRoute: true },
+  { name: "References", href: "/reference", isRoute: true },
   { name: "About", href: "/about", isRoute: true },
-  { name: "Reference", href: "/reference", isRoute: true },
-  { name: "Contributor Portal", href: "/contributor-login", isRoute: true },
 ];
 
 export function Layout() {
@@ -38,7 +35,7 @@ export function Layout() {
 
             <nav className="hidden md:flex space-x-8 items-center">
               {navItems.map((item) => {
-                const isActive = currentPath === item.href || (item.href === "/" && currentPath === "");
+                const isActive = currentPath === item.href;
                 const baseClass = "text-sm font-medium transition-colors relative group";
                 const activeClasses = isActive
                   ? "text-[#334233] font-semibold"
@@ -55,13 +52,22 @@ export function Layout() {
                   </Link>
                 );
               })}
-              <Link
-                to="/directory"
-                className="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-[#334233] hover:bg-[#B36A4C] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
-              >
-                Explore Directory
-              </Link>
             </nav>
+
+            <div className="hidden md:flex items-center gap-3">
+              <Link
+                to="/suggest"
+                className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-[#334233] hover:bg-[#B36A4C] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
+              >
+                Suggest
+              </Link>
+              <Link
+                to="/contributor-login"
+                className="inline-flex items-center justify-center px-5 py-2.5 border border-[#334233] text-sm font-semibold rounded-xl text-[#334233] bg-transparent hover:bg-[#E7D9C3] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
+              >
+                Portal
+              </Link>
+            </div>
 
             <div className="flex md:hidden items-center">
               <button
@@ -77,11 +83,11 @@ export function Layout() {
         </div>
 
         <div
-          className={`md:hidden transition-max-h duration-300 overflow-hidden ${isMenuOpen ? "max-h-[400px]" : "max-h-0"}`}
+          className={`md:hidden transition-max-h duration-300 overflow-hidden ${isMenuOpen ? "max-h-[520px]" : "max-h-0"}`}
         >
           <div className="px-4 pb-4 space-y-3">
             {navItems.map((item) => {
-              const isActive = currentPath === item.href || (item.href === "/" && currentPath === "");
+              const isActive = currentPath === item.href;
               const activeText = isActive ? "text-[#334233] font-semibold" : "text-[#334233] hover:text-[#B36A4C]";
 
               return (
@@ -95,6 +101,23 @@ export function Layout() {
                 </Link>
               );
             })}
+
+            <div className="pt-2 space-y-2">
+              <Link
+                to="/suggest"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-center px-4 py-2.5 rounded-xl bg-[#334233] text-white text-sm font-semibold"
+              >
+                Suggest
+              </Link>
+              <Link
+                to="/contributor-login"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold"
+              >
+                Portal
+              </Link>
+            </div>
           </div>
         </div>
       </header>
