@@ -48,6 +48,8 @@ export interface EventRecord {
   category: string | null;
   description: string | null;
   location: string;
+  location_lat: number | null;
+  location_lng: number | null;
   starts_at: string;
   ends_at: string | null;
   image_url: string | null;
@@ -80,6 +82,8 @@ export interface EventPayload {
   category?: string | null;
   description?: string | null;
   location: string;
+  location_lat?: number | null;
+  location_lng?: number | null;
   starts_at: string;
   ends_at?: string | null;
   image_url?: string | null;

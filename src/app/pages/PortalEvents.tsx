@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useJsApiLoader } from "@react-google-maps/api";
 import { Pencil, PlusCircle, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -21,6 +22,8 @@ interface EventFormState {
   category: string;
   description: string;
   location: string;
+  locationLat: number | null;
+  locationLng: number | null;
   startsAt: string;
   endsAt: string;
   imageUrl: string;
@@ -33,6 +36,8 @@ const defaultForm: EventFormState = {
   category: "",
   description: "",
   location: "",
+  locationLat: null,
+  locationLng: null,
   startsAt: "",
   endsAt: "",
   imageUrl: "",
@@ -42,6 +47,7 @@ const defaultForm: EventFormState = {
 
 const contributorStatuses: ContentStatus[] = ["draft", "pending", "archived"];
 const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
+const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 function toInputDate(value: string) {
   const date = new Date(value);
@@ -58,12 +64,18 @@ function toIso(value: string) {
 
 export function PortalEvents() {
   const { user, role } = useAuth();
+  const { isLoaded: isMapsLoaded } = useJsApiLoader({
+    id: "portal-events-geocoder",
+    googleMapsApiKey: googleMapsApiKey || "",
+  });
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [form, setForm] = useState<EventFormState>(defaultForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [originalLocation, setOriginalLocation] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [geoNotice, setGeoNotice] = useState<string | null>(null);
 
   const canModerate = isModerator(role);
   const statuses = canModerate ? moderatorStatuses : contributorStatuses;
@@ -95,16 +107,20 @@ export function PortalEvents() {
 
   const resetForm = () => {
     setEditingId(null);
+    setOriginalLocation(null);
     setForm(defaultForm);
   };
 
   const startEdit = (event: EventRecord) => {
     setEditingId(event.id);
+    setOriginalLocation(event.location);
     setForm({
       title: event.title,
       category: event.category ?? "",
       description: event.description ?? "",
       location: event.location,
+      locationLat: event.location_lat,
+      locationLng: event.location_lng,
       startsAt: toInputDate(event.starts_at),
       endsAt: event.ends_at ? toInputDate(event.ends_at) : "",
       imageUrl: event.image_url ?? "",
@@ -113,18 +129,54 @@ export function PortalEvents() {
     });
   };
 
-  const handleSave = async (submitEvent: React.FormEvent) => {
+  const handleSave = async (submitEvent: FormEvent<HTMLFormElement>) => {
     submitEvent.preventDefault();
     if (!user) return;
 
     setSaving(true);
     setError(null);
+    setGeoNotice(null);
+
+    const locationText = form.location.trim();
+    let locationLat = form.locationLat;
+    let locationLng = form.locationLng;
+
+    if (locationText && isMapsLoaded && window.google?.maps?.Geocoder) {
+      try {
+        const geocoder = new window.google.maps.Geocoder();
+        const geocode = await geocoder.geocode({ address: locationText });
+        const location = geocode.results[0]?.geometry?.location;
+        if (location) {
+          locationLat = location.lat();
+          locationLng = location.lng();
+        } else {
+          if (!editingId || locationText !== (originalLocation ?? "")) {
+            locationLat = null;
+            locationLng = null;
+          }
+          setGeoNotice("Saved without map coordinates. Please double-check the location text if map placement looks off.");
+        }
+      } catch (geoError) {
+        console.error("Could not geocode event location", geoError);
+        if (!editingId || locationText !== (originalLocation ?? "")) {
+          locationLat = null;
+          locationLng = null;
+        }
+        setGeoNotice("Saved without map coordinates. Please double-check the location text if map placement looks off.");
+      }
+    } else if (!googleMapsApiKey) {
+      setGeoNotice("Saved without map coordinates because the Google Maps API key is missing.");
+    } else if (locationText && !isMapsLoaded) {
+      setGeoNotice("Saved without map coordinates because the map service is still loading. You can edit and resave shortly.");
+    }
 
     const payload = {
       title: form.title.trim(),
       category: form.category.trim() || null,
       description: form.description.trim() || null,
-      location: form.location.trim(),
+      location: locationText,
+      location_lat: locationLat,
+      location_lng: locationLng,
       starts_at: toIso(form.startsAt) || new Date().toISOString(),
       ends_at: toIso(form.endsAt),
       image_url: form.imageUrl.trim() || null,
@@ -175,6 +227,7 @@ export function PortalEvents() {
           <CardContent>
             <form className="space-y-4" onSubmit={handleSave}>
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              {geoNotice ? <p className="text-sm text-amber-700">{geoNotice}</p> : null}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

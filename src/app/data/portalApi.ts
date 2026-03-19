@@ -248,9 +248,12 @@ export function mapEventToEventItem(event: EventRecord): EventItem {
     title: event.title,
     time: display.time,
     location: event.location,
+    startsAt: event.starts_at,
     category: event.category ?? "Community Event",
     image: event.image_url,
     postedByName: event.posted_by_name ?? "Community Contributor",
+    locationLat: event.location_lat,
+    locationLng: event.location_lng,
     status: event.status,
   };
 }

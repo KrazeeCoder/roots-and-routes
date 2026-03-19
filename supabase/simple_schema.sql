@@ -49,6 +49,8 @@ create table if not exists public.events (
   category text,
   description text,
   location text not null,
+  location_lat double precision,
+  location_lng double precision,
   starts_at timestamptz not null default now(),
   ends_at timestamptz,
   image_url text,
@@ -94,6 +96,8 @@ alter table if exists public.events add column if not exists title text;
 alter table if exists public.events add column if not exists category text;
 alter table if exists public.events add column if not exists description text;
 alter table if exists public.events add column if not exists location text;
+alter table if exists public.events add column if not exists location_lat double precision;
+alter table if exists public.events add column if not exists location_lng double precision;
 alter table if exists public.events add column if not exists starts_at timestamptz not null default now();
 alter table if exists public.events add column if not exists ends_at timestamptz;
 alter table if exists public.events add column if not exists image_url text;
@@ -236,6 +240,7 @@ create index if not exists events_status_idx on public.events(status);
 create index if not exists events_created_by_idx on public.events(created_by);
 create index if not exists events_starts_at_idx on public.events(starts_at);
 create index if not exists events_spotlight_idx on public.events(is_spotlight);
+create index if not exists events_location_coords_idx on public.events(location_lat, location_lng);
 
 alter table public.profiles enable row level security;
 alter table public.resources enable row level security;

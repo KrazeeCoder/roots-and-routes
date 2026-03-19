@@ -46,8 +46,11 @@ export interface EventItem {
   title: string;
   time: string;
   location: string;
+  startsAt?: string;
   category: string;
   image?: string | null;
   postedByName?: string;
+  locationLat?: number | null;
+  locationLng?: number | null;
   status?: "draft" | "pending" | "published" | "rejected" | "archived";
 }
