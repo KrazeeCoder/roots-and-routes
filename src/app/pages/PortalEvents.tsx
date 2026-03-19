@@ -16,6 +16,7 @@ import {
   updateEvent,
 } from "../data/portalApi";
 import type { ContentStatus, EventRecord } from "../types/portal";
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/googleMaps";
 
 interface EventFormState {
   title: string;
@@ -47,7 +48,6 @@ const defaultForm: EventFormState = {
 
 const contributorStatuses: ContentStatus[] = ["draft", "pending", "archived"];
 const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 function toInputDate(value: string) {
   const date = new Date(value);
@@ -64,10 +64,7 @@ function toIso(value: string) {
 
 export function PortalEvents() {
   const { user, role } = useAuth();
-  const { isLoaded: isMapsLoaded } = useJsApiLoader({
-    id: "portal-events-geocoder",
-    googleMapsApiKey: googleMapsApiKey || "",
-  });
+  const { isLoaded: isMapsLoaded } = useJsApiLoader(GOOGLE_MAPS_LOADER_OPTIONS);
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [form, setForm] = useState<EventFormState>(defaultForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -164,7 +161,7 @@ export function PortalEvents() {
         }
         setGeoNotice("Saved without map coordinates. Please double-check the location text if map placement looks off.");
       }
-    } else if (!googleMapsApiKey) {
+    } else if (!GOOGLE_MAPS_API_KEY) {
       setGeoNotice("Saved without map coordinates because the Google Maps API key is missing.");
     } else if (locationText && !isMapsLoaded) {
       setGeoNotice("Saved without map coordinates because the map service is still loading. You can edit and resave shortly.");
