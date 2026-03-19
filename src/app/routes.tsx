@@ -15,7 +15,7 @@ import { PortalModeration } from "./pages/PortalModeration";
 import { Reference } from "./pages/Reference";
 import { ResourceDetail } from "./pages/ResourceDetail";
 import { EventDetail } from "./pages/EventDetail";
-import { RequireAuth, RequireModerator } from "./auth/RouteGuards";
+import { RequireAuth, RequireModerator, RequireApproved } from "./auth/RouteGuards";
 
 export const router = createBrowserRouter([
   {
@@ -45,7 +45,9 @@ export const router = createBrowserRouter([
         path: "portal/resources",
         element: (
           <RequireAuth>
-            <PortalResources />
+            <RequireApproved>
+              <PortalResources />
+            </RequireApproved>
           </RequireAuth>
         ),
       },
@@ -53,7 +55,9 @@ export const router = createBrowserRouter([
         path: "portal/events",
         element: (
           <RequireAuth>
-            <PortalEvents />
+            <RequireApproved>
+              <PortalEvents />
+            </RequireApproved>
           </RequireAuth>
         ),
       },

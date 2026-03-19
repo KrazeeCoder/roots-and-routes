@@ -10,6 +10,7 @@ export type ContentStatus =
 export interface ContributorProfile {
   id: string;
   role: ContributorRole;
+  status: "pending" | "approved" | "rejected";
   organization_name: string | null;
   display_name: string | null;
   first_name: string | null;

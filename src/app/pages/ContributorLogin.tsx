@@ -115,7 +115,7 @@ export function ContributorLogin() {
         return;
       }
 
-      setMessage("Account created. Check your email to verify, then sign in.");
+      setMessage("Account created. Your account is pending administrator approval. Check your email to verify your email address first.");
       setMode("signin");
       setEmail(signUp.email);
       setPassword("");
@@ -148,10 +148,10 @@ export function ContributorLogin() {
         <div className="text-center mb-8">
           <p className="text-sm font-semibold uppercase tracking-wider text-[#6F7553]">Roots & Routes</p>
           <h1 className="font-['Cormorant_Garamond',serif] text-5xl font-bold text-[#334233]">
-            Contributor Portal
+            Admin & Contributor Portal
           </h1>
           <p className="mt-3 text-[#5B473A]">
-            Contributors can submit and manage resources/events. Public browsing remains open for everyone.
+            Administrators and contributors can manage local resources and events. Public browsing remains open for everyone.
           </p>
         </div>
 
