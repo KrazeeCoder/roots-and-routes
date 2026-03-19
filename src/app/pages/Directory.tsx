@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router";
 import { Search, MapPin, Phone, Globe, Clock, Filter, X, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
@@ -15,6 +16,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   Jobs:    "bg-[#6F7553]/10 text-[#6F7553] border-[#6F7553]/30",
   Legal:   "bg-[#F6F1E7] text-[#5B473A] border-[#E7D9C3]",
 };
+
+function normalizeWebsite(url: string) {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  return `https://${trimmed}`;
+}
 
 export function Directory() {
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
@@ -290,14 +298,14 @@ export function Directory() {
                     >
                       {/* Image */}
                       {entry.image && (
-                        <div className="h-40 overflow-hidden flex-shrink-0 relative">
+                        <Link to={`/resources/${entry.id}`} className="h-40 overflow-hidden flex-shrink-0 relative block">
                           <ImageWithFallback
                             src={entry.image}
                             alt={entry.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/30 to-transparent" />
-                        </div>
+                        </Link>
                       )}
 
                       <div className="p-6 flex flex-col flex-grow">
@@ -308,9 +316,11 @@ export function Directory() {
                           </span>
                         </div>
 
-                        <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] mb-2 group-hover:text-[#B36A4C] transition-colors">
-                          {entry.name}
-                        </h3>
+                        <Link to={`/resources/${entry.id}`}>
+                          <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] mb-2 group-hover:text-[#B36A4C] transition-colors">
+                            {entry.name}
+                          </h3>
+                        </Link>
                         <p className="text-[#5B473A] text-sm leading-relaxed mb-5 flex-grow">
                           {entry.description}
                         </p>
@@ -329,6 +339,13 @@ export function Directory() {
                             </span>
                           ))}
                         </div>
+
+                        <Link
+                          to={`/resources/${entry.id}`}
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-[#334233] hover:text-[#B36A4C] transition-colors mb-5"
+                        >
+                          View Details <ChevronRight className="w-4 h-4" />
+                        </Link>
 
                         {/* Contact details */}
                         <div className="space-y-2 text-sm text-[#5B473A] border-t border-[#E7D9C3] pt-4">
@@ -354,7 +371,7 @@ export function Directory() {
                             <div className="flex items-center gap-2.5">
                               <Globe className="w-4 h-4 text-[#A7AE8A] flex-shrink-0" />
                               <a
-                                href={`https://${entry.website}`}
+                                href={normalizeWebsite(entry.website)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="hover:text-[#B36A4C] transition-colors truncate"

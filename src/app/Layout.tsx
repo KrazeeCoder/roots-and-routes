@@ -17,6 +17,11 @@ export function Layout() {
 
   const location = useLocation();
   const currentPath = location.pathname;
+  const isNavActive = (href: string) => {
+    if (href === "/events") return currentPath === "/events" || currentPath.startsWith("/events/");
+    if (href === "/directory") return currentPath === "/directory" || currentPath.startsWith("/resources/");
+    return currentPath === href;
+  };
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233] font-['Public_Sans',sans-serif] selection:bg-[#E7D9C3] selection:text-[#334233] flex flex-col">
@@ -35,7 +40,7 @@ export function Layout() {
 
             <nav className="hidden md:flex space-x-8 items-center">
               {navItems.map((item) => {
-                const isActive = currentPath === item.href;
+                const isActive = isNavActive(item.href);
                 const baseClass = "text-sm font-medium transition-colors relative group";
                 const activeClasses = isActive
                   ? "text-[#334233] font-semibold"
@@ -87,7 +92,7 @@ export function Layout() {
         >
           <div className="px-4 pb-4 space-y-3">
             {navItems.map((item) => {
-              const isActive = currentPath === item.href;
+              const isActive = isNavActive(item.href);
               const activeText = isActive ? "text-[#334233] font-semibold" : "text-[#334233] hover:text-[#B36A4C]";
 
               return (

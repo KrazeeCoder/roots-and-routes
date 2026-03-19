@@ -94,6 +94,18 @@ export async function listPublishedResources(): Promise<ResourceRecord[]> {
   return (data ?? []) as ResourceRecord[];
 }
 
+export async function getPublishedResourceById(resourceId: string): Promise<ResourceRecord | null> {
+  const { data, error } = await supabase
+    .from("resources")
+    .select("*")
+    .eq("id", resourceId)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") throw error;
+  return (data as ResourceRecord | null) ?? null;
+}
+
 export async function listPublishedEvents(): Promise<EventRecord[]> {
   const { data, error } = await supabase
     .from("events")
@@ -103,6 +115,18 @@ export async function listPublishedEvents(): Promise<EventRecord[]> {
 
   if (error) throw error;
   return (data ?? []) as EventRecord[];
+}
+
+export async function getPublishedEventById(eventId: string): Promise<EventRecord | null> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("id", eventId)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") throw error;
+  return (data as EventRecord | null) ?? null;
 }
 
 export async function listSpotlightItems(): Promise<SpotlightItem[]> {

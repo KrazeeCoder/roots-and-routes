@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
 import { ArrowRight, MapPin, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
@@ -178,10 +179,13 @@ export function Spotlights() {
                 <p className="text-[#5B473A] leading-relaxed mb-8 line-clamp-4">
                   {featured.fullDescription}
                 </p>
-                <button className="self-start inline-flex items-center justify-center px-7 py-3 rounded-xl bg-[#334233] text-white font-semibold text-sm hover:bg-[#B36A4C] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-white">
+                <Link
+                  to={`/resources/${featured.id}`}
+                  className="self-start inline-flex items-center justify-center px-7 py-3 rounded-xl bg-[#334233] text-white font-semibold text-sm hover:bg-[#B36A4C] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-white"
+                >
                   Read Full Story
                   <ArrowRight className="ml-2 w-4 h-4" />
-                </button>
+                </Link>
               </div>
             </div>
           </ScrollReveal>
@@ -226,9 +230,12 @@ export function Spotlights() {
 
                 {/* Content */}
                 <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] mb-1.5 leading-tight group-hover:text-[#B36A4C] transition-colors">
+                  <Link
+                    to={`/resources/${item.id}`}
+                    className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] mb-1.5 leading-tight group-hover:text-[#B36A4C] transition-colors"
+                  >
                     {item.title}
-                  </h3>
+                  </Link>
                   <p className="text-[#6F7553] text-xs font-medium italic mb-3">{item.subtitle}</p>
                   <p className="text-[#5B473A] text-sm leading-relaxed line-clamp-3 mb-5 flex-grow">
                     {item.description}
@@ -246,10 +253,13 @@ export function Spotlights() {
                     </div>
                   </div>
 
-                  <div className="flex items-center text-[#B36A4C] text-sm font-semibold mt-auto">
+                  <Link
+                    to={`/resources/${item.id}`}
+                    className="flex items-center text-[#B36A4C] text-sm font-semibold mt-auto hover:text-[#8A6F5A] transition-colors"
+                  >
                     Read Full Story
                     <ArrowRight className="ml-1.5 w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                  </div>
+                  </Link>
                 </div>
               </div>
             </StaggerItem>

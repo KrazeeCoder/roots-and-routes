@@ -13,6 +13,8 @@ import { PortalResources } from "./pages/PortalResources";
 import { PortalEvents } from "./pages/PortalEvents";
 import { PortalModeration } from "./pages/PortalModeration";
 import { Reference } from "./pages/Reference";
+import { ResourceDetail } from "./pages/ResourceDetail";
+import { EventDetail } from "./pages/EventDetail";
 import { RequireAuth, RequireModerator } from "./auth/RouteGuards";
 
 export const router = createBrowserRouter([
@@ -24,8 +26,10 @@ export const router = createBrowserRouter([
       { path: "directory", Component: Directory },
       { path: "spotlights", Component: Spotlights },
       { path: "events", Component: Events },
+      { path: "events/:eventId", Component: EventDetail },
       { path: "suggest", Component: Suggest },
       { path: "about", Component: About },
+      { path: "resources/:resourceId", Component: ResourceDetail },
       { path: "reference", Component: Reference },
       { path: "contributor-login", Component: ContributorLogin },
       { path: "reset-password", Component: ResetPassword },

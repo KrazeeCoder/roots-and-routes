@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link } from "react-router";
 import { useJsApiLoader, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
 import { Calendar, Check, Clock, List, Map, MapPin, Navigation, Sparkles, Users } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
@@ -119,6 +120,7 @@ export function Events() {
 
   const mapCenter = activeCenter ?? { ...bothellCenter, label: "Bothell, WA" };
   const selectedMarker = mapEvents.find((event) => event.id === selectedMarkerId);
+  const featuredHref = featured?.id ? `/events/${featured.id}` : null;
 
   useEffect(() => {
     if (selectedMarkerId && !mapEvents.some((event) => event.id === selectedMarkerId)) {
@@ -285,9 +287,18 @@ export function Events() {
                       {featured?.category ?? "Community Event"}
                     </span>
                   </div>
-                  <h3 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233]">
-                    {featured?.title ?? "No published event yet"}
-                  </h3>
+                  {featuredHref ? (
+                    <Link
+                      to={featuredHref}
+                      className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] hover:text-[#B36A4C] transition-colors"
+                    >
+                      {featured?.title ?? "No published event yet"}
+                    </Link>
+                  ) : (
+                    <h3 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233]">
+                      {featured?.title ?? "No published event yet"}
+                    </h3>
+                  )}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 text-[#5B473A] text-sm mt-4">
                     <span className="inline-flex items-center gap-2">
                       <Clock className="w-4 h-4 text-[#A7AE8A]" /> {featured?.time ?? "Time TBD"}
@@ -298,9 +309,15 @@ export function Events() {
                   </div>
 
                   <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                    <Button variant="default" className="w-full sm:w-auto">
-                      RSVP & Details
-                    </Button>
+                    {featuredHref ? (
+                      <Button variant="default" className="w-full sm:w-auto" asChild>
+                        <Link to={featuredHref}>RSVP & Details</Link>
+                      </Button>
+                    ) : (
+                      <Button variant="default" className="w-full sm:w-auto">
+                        RSVP & Details
+                      </Button>
+                    )}
                     <Button variant="outline" className="w-full sm:w-auto">
                       Add to Calendar
                     </Button>
@@ -503,7 +520,16 @@ export function Events() {
                     >
                       <div className="max-w-[220px] text-[#334233]">
                         <p className="text-xs uppercase tracking-wide text-[#6F7553]">{selectedMarker.category}</p>
-                        <p className="font-semibold">{selectedMarker.title}</p>
+                        {selectedMarker.id ? (
+                          <Link
+                            to={`/events/${selectedMarker.id}`}
+                            className="font-semibold hover:text-[#B36A4C] transition-colors"
+                          >
+                            {selectedMarker.title}
+                          </Link>
+                        ) : (
+                          <p className="font-semibold">{selectedMarker.title}</p>
+                        )}
                         <p className="text-sm text-[#5B473A]">{selectedMarker.location}</p>
                         <p className="text-xs text-[#6F7553] mt-1">{selectedMarker.date} • {selectedMarker.time}</p>
                         {selectedMarker.distanceMiles !== null ? (
@@ -527,8 +553,11 @@ export function Events() {
             </p>
           ) : (
             <StaggerGroup className="mt-12 space-y-10">
-              {visibleEvents.map((event, index) => (
-                <StaggerItem key={event.id ?? index} className="relative">
+              {visibleEvents.map((event, index) => {
+                const detailHref = event.id ? `/events/${event.id}` : null;
+
+                return (
+                  <StaggerItem key={event.id ?? index} className="relative">
                   <div className="relative border-l-2 border-[#A7AE8A]/50 pl-8 sm:pl-12">
                     <div className="absolute -left-[34px] top-4 w-8 h-8 rounded-full bg-[#F6F1E7] border-4 border-[#A7AE8A] shadow-sm" />
                     <div className="bg-white rounded-3xl border border-[#E7D9C3] shadow-sm p-8 hover:border-[#B36A4C] hover:shadow-md transition-all">
@@ -538,7 +567,13 @@ export function Events() {
                             <span className="px-3 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">{event.date}</span>
                             <span className="px-3 py-1 rounded-full bg-[#B36A4C]/10 text-[#B36A4C]">{event.category}</span>
                           </div>
-                          <h3 className="text-2xl font-bold text-[#334233] mb-2">{event.title}</h3>
+                          {detailHref ? (
+                            <Link to={detailHref} className="text-2xl font-bold text-[#334233] mb-2 hover:text-[#B36A4C] transition-colors block">
+                              {event.title}
+                            </Link>
+                          ) : (
+                            <h3 className="text-2xl font-bold text-[#334233] mb-2">{event.title}</h3>
+                          )}
                           <div className="flex flex-wrap gap-6 text-[#5B473A] text-sm mb-4">
                             <span className="inline-flex items-center gap-2">
                               <Clock className="w-4 h-4 text-[#A7AE8A]" /> {event.time}
@@ -556,9 +591,15 @@ export function Events() {
                             <p className="text-xs text-[#6F7553] mb-4">Posted by {event.postedByName}</p>
                           ) : null}
                           <div className="flex flex-wrap gap-3">
-                            <Button variant="outline" size="sm">
-                              Save to Calendar
-                            </Button>
+                            {detailHref ? (
+                              <Button variant="outline" size="sm" asChild>
+                                <Link to={detailHref}>View Details</Link>
+                              </Button>
+                            ) : (
+                              <Button variant="outline" size="sm">
+                                View Details
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm">
                               Share
                             </Button>
@@ -573,8 +614,9 @@ export function Events() {
                       </div>
                     </div>
                   </div>
-                </StaggerItem>
-              ))}
+                  </StaggerItem>
+                );
+              })}
             </StaggerGroup>
           )}
 
