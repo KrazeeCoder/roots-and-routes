@@ -10,8 +10,8 @@ import { Label } from "../components/ui/label";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 import { listPublishedEvents, mapEventToEventItem } from "../data/portalApi";
 import type { EventItem } from "../types/home";
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/googleMaps";
 
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const bothellCenter = { lat: 47.7614, lng: -122.2052 };
 const radiusOptions = [5, 10, 25, 50] as const;
 
@@ -45,10 +45,7 @@ function distanceMiles(latA: number, lngA: number, latB: number, lngB: number) {
 }
 
 export function Events() {
-  const { isLoaded: isMapsLoaded } = useJsApiLoader({
-    id: "events-map-view",
-    googleMapsApiKey: googleMapsApiKey || "",
-  });
+  const { isLoaded: isMapsLoaded } = useJsApiLoader(GOOGLE_MAPS_LOADER_OPTIONS);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -171,7 +168,7 @@ export function Events() {
       return;
     }
 
-    if (!googleMapsApiKey) {
+    if (!GOOGLE_MAPS_API_KEY) {
       setNearbyMessage("Google Maps API key is missing, so ZIP search is unavailable.");
       return;
     }
@@ -483,7 +480,7 @@ export function Events() {
 
           {viewMode === "map" ? (
             <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white shadow-sm overflow-hidden">
-              {!googleMapsApiKey ? (
+              {!GOOGLE_MAPS_API_KEY ? (
                 <p className="p-6 text-sm text-[#5B473A]">
                   Add <code>VITE_GOOGLE_MAPS_API_KEY</code> to enable map view.
                 </p>

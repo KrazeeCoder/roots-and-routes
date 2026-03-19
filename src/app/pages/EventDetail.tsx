@@ -95,23 +95,25 @@ export function EventDetail() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
-      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-20 pb-20">
+      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-24 pb-22">
         <div className="absolute inset-0 pointer-events-none opacity-70">
           <TopoPattern opacity={0.12} />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/65 via-[#334233]/35 to-transparent" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link to="/events" className="inline-flex items-center gap-2 text-[#E7D9C3] hover:text-white text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Events
-          </Link>
+          <div className="space-y-5">
+            <Link to="/events" className="inline-flex items-center gap-2 text-[#E7D9C3] hover:text-white text-sm">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Events
+            </Link>
 
-          <div className="mt-6 inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
-            {event.category ?? "Community Event"}
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
+              {event.category ?? "Community Event"}
+            </div>
           </div>
 
-          <h1 className="mt-5 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
+          <h1 className="mt-8 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
             {event.title}
           </h1>
           <p className="mt-4 text-[#A7AE8A] text-lg leading-relaxed max-w-3xl">
@@ -169,7 +171,7 @@ export function EventDetail() {
             {event.posted_by_name ? (
               <p className="inline-flex items-center gap-2 text-sm text-[#6F7553]">
                 <User className="w-4 h-4 text-[#A7AE8A]" />
-                Posted by {event.posted_by_name}
+                Organized by {event.posted_by_name}
               </p>
             ) : null}
           </div>

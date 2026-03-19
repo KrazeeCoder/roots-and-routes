@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, Clock, Globe, MapPin, Phone, Tag } from "lucide-react";
+import { ArrowLeft, Clock, ExternalLink, Globe, MapPin, Phone, Tag, User } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
@@ -12,6 +12,15 @@ function normalizeWebsite(url: string) {
   if (!trimmed) return "";
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
   return `https://${trimmed}`;
+}
+
+function getWebsiteLabel(url: string) {
+  const normalized = normalizeWebsite(url);
+  try {
+    return new URL(normalized).hostname.replace(/^www\./, "");
+  } catch {
+    return url.replace(/^https?:\/\//, "").replace(/^www\./, "");
+  }
 }
 
 export function ResourceDetail() {
@@ -81,23 +90,25 @@ export function ResourceDetail() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
-      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-20 pb-20">
+      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-24 pb-22">
         <div className="absolute inset-0 pointer-events-none opacity-70">
           <TopoPattern opacity={0.12} />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/65 via-[#334233]/35 to-transparent" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link to="/directory" className="inline-flex items-center gap-2 text-[#E7D9C3] hover:text-white text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Directory
-          </Link>
+          <div className="space-y-5">
+            <Link to="/directory" className="inline-flex items-center gap-2 text-[#E7D9C3] hover:text-white text-sm">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Directory
+            </Link>
 
-          <div className="mt-6 inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
-            {resource.category}
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
+              {resource.category}
+            </div>
           </div>
 
-          <h1 className="mt-5 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
+          <h1 className="mt-8 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
             {resource.name}
           </h1>
           <p className="mt-4 text-[#A7AE8A] text-lg leading-relaxed max-w-3xl">
@@ -127,8 +138,9 @@ export function ResourceDetail() {
                 {resource.full_description ?? resource.description}
               </p>
               {resource.posted_by_name ? (
-                <p className="mt-4 text-xs text-[#6F7553]">
-                  Posted by {resource.posted_by_name}
+                <p className="mt-4 inline-flex items-center gap-2 text-xs text-[#6F7553]">
+                  <User className="w-4 h-4 text-[#A7AE8A]" />
+                  Organized by {resource.posted_by_name}
                 </p>
               ) : null}
             </div>
@@ -170,13 +182,14 @@ export function ResourceDetail() {
                     <Globe className="w-4 h-4 text-[#A7AE8A]" />
                     Website
                   </div>
+                  <p className="text-xs text-[#6F7553] mb-3 break-words">{getWebsiteLabel(resource.website)}</p>
                   <a
                     href={normalizeWebsite(resource.website)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-[#B36A4C] transition-colors break-all"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#D8C9AF] bg-white px-3 py-1.5 text-sm font-semibold text-[#334233] hover:text-[#B36A4C] hover:border-[#B36A4C]/50 transition-colors"
                   >
-                    {resource.website}
+                    Visit Website <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
               ) : null}
