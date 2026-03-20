@@ -264,7 +264,7 @@ export async function deleteEvent(eventId: string) {
 }
 
 export function isModerator(role: ContributorRole | null | undefined) {
-  return role === "moderator";
+  return role === "moderator" || role === "super_admin";
 }
 
 export function mapResourceToDirectoryEntry(resource: ResourceRecord): DirectoryEntry {
