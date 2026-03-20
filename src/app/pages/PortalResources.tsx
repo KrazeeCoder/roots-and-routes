@@ -127,10 +127,12 @@ export function PortalResources() {
 
   const sortedResources = useMemo(
     () =>
-      [...resources].sort(
-        (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-      ),
-    [resources],
+      [...resources]
+        .filter(resource => canModerate ? resource.status !== "archived" : true)
+        .sort(
+          (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+        ),
+    [resources, canModerate],
   );
 
   const resetForm = () => {

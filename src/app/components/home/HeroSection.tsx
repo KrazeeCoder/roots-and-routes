@@ -3,7 +3,7 @@ import { Search, ChevronDown, MapPin } from "lucide-react";
 import { TopoPattern } from "../TopoPattern";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "../ui/image-with-fallback";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 
 type SearchTarget = "resources" | "events";
 
@@ -163,19 +163,19 @@ export function HeroSection() {
               <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/40 to-transparent"></div>
               
               {/* Overlay card */}
-              <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-xl border border-[#E7D9C3]">
+              <Link to="/directory?category=Parks%20%26%20Recreation" className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-xl border border-[#E7D9C3] hover:bg-white hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233]">Bothell Community Trails</h3>
+                    <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] group-hover:text-[#B36A4C] transition-colors">Bothell Community Trails</h3>
                     <p className="text-sm text-[#6F7553] mt-1 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5" /> 3.2 miles of connected paths
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-[#B36A4C]/10 flex items-center justify-center text-[#B36A4C]">
+                  <div className="w-10 h-10 rounded-full bg-[#B36A4C]/10 flex items-center justify-center text-[#B36A4C] group-hover:bg-[#B36A4C] group-hover:text-white transition-all duration-300">
                     <ChevronDown className="w-5 h-5 -rotate-90" />
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
 
             {/* Decorative Map / Route Line */}
