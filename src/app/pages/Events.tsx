@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { useJsApiLoader, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
 import { Calendar, Check, Clock, List, Map, MapPin, Navigation, Sparkles, Users } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
@@ -45,6 +45,9 @@ function distanceMiles(latA: number, lngA: number, latB: number, lngB: number) {
 }
 
 export function Events() {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q")?.trim() ?? "";
+  const normalizedQuery = query.toLowerCase();
   const { isLoaded: isMapsLoaded } = useJsApiLoader(GOOGLE_MAPS_LOADER_OPTIONS);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
@@ -97,13 +100,30 @@ export function Events() {
     });
   }, [activeCenter, events]);
 
-  const visibleEvents = useMemo<EventWithDistance[]>(() => {
-    if (!activeCenter) return eventsWithDistance;
+  const textMatchedEvents = useMemo<EventWithDistance[]>(() => {
+    if (!normalizedQuery) return eventsWithDistance;
 
-    return eventsWithDistance
+    return eventsWithDistance.filter((event) => {
+      const haystack = [
+        event.title,
+        event.category,
+        event.location,
+        event.date,
+        event.time,
+        event.postedByName ?? "",
+      ].join(" ").toLowerCase();
+
+      return haystack.includes(normalizedQuery);
+    });
+  }, [eventsWithDistance, normalizedQuery]);
+
+  const visibleEvents = useMemo<EventWithDistance[]>(() => {
+    if (!activeCenter) return textMatchedEvents;
+
+    return textMatchedEvents
       .filter((event) => event.distanceMiles !== null && event.distanceMiles <= radiusMilesFilter)
       .sort((a, b) => (a.distanceMiles ?? Number.MAX_SAFE_INTEGER) - (b.distanceMiles ?? Number.MAX_SAFE_INTEGER));
-  }, [activeCenter, eventsWithDistance, radiusMilesFilter]);
+  }, [activeCenter, textMatchedEvents, radiusMilesFilter]);
 
   const mapEvents = useMemo(
     () => visibleEvents.filter((event) => hasCoordinates(event)),
@@ -112,8 +132,8 @@ export function Events() {
 
   const hiddenWithoutCoordinates = useMemo(() => {
     if (!activeCenter) return 0;
-    return events.filter((event) => !hasCoordinates(event)).length;
-  }, [activeCenter, events]);
+    return textMatchedEvents.filter((event) => !hasCoordinates(event)).length;
+  }, [activeCenter, textMatchedEvents]);
 
   const mapCenter = activeCenter ?? { ...bothellCenter, label: "Bothell, WA" };
   const selectedMarker = mapEvents.find((event) => event.id === selectedMarkerId);
@@ -469,6 +489,11 @@ export function Events() {
               ) : (
                 <p>Showing all published events.</p>
               )}
+              {query ? (
+                <p className="mt-1 text-[#6F7553]">
+                  Keyword filter: <span className="font-semibold text-[#334233]">{query}</span>
+                </p>
+              ) : null}
               {nearbyMessage ? <p className="mt-1 text-[#6F7553]">{nearbyMessage}</p> : null}
               {activeCenter && hiddenWithoutCoordinates > 0 ? (
                 <p className="mt-1 text-[#6F7553]">
@@ -546,7 +571,11 @@ export function Events() {
             <p className="mt-10 text-[#5B473A]">Loading events...</p>
           ) : visibleEvents.length === 0 ? (
             <p className="mt-10 text-[#5B473A]">
-              {activeCenter ? "No events found in this radius yet." : "No published events yet."}
+              {query
+                ? `No events match "${query}"${activeCenter ? " in this radius yet." : "."}`
+                : activeCenter
+                  ? "No events found in this radius yet."
+                  : "No published events yet."}
             </p>
           ) : (
             <StaggerGroup className="mt-12 space-y-10">

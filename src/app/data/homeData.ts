@@ -1,8 +1,6 @@
 import { Wheat, HeartPulse, Home, Users, Briefcase, Calendar, Search, Filter, HandHeart } from "lucide-react";
 import { EventItem, Step, Waypoint, DirectoryEntry, SpotlightItem } from "../types/home";
 
-export const heroFilters = ["Food", "Housing", "Health", "Youth", "Jobs", "Legal", "Events"];
-
 export const waypoints: Waypoint[] = [
   { name: "Food Assistance", icon: Wheat, desc: "Pantries, meal programs, and fresh produce." },
   { name: "Health & Wellness", icon: HeartPulse, desc: "Clinics, mental health support, and care." },

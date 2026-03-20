@@ -1,23 +1,37 @@
-import { useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { Search, ChevronDown, MapPin } from "lucide-react";
 import { TopoPattern } from "../TopoPattern";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "../ui/image-with-fallback";
-import { heroFilters } from "../../data/homeData";
+import { useNavigate } from "react-router";
+
+type SearchTarget = "resources" | "events";
 
 export function HeroSection() {
   const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
-
-  const visibleFilters = useMemo(
-    () => heroFilters.filter((item) => item.toLowerCase().includes(query.trim().toLowerCase())),
-    [query]
-  );
+  const [searchTarget, setSearchTarget] = useState<SearchTarget>("resources");
+  const navigate = useNavigate();
 
   const searchLabel = useMemo(() => {
-    if (!query && !activeFilter) return "Search for a resource above.";
-    return `Showing results for "${query || "all"}" in ${activeFilter || "all categories"}.`;
-  }, [query, activeFilter]);
+    if (!query.trim()) return "Choose Resources or Events, then search by keyword.";
+    return `Press Search to view ${searchTarget} matching "${query.trim()}".`;
+  }, [query, searchTarget]);
+
+  const runSearch = () => {
+    const params = new URLSearchParams();
+    const trimmedQuery = query.trim();
+    const route = searchTarget === "events" ? "/events" : "/directory";
+
+    if (trimmedQuery) params.set("q", trimmedQuery);
+
+    const search = params.toString();
+    navigate(search ? `${route}?${search}` : route);
+  };
+
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    runSearch();
+  };
 
   return (
     <section className="relative overflow-hidden bg-[#F6F1E7] border-b border-[#E7D9C3] pt-12 pb-24 lg:pt-24 lg:pb-32">
@@ -65,57 +79,65 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="mt-10"
             >
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                  <Search className="h-6 w-6 text-[#6F7553] group-focus-within:text-[#B36A4C] transition-colors" />
-                </div>
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  className="block w-full pl-12 pr-32 py-5 sm:text-lg border-2 border-[#E7D9C3] rounded-2xl bg-white shadow-sm focus:ring-0 focus:border-[#A7AE8A] transition-all text-[#334233] placeholder-[#A7AE8A]"
-                  placeholder="What are you looking for?"
-                  aria-label="Search resources"
-                />
-                <div className="absolute inset-y-2 right-2 flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => setActiveFilter(null)}
-                    className="h-full px-4 bg-[#E7D9C3] text-[#334233] rounded-l-xl border border-[#C2B99E] text-sm cursor-pointer hover:bg-[#DCD2B8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2 focus:ring-offset-white"
-                    aria-label="Clear search"
-                  >
-                    Clear
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveFilter(activeFilter || "all")}
-                    className="h-full px-6 bg-[#334233] text-white rounded-r-xl font-medium hover:bg-[#B36A4C] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-white"
-                  >
-                    Search
-                  </button>
-                </div>
-              </div>
-
-              {/* Filter Chips */}
-              <div className="mt-6 flex flex-wrap gap-2">
-                {visibleFilters.length > 0 ? (
-                  visibleFilters.map((filter) => (
+              <form className="group" onSubmit={handleSearchSubmit}>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                    <Search className="h-6 w-6 text-[#6F7553] group-focus-within:text-[#B36A4C] transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    className="block w-full pl-12 pr-4 sm:pr-40 py-5 sm:text-lg border-2 border-[#E7D9C3] rounded-2xl bg-white shadow-sm focus:ring-0 focus:border-[#A7AE8A] transition-all text-[#334233] placeholder-[#A7AE8A]"
+                    placeholder={searchTarget === "events" ? "Search events..." : "Search resources..."}
+                    aria-label={`Search ${searchTarget}`}
+                  />
+                  <div className="mt-3 flex items-center justify-end sm:mt-0 sm:absolute sm:inset-y-2 sm:right-2">
                     <button
-                      key={filter}
-                      onClick={() => setActiveFilter(filter)}
-                      className={`px-4 py-1.5 rounded-full border text-sm transition-colors ${
-                        activeFilter === filter
-                          ? "bg-[#B36A4C] border-[#B36A4C] text-white"
-                          : "bg-white/60 border-[#E7D9C3] text-[#5B473A] hover:border-[#B36A4C] hover:text-[#B36A4C]"
-                      }`}
-                      aria-pressed={activeFilter === filter}
+                      type="button"
+                      onClick={() => {
+                        setQuery("");
+                      }}
+                      className="h-11 sm:h-full px-4 bg-[#E7D9C3] text-[#334233] rounded-l-xl border border-[#C2B99E] text-sm cursor-pointer hover:bg-[#DCD2B8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2 focus:ring-offset-white"
+                      aria-label="Clear search"
                     >
-                      {filter}
+                      Clear
                     </button>
-                  ))
-                ) : (
-                  <p className="text-sm text-[#6F7553]">No filters match your query.</p>
-                )}
+                    <button
+                      type="submit"
+                      className="h-11 sm:h-full px-6 bg-[#334233] text-white rounded-r-xl font-medium hover:bg-[#B36A4C] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-white"
+                    >
+                      Search
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <div className="mt-6 inline-flex items-center rounded-full border border-[#E7D9C3] bg-white p-1 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setSearchTarget("resources")}
+                  className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
+                    searchTarget === "resources"
+                      ? "bg-[#334233] text-white"
+                      : "text-[#5B473A] hover:text-[#B36A4C]"
+                  }`}
+                  aria-pressed={searchTarget === "resources"}
+                >
+                  Resources
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSearchTarget("events")}
+                  className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
+                    searchTarget === "events"
+                      ? "bg-[#334233] text-white"
+                      : "text-[#5B473A] hover:text-[#B36A4C]"
+                  }`}
+                  aria-pressed={searchTarget === "events"}
+                >
+                  Events
+                </button>
               </div>
 
               <p className="mt-4 text-sm text-[#6F7553]">{searchLabel}</p>

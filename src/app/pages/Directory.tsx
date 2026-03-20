@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { Search, MapPin, Phone, Globe, Clock, Filter, X, ChevronRight, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
@@ -24,12 +24,25 @@ function normalizeWebsite(url: string) {
   return `https://${trimmed}`;
 }
 
+function normalizeCategoryParam(value: string | null) {
+  if (!value) return "All";
+  return value.toLowerCase() === "all" ? "All" : value;
+}
+
 export function Directory() {
+  const [searchParams] = useSearchParams();
+  const queryParam = searchParams.get("q") ?? "";
+  const categoryParam = normalizeCategoryParam(searchParams.get("category"));
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(true);
-  const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [query, setQuery] = useState(queryParam);
+  const [activeCategory, setActiveCategory] = useState(categoryParam);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  useEffect(() => {
+    setQuery(queryParam);
+    setActiveCategory(categoryParam);
+  }, [queryParam, categoryParam]);
 
   useEffect(() => {
     let cancelled = false;
@@ -162,7 +175,7 @@ export function Directory() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setQuery("")}
-                  className="absolute inset-y-0 right-0 mr-2"
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
                   aria-label="Clear search"
                 >
                   <X className="w-4 h-4" />
