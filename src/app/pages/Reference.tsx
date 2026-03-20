@@ -61,10 +61,10 @@ export function Reference() {
                   <p className="text-sm text-[#5B473A] mb-4">Completed project work log for this entry.</p>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" asChild>
-                      <a href="#" target="_blank" rel="noopener noreferrer">View PDF</a>
+                      <a href="/StudentWorklog.pdf" target="_blank" rel="noopener noreferrer">View PDF</a>
                     </Button>
                     <Button variant="outline" size="sm" asChild>
-                      <a href="#" download>Download</a>
+                      <a href="/StudentWorklog.pdf" download>Download</a>
                     </Button>
                   </div>
                 </div>
