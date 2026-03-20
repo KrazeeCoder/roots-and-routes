@@ -194,13 +194,28 @@ export function Reference() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.05}>
-              <article className="h-full p-4 sm:p-5 rounded-2xl border border-dashed border-[#B36A4C]/40 bg-[#E7D9C3]/20">
-                <h3 className="text-xl font-semibold text-[#334233]">Work Log</h3>
-                <p className="text-sm text-[#5B473A] mt-1">
-                  Placeholder for now. The work log PDF will be embedded here once it is uploaded.
-                </p>
-                <div className="mt-5 rounded-xl border border-dashed border-[#B36A4C]/35 bg-[#F6F1E7] h-[320px] sm:h-[380px] flex items-center justify-center text-center px-6">
-                  <p className="text-sm text-[#7A5A47]">Work Log PDF Placeholder</p>
+              <article className="h-full p-4 sm:p-5 rounded-2xl bg-white border border-[#E7D9C3] shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
+                  <div>
+                    <h3 className="text-xl font-semibold text-[#334233]">Work Log</h3>
+                    <p className="text-sm text-[#5B473A] mt-1">Completed plan of work log for this project entry.</p>
+                  </div>
+                  <a
+                    href="https://drive.google.com/file/d/1no-PkCYWgZ9pZp7qSL_dS2aGdXFbJSHA/view"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-[#B36A4C] hover:underline whitespace-nowrap"
+                  >
+                    Open in New Tab
+                  </a>
+                </div>
+                <div className="overflow-hidden rounded-xl border border-[#E7D9C3] bg-[#F6F1E7]">
+                  <iframe
+                    src="https://drive.google.com/file/d/1no-PkCYWgZ9pZp7qSL_dS2aGdXFbJSHA/preview"
+                    title="Work Log PDF"
+                    className="w-full h-[320px] sm:h-[380px]"
+                    loading="lazy"
+                  />
                 </div>
               </article>
             </ScrollReveal>
