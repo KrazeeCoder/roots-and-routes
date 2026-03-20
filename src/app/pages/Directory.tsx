@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
-import { Search, MapPin, Phone, Globe, Clock, Filter, X, ChevronRight } from "lucide-react";
+import { Search, MapPin, Phone, Globe, Clock, Filter, X, ChevronRight, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
@@ -364,6 +364,17 @@ export function Directory() {
                               <Phone className="w-4 h-4 text-[#A7AE8A] flex-shrink-0" />
                               <a href={`tel:${entry.phone}`} className="hover:text-[#B36A4C] transition-colors">
                                 {entry.phone}
+                              </a>
+                            </div>
+                          )}
+                          {entry.email && (
+                            <div className="flex items-center gap-2.5">
+                              <Mail className="w-4 h-4 text-[#A7AE8A] flex-shrink-0" />
+                              <a
+                                href={`mailto:${entry.email.trim().toLowerCase()}`}
+                                className="hover:text-[#B36A4C] transition-colors truncate"
+                              >
+                                {entry.email}
                               </a>
                             </div>
                           )}

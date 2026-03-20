@@ -30,6 +30,7 @@ create table if not exists public.resources (
   full_description text,
   address text not null,
   phone text,
+  email text,
   website text,
   hours text,
   tags text[] not null default '{}'::text[],
@@ -81,6 +82,7 @@ alter table if exists public.resources add column if not exists description text
 alter table if exists public.resources add column if not exists full_description text;
 alter table if exists public.resources add column if not exists address text;
 alter table if exists public.resources add column if not exists phone text;
+alter table if exists public.resources add column if not exists email text;
 alter table if exists public.resources add column if not exists website text;
 alter table if exists public.resources add column if not exists hours text;
 alter table if exists public.resources add column if not exists tags text[] not null default '{}'::text[];

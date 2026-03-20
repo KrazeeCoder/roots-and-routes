@@ -276,7 +276,7 @@ export function Events() {
             <ScrollReveal delay={0.2}>
               <div className="mt-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
                 <div className="space-y-3">
-                  <div className="inline-flex items-center gap-3 text-sm font-semibold text-[#334233]/80">
+                  <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-[#334233]/80">
                     <span className="px-3 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
                       {featured?.date ?? "TBD"}
                     </span>
@@ -287,7 +287,7 @@ export function Events() {
                   {featuredHref ? (
                     <Link
                       to={featuredHref}
-                      className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] hover:text-[#B36A4C] transition-colors"
+                      className="block font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] hover:text-[#B36A4C] transition-colors"
                     >
                       {featured?.title ?? "No published event yet"}
                     </Link>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, Clock, ExternalLink, Globe, MapPin, Phone, Tag, User } from "lucide-react";
+import { ArrowLeft, Clock, ExternalLink, Globe, Mail, MapPin, Phone, Tag, User } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
@@ -21,6 +21,10 @@ function getWebsiteLabel(url: string) {
   } catch {
     return url.replace(/^https?:\/\//, "").replace(/^www\./, "");
   }
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
 }
 
 export function ResourceDetail() {
@@ -90,25 +94,25 @@ export function ResourceDetail() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
-      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-24 pb-22">
+      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-24 pb-24">
         <div className="absolute inset-0 pointer-events-none opacity-70">
           <TopoPattern opacity={0.12} />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/65 via-[#334233]/35 to-transparent" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-5">
+          <div className="flex flex-col items-start gap-6">
             <Link to="/directory" className="inline-flex items-center gap-2 text-[#E7D9C3] hover:text-white text-sm">
               <ArrowLeft className="w-4 h-4" />
               Back to Directory
             </Link>
 
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
               {resource.category}
-            </div>
+            </span>
           </div>
 
-          <h1 className="mt-8 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
+          <h1 className="mt-3 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
             {resource.name}
           </h1>
           <p className="mt-4 text-[#A7AE8A] text-lg leading-relaxed max-w-3xl">
@@ -164,15 +168,28 @@ export function ResourceDetail() {
                 </div>
               ) : null}
 
-              {resource.phone ? (
+              {(resource.phone || resource.email) ? (
                 <div className="rounded-2xl border border-[#E7D9C3] bg-[#F6F1E7] p-4 text-sm text-[#5B473A]">
                   <div className="inline-flex items-center gap-2 text-[#334233] font-semibold mb-1">
                     <Phone className="w-4 h-4 text-[#A7AE8A]" />
-                    Phone
+                    Contact Info
                   </div>
-                  <a href={`tel:${resource.phone}`} className="hover:text-[#B36A4C] transition-colors">
-                    {resource.phone}
-                  </a>
+                  <div className="space-y-1">
+                    {resource.phone ? (
+                      <a href={`tel:${resource.phone}`} className="block hover:text-[#B36A4C] transition-colors">
+                        {resource.phone}
+                      </a>
+                    ) : null}
+                    {resource.email ? (
+                      <a
+                        href={`mailto:${normalizeEmail(resource.email)}`}
+                        className="inline-flex items-center gap-1.5 hover:text-[#B36A4C] transition-colors"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        {resource.email}
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
 

@@ -30,6 +30,7 @@ export interface ResourceRecord {
   full_description: string | null;
   address: string;
   phone: string | null;
+  email: string | null;
   website: string | null;
   hours: string | null;
   tags: string[];
@@ -69,6 +70,7 @@ export interface ResourcePayload {
   full_description?: string | null;
   address: string;
   phone?: string | null;
+  email?: string | null;
   website?: string | null;
   hours?: string | null;
   tags?: string[];

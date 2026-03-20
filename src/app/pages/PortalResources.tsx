@@ -23,6 +23,7 @@ interface ResourceFormState {
   fullDescription: string;
   address: string;
   phone: string;
+  email: string;
   website: string;
   hours: string;
   tags: string;
@@ -39,6 +40,7 @@ const defaultForm: ResourceFormState = {
   fullDescription: "",
   address: "",
   phone: "",
+  email: "",
   website: "",
   hours: "",
   tags: "",
@@ -66,6 +68,17 @@ function normalizeHttpUrl(raw: string) {
 
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
   return parsed.toString();
+}
+
+function normalizeEmail(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed)) {
+    return null;
+  }
+
+  return trimmed.toLowerCase();
 }
 
 function hasPlaceholderHost(url: string) {
@@ -134,6 +147,7 @@ export function PortalResources() {
       fullDescription: resource.full_description ?? "",
       address: resource.address,
       phone: resource.phone ?? "",
+      email: resource.email ?? "",
       website: resource.website ?? "",
       hours: resource.hours ?? "",
       tags: resource.tags.join(", "),
@@ -175,6 +189,13 @@ export function PortalResources() {
       return;
     }
 
+    const normalizedEmail = normalizeEmail(form.email);
+    if (form.email.trim() && !normalizedEmail) {
+      setSaving(false);
+      setError("Email must be valid (for example: hello@organization.org).");
+      return;
+    }
+
     const payload = {
       name: form.name.trim(),
       category: form.category.trim(),
@@ -182,6 +203,7 @@ export function PortalResources() {
       full_description: form.fullDescription.trim() || null,
       address: form.address.trim(),
       phone: form.phone.trim() || null,
+      email: normalizedEmail,
       website: normalizedWebsite,
       hours: form.hours.trim() || null,
       tags: form.tags
@@ -300,13 +322,22 @@ export function PortalResources() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="resource-phone">Phone</Label>
                   <Input
                     id="resource-phone"
                     value={form.phone}
                     onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="resource-email">Email</Label>
+                  <Input
+                    id="resource-email"
+                    type="email"
+                    value={form.email}
+                    onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
                   />
                 </div>
                 <div>

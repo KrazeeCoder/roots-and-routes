@@ -7,6 +7,7 @@ export interface DirectoryEntry {
   description: string;
   address: string;
   phone?: string;
+  email?: string;
   website?: string;
   hours?: string;
   tags: string[];

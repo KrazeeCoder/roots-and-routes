@@ -275,6 +275,7 @@ export function mapResourceToDirectoryEntry(resource: ResourceRecord): Directory
     description: resource.description,
     address: resource.address,
     phone: resource.phone ?? undefined,
+    email: resource.email ?? undefined,
     website: resource.website ?? undefined,
     hours: resource.hours ?? undefined,
     tags: resource.tags ?? [],
