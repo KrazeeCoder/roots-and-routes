@@ -65,21 +65,53 @@ export function Directory() {
     };
   }, []);
 
+  const waypointCategories = [
+    'Food Assistance',
+    'Housing Support', 
+    'Health & Wellness',
+    'Youth Programs',
+    'Job Help',
+    'Community Events',
+    'Basic Needs',
+    'Food',
+    'Financial Assistance',
+    'Seniors',
+    'Health',
+    'Education',
+    'Civic',
+    'Arts',
+    'Culture'
+  ];
+
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
     return entries.filter((entry) => {
+      // Exclude waypoint categories from directory (check both exact and partial matches)
+      const isWaypointCategory = waypointCategories.some(cat => 
+        entry.category === cat || entry.category.includes(cat) || cat.includes(entry.category)
+      );
       const matchesCategory = activeCategory === "All" || entry.category === activeCategory;
       const matchesQuery =
         !q ||
         entry.name.toLowerCase().includes(q) ||
         entry.description.toLowerCase().includes(q) ||
         entry.tags.some((t) => t.toLowerCase().includes(q));
-      return matchesCategory && matchesQuery;
+      return !isWaypointCategory && matchesCategory && matchesQuery;
     });
   }, [query, activeCategory, entries]);
 
   const allCategories = useMemo(
-    () => ["All", ...Array.from(new Set(entries.map((entry) => entry.category))).sort()],
+    () => {
+      const categories = entries
+        .filter(entry => {
+          // Exclude waypoint categories from available categories
+          return !waypointCategories.some(cat => 
+            entry.category === cat || entry.category.includes(cat) || cat.includes(entry.category)
+          );
+        })
+        .map(entry => entry.category);
+      return ["All", ...Array.from(new Set(categories))].sort();
+    },
     [entries],
   );
 
@@ -227,8 +259,8 @@ export function Directory() {
                       {cat}
                       <span className="float-right text-xs opacity-50">
                         {cat === "All"
-                          ? entries.length
-                          : entries.filter((e) => e.category === cat).length}
+                          ? filtered.length
+                          : filtered.filter((e) => e.category === cat).length}
                       </span>
                     </button>
                   </li>
