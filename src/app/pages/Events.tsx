@@ -58,6 +58,8 @@ export function Events() {
   const [nearbyMessage, setNearbyMessage] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
+  const [eventsWithGeocodedCoords, setEventsWithGeocodedCoords] = useState<EventItem[]>([]);
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,7 +68,41 @@ export function Events() {
       try {
         const nextEvents = await listPublishedEvents();
         if (cancelled) return;
-        setEvents(nextEvents.map(mapEventToEventItem));
+        const mappedEvents = nextEvents.map(mapEventToEventItem);
+        setEvents(mappedEvents);
+
+        // Geocode events that don't have coordinates but have addresses
+        if (isMapsLoaded && window.google?.maps?.Geocoder) {
+          setIsGeocoding(true);
+          const geocoder = new window.google.maps.Geocoder();
+          const geocodedEvents = await Promise.all(
+            mappedEvents.map(async (event) => {
+              if (!hasCoordinates(event) && event.location && event.location.trim()) {
+                try {
+                  const geocode = await geocoder.geocode({ address: event.location });
+                  const location = geocode.results[0]?.geometry?.location;
+                  if (location) {
+                    return {
+                      ...event,
+                      locationLat: location.lat(),
+                      locationLng: location.lng(),
+                    };
+                  }
+                } catch (error) {
+                  console.warn(`Could not geocode event location: ${event.location}`, error);
+                }
+              }
+              return event;
+            })
+          );
+          if (!cancelled) {
+            setEventsWithGeocodedCoords(geocodedEvents);
+            setIsGeocoding(false);
+          }
+        } else {
+          setEventsWithGeocodedCoords(mappedEvents);
+          setIsGeocoding(false);
+        }
       } catch (error) {
         console.error("Could not load published events", error);
       } finally {
@@ -78,12 +114,13 @@ export function Events() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isMapsLoaded]);
 
   const featured = events[0];
 
   const eventsWithDistance = useMemo<EventWithDistance[]>(() => {
-    return events.map((event) => {
+    const sourceEvents = eventsWithGeocodedCoords.length > 0 ? eventsWithGeocodedCoords : events;
+    return sourceEvents.map((event) => {
       if (!activeCenter || !hasCoordinates(event)) {
         return { ...event, distanceMiles: null };
       }
@@ -98,7 +135,7 @@ export function Events() {
         ),
       };
     });
-  }, [activeCenter, events]);
+  }, [activeCenter, events, eventsWithGeocodedCoords]);
 
   const textMatchedEvents = useMemo<EventWithDistance[]>(() => {
     if (!normalizedQuery) return eventsWithDistance;
@@ -511,6 +548,8 @@ export function Events() {
                 </p>
               ) : !isMapsLoaded ? (
                 <p className="p-6 text-sm text-[#5B473A]">Loading map...</p>
+              ) : isGeocoding ? (
+                <p className="p-6 text-sm text-[#5B473A]">Geocoding event addresses...</p>
               ) : mapEvents.length === 0 ? (
                 <p className="p-6 text-sm text-[#5B473A]">No mappable events found for the current nearby filter.</p>
               ) : (

@@ -12,6 +12,17 @@ import { listPublishedEvents, listPublishedResources } from "../data/portalApi";
 const HERO_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/08/Bothell_Way_northbound_from_Main_Street_in_Bothell%2C_WA.jpg";
 const EVENTS_FALLBACK_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg";
 
+const additionalReferenceImages = [
+  "https://snohomishtalk.com/wp-content/uploads/2023/11/Snohomish-Holiday-Lights-bothell.jpg",
+  "https://www.bothellwa.gov/PhotoGallery/8/DSC_0019.JPG",
+  "https://komonews.com/resources/media/3d6a23d3-40fa-41df-a2a2-6a7b47757f3f-large16x9_FTP13BothellParkPKGMPI_frame_1599.jpg?1513237652429",
+  "https://th.bing.com/th/id/R.92828e16bc5ec7a6cd000351fe7350ee?rik=7x07Uss9zIqoHw&pid=ImgRaw&r=0",
+  "https://s3-media2.fl.yelpcdn.com/bphoto/mc9BDeBAMVY5laY66kHm3Q/ls.jpg",
+  "https://www.communitytransit.org/images/default-source/about-images/bothell_city_hall-_2022.jpg?Status=Master&sfvrsn=4c31799d_1",
+  "https://www.beginatbothell.com/wp-content/uploads/2024/05/Blyth-Park.png",
+  "https://d2660z551umiy9.cloudfront.net/images/Promos/Anderson/Main%20page/Fall%20Winter/anderson-header-5.jpg",
+];
+
 const developmentSources = [
   { name: "React Documentation", url: "https://react.dev/" },
   { name: "Vite Documentation", url: "https://vite.dev/" },
@@ -138,6 +149,7 @@ export function Reference() {
         [
           HERO_IMAGE_URL,
           EVENTS_FALLBACK_IMAGE_URL,
+          ...additionalReferenceImages,
           ...seededEvents.map((event) => event.image).filter((image): image is string => Boolean(image)),
           ...seededDirectoryEntries.map((entry) => entry.image).filter((image): image is string => Boolean(image)),
           ...seededSpotlights.map((item) => item.image).filter((image): image is string => Boolean(image)),
