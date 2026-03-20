@@ -326,7 +326,7 @@ export function PortalEvents() {
                         setForm((prev) => ({ ...prev, isSpotlight: event.target.checked }))
                       }
                     />
-                    <Label htmlFor="event-spotlight" className="font-normal">
+                    <Label htmlFor="event-spotlight" className="font-normal mb-0">
                       Include in spotlight
                     </Label>
                   </div>

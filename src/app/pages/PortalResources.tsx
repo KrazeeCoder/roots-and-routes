@@ -312,7 +312,7 @@ export function PortalResources() {
                         setForm((prev) => ({ ...prev, isSpotlight: event.target.checked }))
                       }
                     />
-                    <Label htmlFor="resource-spotlight" className="font-normal">
+                    <Label htmlFor="resource-spotlight" className="font-normal mb-0">
                       Include in spotlight
                     </Label>
                   </div>
