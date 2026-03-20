@@ -156,8 +156,8 @@ export function ContributorLogin() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-3 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-14 gap-6 items-start">
+          <div className="lg:col-span-4 space-y-6">
             <Card className="border-[#E7D9C3] bg-white shadow-sm">
               <CardHeader>
                 <CardTitle className="text-base font-semibold text-[#334233]">Role Information</CardTitle>
@@ -391,7 +391,7 @@ export function ContributorLogin() {
             </Card>
           </div>
 
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-4 space-y-6">
             <Card className="border-[#B36A4C]/30 bg-[#B36A4C]/5 shadow-sm overflow-hidden">
               <CardHeader className="bg-[#B36A4C]/10 py-4">
                 <CardTitle className="text-base font-semibold text-[#334233] flex items-center gap-2">
@@ -406,13 +406,21 @@ export function ContributorLogin() {
                 <div className="space-y-3">
                   <div className="p-3 rounded-xl bg-white border border-[#E7D9C3] text-sm shadow-sm hover:border-[#B36A4C]/50 transition-colors">
                     <p className="font-bold text-[#334233] text-[10px] uppercase tracking-wider mb-2 text-[#B36A4C]">Admin Access</p>
-                    <p className="font-mono text-[11px] break-all text-[#334233] mb-1">Rootsandroutes.bothell@outlook.com</p>
-                    <p className="font-mono text-[11px] text-[#334233]">judges!!</p>
+                    <div className="space-y-2 mb-3">
+                      <div>
+                        <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Username:</p>
+                        <p className="font-mono text-[11px] break-all text-[#334233]">Rootsandroutes.bothell@outlook.com</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Password:</p>
+                        <p className="font-mono text-[11px] text-[#334233]">judges!!</p>
+                      </div>
+                    </div>
                     <Button
                       type="button"
                       variant="default"
                       size="sm"
-                      className="w-full mt-3 h-8 text-xs bg-[#B36A4C] hover:bg-[#B36A4C]/90"
+                      className="w-full h-8 text-xs bg-[#B36A4C] hover:bg-[#B36A4C]/90"
                       onClick={() => {
                         setMode("signin");
                         setEmail("Rootsandroutes.bothell@outlook.com");
@@ -425,13 +433,21 @@ export function ContributorLogin() {
 
                   <div className="p-3 rounded-xl bg-white border border-[#E7D9C3] text-sm shadow-sm hover:border-[#B36A4C]/50 transition-colors">
                     <p className="font-bold text-[#334233] text-[10px] uppercase tracking-wider mb-2 text-[#A7AE8A]">Contributor Access</p>
-                    <p className="font-mono text-[11px] break-all text-[#334233] mb-1">Rootsandroutes.bothell+1@outlook.com</p>
-                    <p className="font-mono text-[11px] text-[#334233]">judges!!!</p>
+                    <div className="space-y-2 mb-3">
+                      <div>
+                        <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Username:</p>
+                        <p className="font-mono text-[11px] break-all text-[#334233]">Rootsandroutes.bothell+1@outlook.com</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Password:</p>
+                        <p className="font-mono text-[11px] text-[#334233]">judges!!!</p>
+                      </div>
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="w-full mt-3 h-8 text-xs border-[#A7AE8A] text-[#334233] hover:bg-[#A7AE8A]/10"
+                      className="w-full h-8 text-xs border-[#A7AE8A] text-[#334233] hover:bg-[#A7AE8A]/10"
                       onClick={() => {
                         setMode("signin");
                         setEmail("Rootsandroutes.bothell+1@outlook.com");
