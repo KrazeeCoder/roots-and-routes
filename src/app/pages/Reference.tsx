@@ -9,8 +9,8 @@ import { TopoPattern } from "../components/TopoPattern";
 import { ScrollReveal } from "../components/ScrollReveal";
 import { listPublishedEvents, listPublishedResources } from "../data/portalApi";
 
-const HERO_IMAGE_URL = "https://images.unsplash.com/photo-1630123738777-fdd4f8b7d16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWNpZmljJTIwbm9ydGh3ZXN0JTIwdHJhaWx8ZW58MXx8fHwxNzczNzM0OTMyfDA&ixlib=rb-4.1.0&q=80&w=1080";
-const EVENTS_FALLBACK_IMAGE_URL = "https://images.unsplash.com/photo-1528605248644-14dd04022da1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
+const HERO_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/08/Bothell_Way_northbound_from_Main_Street_in_Bothell%2C_WA.jpg";
+const EVENTS_FALLBACK_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg";
 
 const developmentSources = [
   { name: "React Documentation", url: "https://react.dev/" },
@@ -23,7 +23,7 @@ const developmentSources = [
 ];
 
 const licenseSources = [
-  { name: "Unsplash License", url: "https://unsplash.com/license" },
+  { name: "Wikimedia Commons (CC BY-SA / GFDL / CC0)", url: "https://commons.wikimedia.org/wiki/Main_Page" },
   { name: "shadcn/ui (MIT License)", url: "https://github.com/shadcn-ui/ui/blob/main/LICENSE.md" },
   { name: "Google Fonts (Cormorant Garamond + Public Sans)", url: "https://fonts.google.com/" },
 ];
@@ -41,9 +41,7 @@ const researchSources = [
 ];
 
 const knownBrokenImageIds = [
-  "1576091160399-112ba8d25d1f",
-  "1579952363873-27d3bfad9c0d",
-  "1593113592332-6e2ee791ef60",
+  "images.unsplash.com",
 ];
 
 function ensureAbsoluteUrl(url: string) {
