@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { FileText, Link as LinkIcon, Code2, Globe, Sparkles } from "lucide-react";
+import {
+  directoryEntries as seededDirectoryEntries,
+  events as seededEvents,
+  spotlights as seededSpotlights,
+} from "../data/homeData";
 import { TopoPattern } from "../components/TopoPattern";
 import { ScrollReveal } from "../components/ScrollReveal";
 import { listPublishedEvents, listPublishedResources } from "../data/portalApi";
@@ -23,22 +28,30 @@ const licenseSources = [
   { name: "Google Fonts (Cormorant Garamond + Public Sans)", url: "https://fonts.google.com/" },
 ];
 
+const researchSources = [
+  { name: "WCAG 2.2 Quick Reference (W3C)", url: "https://www.w3.org/WAI/WCAG22/quickref/" },
+  { name: "WAI-ARIA Authoring Practices (W3C)", url: "https://www.w3.org/WAI/ARIA/apg/" },
+  { name: "MDN: Web Accessibility", url: "https://developer.mozilla.org/en-US/docs/Web/Accessibility" },
+  { name: "web.dev Accessibility", url: "https://web.dev/accessibility" },
+  { name: "Google Maps JavaScript API", url: "https://developers.google.com/maps/documentation/javascript" },
+  { name: "City of Bothell: Your Community", url: "https://www.bothellwa.gov/148/Your-Community" },
+  { name: "City of Bothell: City Services", url: "https://www.bothellwa.gov/101/City-Services" },
+  { name: "City of Bothell: Parks & Recreation", url: "https://www.bothellwa.gov/249/Parks-Recreation" },
+  { name: "City of Bothell: Maps & GIS", url: "https://www.bothellwa.gov/233/Maps-GIS" },
+];
+
 function ensureAbsoluteUrl(url: string) {
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `https://${url}`;
 }
 
-function toUnsplashPhotoPage(url: string) {
+function isPlaceholderDomain(url: string) {
   try {
     const parsed = new URL(url);
-    if (parsed.hostname !== "images.unsplash.com") return url;
+    return parsed.hostname === "example.com" || parsed.hostname.endsWith(".example.com");
   } catch {
-    return url;
+    return false;
   }
-
-  const idMatch = url.match(/photo-\d+-([a-zA-Z0-9_-]+)/);
-  if (!idMatch) return url;
-  return `https://unsplash.com/photos/${idMatch[1]}`;
 }
 
 function shortenUrl(url: string) {
@@ -94,7 +107,19 @@ export function Reference() {
   }, []);
 
   const organizationInfoSources = useMemo(
-    () => Array.from(new Set(resourceWebsites.map(ensureAbsoluteUrl))).sort((a, b) => a.localeCompare(b)),
+    () =>
+      Array.from(
+        new Set(
+          [
+            ...seededDirectoryEntries
+              .map((entry) => entry.website)
+              .filter((website): website is string => Boolean(website)),
+            ...resourceWebsites,
+          ]
+            .map(ensureAbsoluteUrl)
+            .filter((url) => !isPlaceholderDomain(url)),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
     [resourceWebsites],
   );
 
@@ -104,9 +129,12 @@ export function Reference() {
         [
           HERO_IMAGE_URL,
           EVENTS_FALLBACK_IMAGE_URL,
+          ...seededEvents.map((event) => event.image).filter((image): image is string => Boolean(image)),
+          ...seededDirectoryEntries.map((entry) => entry.image).filter((image): image is string => Boolean(image)),
+          ...seededSpotlights.map((item) => item.image).filter((image): image is string => Boolean(image)),
           ...resourceImages,
           ...eventImages,
-        ].map(toUnsplashPhotoPage),
+        ],
       ),
     ).sort((a, b) => a.localeCompare(b)),
     [eventImages, resourceImages],
@@ -174,7 +202,7 @@ export function Reference() {
                     <p className="text-sm text-[#5B473A] mt-1">Completed PDF checklist for copyright compliance.</p>
                   </div>
                   <a
-                    href="https://drive.google.com/file/d/1w0hx8C4wS7VfJsW31G8RHXz80T0R2hXQ/view"
+                    href="https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/view"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs font-semibold text-[#B36A4C] hover:underline whitespace-nowrap"
@@ -184,7 +212,7 @@ export function Reference() {
                 </div>
                 <div className="overflow-hidden rounded-xl border border-[#E7D9C3] bg-[#F6F1E7]">
                   <iframe
-                    src="https://drive.google.com/file/d/1w0hx8C4wS7VfJsW31G8RHXz80T0R2hXQ/preview"
+                    src="https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/preview"
                     title="Copyright Checklist PDF"
                     className="w-full h-[320px] sm:h-[380px]"
                     loading="lazy"
@@ -267,13 +295,13 @@ export function Reference() {
                   Image Sources
                 </h2>
                 <p className="text-sm text-[#5B473A] italic mb-4">
-                  The links below cover the hero image plus published event/resource images currently shown in the app.
+                  These are the exact image URLs currently used across home data, hero/fallback visuals, and published portal content.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-xs font-mono text-[#B36A4C] break-all max-h-[400px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-[#E7D9C3]">
                   {imageSources.map((url) => (
                     <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
                       <LinkIcon className="w-3 h-3" />
-                      {url.length > 50 ? url.substring(0, 50) + "..." : url}
+                      {url}
                     </a>
                   ))}
                 </div>
@@ -302,7 +330,7 @@ export function Reference() {
                 Organization Information Sources
               </h2>
               <p className="text-sm text-[#5B473A]">
-                These links are generated from currently published resources so citations stay aligned with live app content.
+                Combined from project directory data and published resource links, with placeholder domains excluded.
               </p>
               {organizationInfoSources.length === 0 ? (
                 <p className="text-sm text-[#6F7553]">
@@ -317,6 +345,24 @@ export function Reference() {
                   ))}
                 </div>
               )}
+            </div>
+          </ScrollReveal>
+
+          {/* Research Sources */}
+          <ScrollReveal>
+            <div className="space-y-6">
+              <h2 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] flex items-center gap-3">
+                <LinkIcon className="w-6 h-6 text-[#B36A4C]" />
+                Research Sources
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {researchSources.map((source) => (
+                  <a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer" className="text-xs p-3 rounded-lg bg-white border border-[#E7D9C3] text-[#334233] hover:bg-[#B36A4C] hover:text-white transition-colors block">
+                    <span className="font-semibold block truncate">{source.name}</span>
+                    <span className="opacity-80 block truncate mt-1">{shortenUrl(source.url)}</span>
+                  </a>
+                ))}
+              </div>
             </div>
           </ScrollReveal>
         </div>
