@@ -16,6 +16,17 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      // Proxy images.unsplash.com to avoid CORS issues
+      '/images.unsplash.com': {
+        target: 'https://images.unsplash.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/images\.unsplash\.com/, ''),
+      },
+    },
+  },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],

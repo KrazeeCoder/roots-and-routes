@@ -155,7 +155,7 @@ export function HeroSection() {
             <div className="absolute top-10 right-0 w-[85%] h-[80%] bg-[#E7D9C3] rounded-3xl rotate-3 shadow-sm border border-[#A7AE8A]/20"></div>
             <div className="absolute top-0 right-4 w-[85%] h-[85%] bg-white rounded-3xl -rotate-2 shadow-lg overflow-hidden border border-[#E7D9C3]">
               <ImageWithFallback 
-                src="https://images.unsplash.com/photo-1630123738777-fdd4f8b7d16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWNpZmljJTIwbm9ydGh3ZXN0JTIwdHJhaWx8ZW58MXx8fHwxNzczNzM0OTMyfDA&ixlib=rb-4.1.0&q=80&w=1080"
+                src="/images.unsplash.com/photo-1630123738777-fdd4f8b7d16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWNpZmljJTIwbm9ydGh3ZXN0JTIwdHJhaWx8ZW58MXx8fHwxNzczNzM0OTMyfDA&ixlib=rb-4.1.0&q=80&w=1080"
                 alt="Pacific Northwest Trail" 
                 className="w-full h-full object-cover opacity-90"
               />
