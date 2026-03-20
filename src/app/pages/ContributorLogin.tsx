@@ -156,8 +156,42 @@ export function ContributorLogin() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-3 space-y-6">
+            <Card className="border-[#E7D9C3] bg-white shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base font-semibold text-[#334233]">Role Information</CardTitle>
+                <CardDescription className="text-xs text-[#5B473A]">
+                  Learn about different access levels
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                <div className="space-y-3">
+                  <div className="p-3 rounded-xl bg-[#A7AE8A]/5 border border-[#A7AE8A]/30 text-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <UserRound className="w-4 h-4 text-[#A7AE8A]" />
+                      <p className="font-bold text-[#334233] text-xs uppercase tracking-wider">Contributor</p>
+                    </div>
+                    <p className="text-[#5B473A] text-xs leading-relaxed">
+                      Organizations that can post events and volunteer opportunities for the community to discover and sign up for.
+                    </p>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-[#B36A4C]/5 border border-[#B36A4C]/30 text-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-4 h-4 text-[#B36A4C]" />
+                      <p className="font-bold text-[#334233] text-xs uppercase tracking-wider">Moderator</p>
+                    </div>
+                    <p className="text-[#5B473A] text-xs leading-relaxed">
+                      Approves new contributor accounts, moderates events and suggestions, and oversees all platform content.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-6">
             <Card className="border-[#E7D9C3] bg-white shadow-sm">
               <CardHeader>
                 <div className="flex gap-2 flex-wrap">
@@ -357,7 +391,7 @@ export function ContributorLogin() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             <Card className="border-[#B36A4C]/30 bg-[#B36A4C]/5 shadow-sm overflow-hidden">
               <CardHeader className="bg-[#B36A4C]/10 py-4">
                 <CardTitle className="text-base font-semibold text-[#334233] flex items-center gap-2">

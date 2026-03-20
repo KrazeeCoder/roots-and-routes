@@ -179,24 +179,34 @@ export function Layout() {
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Resources</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link to={`/waypoints?category=${encodeURIComponent('Food Assistance')}`} className="hover:text-white transition-colors">
                   Food Assistance
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link to={`/waypoints?category=${encodeURIComponent('Housing Support')}`} className="hover:text-white transition-colors">
                   Housing Support
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link to={`/waypoints?category=${encodeURIComponent('Health & Wellness')}`} className="hover:text-white transition-colors">
                   Health & Wellness
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link to={`/waypoints?category=${encodeURIComponent('Youth Programs')}`} className="hover:text-white transition-colors">
                   Youth Programs
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to={`/waypoints?category=${encodeURIComponent('Job Help')}`} className="hover:text-white transition-colors">
+                  Job Help
+                </Link>
+              </li>
+              <li>
+                <Link to={`/waypoints?category=${encodeURIComponent('Community Events')}`} className="hover:text-white transition-colors">
+                  Community Events
+                </Link>
               </li>
             </ul>
           </div>
