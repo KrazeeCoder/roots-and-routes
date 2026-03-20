@@ -5,6 +5,7 @@ import { Directory } from "./pages/Directory";
 import { WaypointCategory } from "./pages/WaypointCategory";
 import { Spotlights } from "./pages/Spotlights";
 import { Events } from "./pages/Events";
+import { Calendar } from "./pages/Calendar";
 import { Suggest } from "./pages/Suggest";
 import { About } from "./pages/About";
 import { ContributorLogin } from "./pages/ContributorLogin";
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
       { path: "spotlights", Component: Spotlights },
       { path: "events", Component: Events },
       { path: "events/:eventId", Component: EventDetail },
+      { path: "calendar", Component: Calendar },
       { path: "suggest", Component: Suggest },
       { path: "about", Component: About },
       { path: "resources/:resourceId", Component: ResourceDetail },

@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { Heart, PlusCircle } from "lucide-react";
 import { TopoPattern } from "../TopoPattern";
 import { ScrollReveal } from "../ScrollReveal";
@@ -26,10 +27,10 @@ export function SuggestResourceSection() {
         </ScrollReveal>
 
         <ScrollReveal delay={0.2}>
-          <button className="inline-flex items-center justify-center px-8 py-4 border-2 border-transparent text-lg font-semibold rounded-2xl text-[#B36A4C] bg-[#F6F1E7] hover:bg-white hover:text-[#8A6F5A] shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#F6F1E7]/50 transition-all transform hover:-translate-y-1">
+          <Link to="/suggest" className="inline-flex items-center justify-center px-8 py-4 border-2 border-transparent text-lg font-semibold rounded-2xl text-[#B36A4C] bg-[#F6F1E7] hover:bg-white hover:text-[#8A6F5A] shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-[#F6F1E7]/50 transition-all transform hover:-translate-y-1">
             <PlusCircle className="w-5 h-5 mr-3" />
             Suggest a Resource
-          </button>
+          </Link>
 
           <p className="text-sm text-[#F6F1E7]/70 mt-6 font-medium tracking-wide">
             Takes less than 3 minutes to submit

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useJsApiLoader, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
-import { Calendar, Check, Clock, List, Map, MapPin, Navigation, Sparkles, Users } from "lucide-react";
+import { Calendar, Check, Clock, List, Map, MapPin, Navigation, Sparkles, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
@@ -14,6 +14,7 @@ import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/goo
 
 const bothellCenter = { lat: 47.7614, lng: -122.2052 };
 const radiusOptions = [5, 10, 25, 50] as const;
+const EVENTS_PER_PAGE = 3;
 
 type ViewMode = "list" | "map";
 
@@ -60,6 +61,16 @@ export function Events() {
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const [eventsWithGeocodedCoords, setEventsWithGeocodedCoords] = useState<EventItem[]>([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    // Smooth scroll to top when component mounts
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,6 +172,18 @@ export function Events() {
       .filter((event) => event.distanceMiles !== null && event.distanceMiles <= radiusMilesFilter)
       .sort((a, b) => (a.distanceMiles ?? Number.MAX_SAFE_INTEGER) - (b.distanceMiles ?? Number.MAX_SAFE_INTEGER));
   }, [activeCenter, textMatchedEvents, radiusMilesFilter]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(visibleEvents.length / EVENTS_PER_PAGE);
+  const paginatedEvents = useMemo(() => {
+    const startIndex = (currentPage - 1) * EVENTS_PER_PAGE;
+    return visibleEvents.slice(startIndex, startIndex + EVENTS_PER_PAGE);
+  }, [visibleEvents, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCenter, normalizedQuery, radiusMilesFilter]);
 
   const mapEvents = useMemo(
     () => visibleEvents.filter((event) => hasCoordinates(event)),
@@ -617,8 +640,9 @@ export function Events() {
                   : "No published events yet."}
             </p>
           ) : (
-            <StaggerGroup className="mt-12 space-y-10">
-              {visibleEvents.map((event, index) => {
+            <>
+              <StaggerGroup className="mt-12 space-y-10">
+                {paginatedEvents.map((event, index) => {
                 const detailHref = event.id ? `/events/${event.id}` : null;
 
                 return (
@@ -683,6 +707,48 @@ export function Events() {
                 );
               })}
             </StaggerGroup>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-12 flex items-center justify-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 p-0 ${currentPage === page ? "bg-[#B36A4C] hover:bg-[#8A6F5A]" : ""}`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+            </>
           )}
 
           <div className="mt-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -691,9 +757,9 @@ export function Events() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Button variant="default" asChild>
-                <a href="#" className="inline-flex items-center gap-2">
+                <Link to="/calendar" className="inline-flex items-center gap-2">
                   <Calendar className="w-4 h-4" /> Full Community Calendar
-                </a>
+                </Link>
               </Button>
               <Button variant="secondary" asChild>
                 <a href="#" className="inline-flex items-center gap-2">

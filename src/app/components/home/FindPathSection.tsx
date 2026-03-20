@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { TopoPattern } from "../TopoPattern";
 import { findPathSteps } from "../../data/homeData";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../ScrollReveal";
@@ -50,9 +51,9 @@ export function FindPathSection() {
         </div>
 
         <ScrollReveal delay={0.3} className="mt-20 text-center">
-          <button className="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-[#B36A4C] hover:bg-[#8A6F5A] shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#334233] transition-all transform hover:-translate-y-0.5">
+          <Link to="/directory" className="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-[#B36A4C] hover:bg-[#8A6F5A] shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#334233] transition-all transform hover:-translate-y-0.5">
             Start Your Search
-          </button>
+          </Link>
         </ScrollReveal>
       </div>
     </section>

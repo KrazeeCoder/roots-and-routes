@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { CheckCircle2, Lightbulb, ShieldCheck, HelpCircle, Users } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Button } from "../components/ui/button";
@@ -38,6 +38,15 @@ export function Suggest() {
     description: false,
     location: false,
   });
+
+  useEffect(() => {
+    // Smooth scroll to top when component mounts
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    });
+  }, []);
 
   const errors = useMemo(() => {
     const next: Record<keyof SuggestForm, string | null> = {
