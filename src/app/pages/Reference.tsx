@@ -10,7 +10,7 @@ import { ScrollReveal } from "../components/ScrollReveal";
 import { listPublishedEvents, listPublishedResources } from "../data/portalApi";
 
 const HERO_IMAGE_URL = "https://images.unsplash.com/photo-1630123738777-fdd4f8b7d16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWNpZmljJTIwbm9ydGh3ZXN0JTIwdHJhaWx8ZW58MXx8fHwxNzczNzM0OTMyfDA&ixlib=rb-4.1.0&q=80&w=1080";
-const EVENTS_FALLBACK_IMAGE_URL = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
+const EVENTS_FALLBACK_IMAGE_URL = "https://images.unsplash.com/photo-1528605248644-14dd04022da1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
 
 const developmentSources = [
   { name: "React Documentation", url: "https://react.dev/" },
@@ -40,6 +40,12 @@ const researchSources = [
   { name: "City of Bothell: Maps & GIS", url: "https://www.bothellwa.gov/233/Maps-GIS" },
 ];
 
+const knownBrokenImageIds = [
+  "1576091160399-112ba8d25d1f",
+  "1579952363873-27d3bfad9c0d",
+  "1593113592332-6e2ee791ef60",
+];
+
 function ensureAbsoluteUrl(url: string) {
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `https://${url}`;
@@ -52,6 +58,11 @@ function isPlaceholderDomain(url: string) {
   } catch {
     return false;
   }
+}
+
+function isKnownBrokenImage(url: string) {
+  const lower = url.toLowerCase();
+  return knownBrokenImageIds.some((id) => lower.includes(id));
 }
 
 function shortenUrl(url: string) {
@@ -134,7 +145,9 @@ export function Reference() {
           ...seededSpotlights.map((item) => item.image).filter((image): image is string => Boolean(image)),
           ...resourceImages,
           ...eventImages,
-        ],
+        ]
+          .filter((url) => !isPlaceholderDomain(url))
+          .filter((url) => !isKnownBrokenImage(url)),
       ),
     ).sort((a, b) => a.localeCompare(b)),
     [eventImages, resourceImages],

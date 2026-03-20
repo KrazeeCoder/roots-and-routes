@@ -109,6 +109,40 @@ alter table if exists public.events add column if not exists is_spotlight boolea
 alter table if exists public.events add column if not exists created_at timestamptz not null default now();
 alter table if exists public.events add column if not exists updated_at timestamptz not null default now();
 
+-- Prevent obvious placeholder links from being saved in production data.
+alter table if exists public.resources drop constraint if exists resources_website_not_placeholder;
+alter table if exists public.resources
+add constraint resources_website_not_placeholder
+check (
+  website is null
+  or (
+    lower(website) not like '%example.com%'
+    and lower(website) not like '%localhost%'
+  )
+) not valid;
+
+alter table if exists public.resources drop constraint if exists resources_image_url_not_placeholder;
+alter table if exists public.resources
+add constraint resources_image_url_not_placeholder
+check (
+  image_url is null
+  or (
+    lower(image_url) not like '%example.com%'
+    and lower(image_url) not like '%localhost%'
+  )
+) not valid;
+
+alter table if exists public.events drop constraint if exists events_image_url_not_placeholder;
+alter table if exists public.events
+add constraint events_image_url_not_placeholder
+check (
+  image_url is null
+  or (
+    lower(image_url) not like '%example.com%'
+    and lower(image_url) not like '%localhost%'
+  )
+) not valid;
+
 alter table if exists public.resources alter column created_by set default auth.uid();
 alter table if exists public.events alter column created_by set default auth.uid();
 

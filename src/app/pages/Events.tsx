@@ -325,7 +325,7 @@ export function Events() {
                   <ImageWithFallback
                     src={
                       featured?.image
-                      ?? "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
+                      ?? "https://images.unsplash.com/photo-1528605248644-14dd04022da1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
                     }
                     alt={featured?.title ?? "Featured event"}
                     className="w-full h-64 object-cover sm:h-full"

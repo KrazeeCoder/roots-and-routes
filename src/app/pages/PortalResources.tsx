@@ -51,6 +51,35 @@ const defaultForm: ResourceFormState = {
 const contributorStatuses: ContentStatus[] = ["draft", "pending", "archived"];
 const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
 
+function normalizeHttpUrl(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    return null;
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+  return parsed.toString();
+}
+
+function hasPlaceholderHost(url: string) {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return hostname === "example.com"
+      || hostname.endsWith(".example.com")
+      || hostname === "localhost"
+      || hostname.endsWith(".localhost");
+  } catch {
+    return true;
+  }
+}
+
 export function PortalResources() {
   const { user, role } = useAuth();
   const [resources, setResources] = useState<ResourceRecord[]>([]);
@@ -122,6 +151,30 @@ export function PortalResources() {
     setSaving(true);
     setError(null);
 
+    const normalizedWebsite = normalizeHttpUrl(form.website);
+    if (form.website.trim() && !normalizedWebsite) {
+      setSaving(false);
+      setError("Website must be a valid URL (for example: https://example.org).");
+      return;
+    }
+    if (normalizedWebsite && hasPlaceholderHost(normalizedWebsite)) {
+      setSaving(false);
+      setError("Website cannot use placeholder domains like example.com or localhost.");
+      return;
+    }
+
+    const normalizedImageUrl = normalizeHttpUrl(form.imageUrl);
+    if (form.imageUrl.trim() && !normalizedImageUrl) {
+      setSaving(false);
+      setError("Image URL must be a valid URL (for example: https://images.unsplash.com/...).");
+      return;
+    }
+    if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
+      setSaving(false);
+      setError("Image URL cannot use placeholder domains like example.com or localhost.");
+      return;
+    }
+
     const payload = {
       name: form.name.trim(),
       category: form.category.trim(),
@@ -129,13 +182,13 @@ export function PortalResources() {
       full_description: form.fullDescription.trim() || null,
       address: form.address.trim(),
       phone: form.phone.trim() || null,
-      website: form.website.trim() || null,
+      website: normalizedWebsite,
       hours: form.hours.trim() || null,
       tags: form.tags
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
-      image_url: form.imageUrl.trim() || null,
+      image_url: normalizedImageUrl,
       status: canModerate ? form.status : ("pending" as const),
       is_spotlight: canModerate ? form.isSpotlight : false,
       spotlight_subtitle: canModerate ? form.spotlightSubtitle.trim() || null : null,
