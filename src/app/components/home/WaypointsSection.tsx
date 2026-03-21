@@ -4,12 +4,12 @@ import { ScrollReveal, StaggerGroup, StaggerItem } from '../ScrollReveal';
 
 export function WaypointsSection() {
   const waypoints = [
-    { category: "Food Assistance", icon: Wheat, desc: "Pantries, meal programs, and fresh produce." },
-    { category: "Health & Wellness", icon: HeartPulse, desc: "Clinics, mental health support, and care." },
-    { category: "Housing Support", icon: Home, desc: "Shelters, rent help, and utility assistance." },
-    { category: "Youth Programs", icon: Users, desc: "After-school activities, mentorship, childcare." },
-    { category: "Job Help", icon: Briefcase, desc: "Resume building, training, and open roles." },
-    { category: "Community Events", icon: Calendar, desc: "Gatherings, workshops, and local markets." },
+    { category: "Food Assistance", icon: Wheat, desc: "Nourishment stops and meal programs to fuel your journey." },
+    { category: "Health & Wellness", icon: HeartPulse, desc: "Wellbeing checkpoints and care along your path." },
+    { category: "Housing Support", icon: Home, desc: "Shelter waypoints and stability resources." },
+    { category: "Youth Programs", icon: Users, desc: "Growth milestones and mentorship journeys." },
+    { category: "Job Help", icon: Briefcase, desc: "Career pathways and employment routes." },
+    { category: "Community Events", icon: Calendar, desc: "Gathering points and shared experiences." },
   ];
 
   return (
@@ -31,10 +31,10 @@ export function WaypointsSection() {
       <div className="relative max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <ScrollReveal className="text-center max-w-3xl mx-auto mb-14">
           <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-semibold text-[#334233] mb-4">
-            Essential Waypoints
+            Community Waypoints
           </h2>
           <p className="text-[#5B473A] text-xl font-light leading-relaxed">
-            Quickly find support for urgent or everyday needs. Think of these as markers along your path.
+            Discover support along your journey. These waypoints mark important stops on your path to community connection.
           </p>
         </ScrollReveal>
 

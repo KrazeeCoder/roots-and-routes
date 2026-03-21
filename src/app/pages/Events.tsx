@@ -305,25 +305,25 @@ export function Events() {
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
               <h1 className="font-['Cormorant_Garamond',serif] text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight mb-6">
-                Upcoming <span className="text-[#B36A4C] italic">Events</span> & Opportunities
+                Upcoming <span className="text-[#B36A4C] italic">Community</span> Connections
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
               <p className="text-[#A7AE8A] text-lg font-light leading-relaxed">
-                Join your neighbors for in-person meetups, resource fairs, and programs that strengthen our community.
-                Browse upcoming dates and save the ones you care about.
+                Join neighbors for meaningful gatherings, resource fairs, and programs that strengthen our community roots.
+                Browse upcoming dates and save the gatherings that matter to you.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.2}>
               <div className="mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Button asChild className="w-full sm:w-auto" variant="default">
                   <a href="#featured" className="inline-flex items-center gap-2">
-                    <Calendar className="w-4 h-4" /> Featured Event
+                    <Calendar className="w-4 h-4" /> Featured Gathering
                   </a>
                 </Button>
                 <Button asChild className="w-full sm:w-auto" variant="secondary">
                   <a href="#upcoming" className="inline-flex items-center gap-2">
-                    <Users className="w-4 h-4" /> See the Full Schedule
+                    <Users className="w-4 h-4" /> See All Gatherings
                   </a>
                 </Button>
               </div>
@@ -343,7 +343,7 @@ export function Events() {
           <div className="flex-1">
             <ScrollReveal>
               <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-5">
-                Featured Event
+                Featured Gathering
               </h2>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>

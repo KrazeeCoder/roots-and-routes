@@ -118,13 +118,13 @@ export function Suggest() {
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
               <h1 className="font-['Cormorant_Garamond',serif] text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight mb-6">
-                Suggest a <span className="text-[#B36A4C] italic">Resource</span>
+                Plant a <span className="text-[#B36A4C] italic">Resource</span>
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
               <p className="text-[#A7AE8A] text-lg font-light leading-relaxed">
-                Share a local program, service, or organization that supports Bothell residents.
-                We’ll review submissions and add them to the directory so others can find help faster.
+                Share a local program, service, or organization that helps Bothell residents grow.
+                We’ll review submissions and add them to directory so others can find their path faster.
               </p>
             </ScrollReveal>
           </div>
@@ -148,7 +148,7 @@ export function Suggest() {
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
               <p className="text-[#5B473A] text-lg font-light leading-relaxed mb-10">
-                The form below is for sharing services, programs, and community supports that should be on the map.
+                The form below is for planting services, programs, and community supports that should be on our map.
                 We don’t require login or personal details beyond what helps us follow up if we have questions.
               </p>
             </ScrollReveal>
@@ -162,9 +162,9 @@ export function Suggest() {
                         <CheckCircle2 className="w-6 h-6" />
                       </span>
                       <div>
-                        <h3 className="text-xl font-semibold text-[#334233]">Thanks for your suggestion!</h3>
+                        <h3 className="text-xl font-semibold text-[#334233]">Thanks for helping our community grow!</h3>
                         <p className="text-[#5B473A] mt-2">
-                          We’ll review it and add it to the directory shortly. In the meantime, you can explore other ways to support the community.
+                          We’ll review it and add it to directory shortly. In the meantime, you can explore other pathways to support community.
                         </p>
                         <div className="mt-6 flex flex-wrap gap-3">
                           <Button asChild>
@@ -174,7 +174,7 @@ export function Suggest() {
                           </Button>
                           <Button variant="outline" asChild>
                             <a href="/events" className="inline-flex items-center gap-2">
-                              Upcoming Events
+                              Upcoming Gatherings
                             </a>
                           </Button>
                         </div>
@@ -275,7 +275,7 @@ export function Suggest() {
 
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="text-sm text-[#5B473A]">
-                        We’ll review your suggestion and follow up if we need clarification.
+                        Thanks for helping our community grow! and follow up if we need clarification.
                       </div>
                       <Button type="submit">Submit suggestion</Button>
                     </div>

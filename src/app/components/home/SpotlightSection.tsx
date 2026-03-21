@@ -40,21 +40,21 @@ export function SpotlightSection() {
         <ScrollReveal className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-2xl">
             <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-4">
-              Community Spotlights
+              Growing Together
             </h2>
             <p className="text-[#5B473A] text-lg font-light">
-              Discover featured programs and resources making a difference in Bothell this month.
+              Discover featured programs and resources helping our community take root and flourish in Bothell this month.
             </p>
           </div>
           <Link to="/spotlights" className="inline-flex items-center text-[#B36A4C] font-semibold hover:text-[#8A6F5A] transition-colors group">
-            View All Spotlights
+            View All Growth Stories
             <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </ScrollReveal>
 
         {!featured ? (
           <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-[#5B473A]">
-            No spotlight resources yet.
+            No growth stories yet.
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
@@ -149,7 +149,7 @@ export function SpotlightSection() {
                       to={`/resources/${item.id}`}
                       className="mt-auto inline-flex items-center text-[#B36A4C] text-sm font-semibold hover:text-[#8A6F5A] transition-colors"
                     >
-                      Read Full Story <ArrowRight className="ml-1 w-3 h-3" />
+                      Read Full Journey <ArrowRight className="ml-1 w-3 h-3" />
                     </Link>
                   </div>
                 </motion.div>

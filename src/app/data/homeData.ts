@@ -11,9 +11,9 @@ export const waypoints: Waypoint[] = [
 ];
 
 export const findPathSteps: Step[] = [
-  { icon: Search, title: "Search & Discover", desc: "Use our directory to search for specific needs or browse by category." },
-  { icon: Filter, title: "Filter Your Options", desc: "Narrow down resources by location, eligibility, and current availability." },
-  { icon: HandHeart, title: "Connect to Support", desc: "Get contact info, directions, and next steps to access the help you need." },
+  { icon: Search, title: "Explore Your Options", desc: "Discover resources and opportunities tailored to your community needs." },
+  { icon: Filter, title: "Find Your Way", desc: "Navigate through options that match your location and circumstances." },
+  { icon: HandHeart, title: "Connect & Grow", desc: "Take the next step toward community connection and personal growth." },
 ];
 
 export const events: EventItem[] = [

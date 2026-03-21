@@ -51,7 +51,7 @@ export function HeroSection() {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#E7D9C3]/50 border border-[#A7AE8A]/30 text-[#5B473A] text-sm font-medium"
             >
               <MapPin className="w-4 h-4 text-[#6F7553]" />
-              Serving the Greater Bothell Area
+              Growing Roots in Bothell
             </motion.div>
 
             <motion.h1 
@@ -60,7 +60,7 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="font-['Cormorant_Garamond',serif] text-5xl sm:text-6xl lg:text-7xl font-bold text-[#334233] leading-[1.1] tracking-tight"
             >
-              Find your route to <span className="text-[#B36A4C] italic pr-2">local support.</span>
+              Navigate your journey to <span className="text-[#B36A4C] italic pr-2">community roots.</span>
             </motion.h1>
 
             <motion.p 
@@ -69,7 +69,7 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg sm:text-xl text-[#5B473A] max-w-lg leading-relaxed font-light"
             >
-              Roots & Routes helps Bothell residents navigate essential resources, discover local events, and connect with opportunities in the community.
+              Roots & Routes helps Bothell residents discover essential resources, connect with local events, and forge meaningful pathways within our community.
             </motion.p>
 
             {/* Directory Search */}
@@ -197,7 +197,7 @@ export function HeroSection() {
                 </p>
                 <p className="mt-2 text-xs text-[#5B473A] inline-flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-[#B36A4C]" />
-                  Community Routes
+                  Community Pathways
                 </p>
               </div>
 

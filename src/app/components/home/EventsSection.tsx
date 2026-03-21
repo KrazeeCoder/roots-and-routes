@@ -34,17 +34,17 @@ export function EventsSection() {
         <ScrollReveal className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-2xl">
             <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-4">
-              Upcoming Events
+              Community Gatherings
             </h2>
             <p className="text-[#5B473A] text-lg font-light">
-              Connect with your neighbors and access resources in person.
+              Connect with neighbors and share experiences that strengthen our community roots.
             </p>
           </div>
           <Link
             to="/events"
             className="inline-flex items-center text-[#B36A4C] font-semibold hover:text-[#8A6F5A] transition-colors group"
           >
-            View Full Calendar
+            View Community Calendar
             <span className="ml-2 transition-transform group-hover:translate-x-1">-&gt;</span>
           </Link>
         </ScrollReveal>

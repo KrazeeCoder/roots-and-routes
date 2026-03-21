@@ -161,7 +161,7 @@ export function Directory() {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B36A4C]/20 border border-[#B36A4C]/30 text-[#E7D9C3] text-sm font-medium mb-6"
             >
               <MapPin className="w-3.5 h-3.5 text-[#B36A4C]" />
-              Bothell Community Resources
+              Community Pathways
             </motion.div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -178,7 +178,7 @@ export function Directory() {
               transition={{ duration: 1.0, delay: 0.4 }}
               className="text-[#A7AE8A] text-lg font-light max-w-xl leading-relaxed"
             >
-              Browse and search all available community resources, programs, and services serving
+              Navigate all available community resources, programs, and pathways serving
               the greater Bothell area.
             </motion.p>
           </div>
@@ -269,16 +269,16 @@ export function Directory() {
 
               <div className="mt-8 pt-6 border-t border-[#E7D9C3]">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[#6F7553] mb-3">
-                  Need Help?
+                  Need Guidance?
                 </h2>
                 <p className="text-sm text-[#5B473A] leading-relaxed mb-4">
-                  Can't find what you're looking for? Suggest a resource and we'll add it.
+                  Can't find your path? Suggest a resource and we'll help it grow.
                 </p>
                 <a
                   href="/suggest"
                   className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold hover:bg-[#334233] hover:text-white transition-colors"
                 >
-                  Suggest a Resource
+                  Plant a Resource
                 </a>
               </div>
             </div>

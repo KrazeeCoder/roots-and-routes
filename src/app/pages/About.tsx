@@ -115,7 +115,7 @@ export function About() {
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
           <p className="text-[#5B473A] text-lg font-light leading-relaxed mb-12">
-            We center people, practice care, and strive to be transparent so everyone can trust the information we share.
+            We center people, practice care, and strive to be transparent so everyone can trust the paths we share.
           </p>
         </ScrollReveal>
 
@@ -126,7 +126,7 @@ export function About() {
                 <CardTitle>Community First</CardTitle>
               </CardHeader>
               <CardContent className="text-[#5B473A]">
-                We prioritize local voices, lived experience, and practical support that helps people right now.
+                We prioritize local voices, lived experience, and practical support that helps people on their journey.
               </CardContent>
             </Card>
           </StaggerItem>
@@ -146,7 +146,7 @@ export function About() {
                 <CardTitle>Practical Impact</CardTitle>
               </CardHeader>
               <CardContent className="text-[#5B473A]">
-                Every listing and event is chosen to make it easier for people to find help, stay safe, and build connections.
+                Every listing and event is chosen to help people find their way, stay grounded, and build lasting connections.
               </CardContent>
             </Card>
           </StaggerItem>
@@ -254,7 +254,7 @@ export function About() {
                   Get involved
                 </h2>
                 <p className="text-[#A7AE8A] text-lg leading-relaxed mb-8">
-                  Explore the directory, submit a resource, or join an event. Every action makes our local network stronger.
+                  Explore the directory, plant a resource suggestion, or join an event. Every action strengthens our community network.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button asChild>
@@ -264,7 +264,7 @@ export function About() {
                   </Button>
                   <Button variant="outline" asChild>
                     <a href="/suggest" className="inline-flex items-center gap-2">
-                      Suggest a Resource
+                      Plant a Resource Suggestion
                     </a>
                   </Button>
                 </div>
@@ -273,7 +273,7 @@ export function About() {
                 <div className="rounded-3xl border border-[#B36A4C]/50 bg-[#F6F1E7]/10 p-10">
                   <div className="flex items-center gap-3 text-sm font-semibold text-[#F6F1E7] mb-3">
                     <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#B36A4C]/20">•</span>
-                    <span>Community-driven resource hub</span>
+                    <span>Community-driven pathway network</span>
                   </div>
                   <div className="text-2xl font-bold text-white">We’re building something together.</div>
                 </div>

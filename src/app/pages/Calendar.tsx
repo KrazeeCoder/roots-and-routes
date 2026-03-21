@@ -123,7 +123,7 @@ export function Calendar() {
             <ScrollReveal>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B36A4C]/20 border border-[#B36A4C]/30 text-[#E7D9C3] text-sm font-medium mb-6">
                 <CalendarIcon className="w-4 h-4 text-[#B36A4C]" />
-                Community Calendar
+                Community Journey Calendar
               </div>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
@@ -133,7 +133,7 @@ export function Calendar() {
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
               <p className="text-[#A7AE8A] text-lg font-light leading-relaxed">
-                Browse all upcoming community events in a calendar view. Click on any date to see what's happening that day.
+                Browse all upcoming community gatherings in a calendar view. Click on any date to see what's growing that day.
               </p>
             </ScrollReveal>
           </div>

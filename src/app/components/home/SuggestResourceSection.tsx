@@ -18,11 +18,11 @@ export function SuggestResourceSection() {
           </div>
           
           <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold mb-6 text-white">
-            Help Bothell Grow Stronger Together
+            Plant Seeds of Connection
           </h2>
           
           <p className="text-[#F6F1E7]/90 text-lg sm:text-xl font-light leading-relaxed max-w-2xl mx-auto mb-10">
-            Know a local resource, program, or organization that isn't listed here? Your suggestions help our community hub thrive and reach those who need it most.
+            Know a local resource that could help our community flourish? Your suggestions help new roots take hold and reach neighbors in need.
           </p>
         </ScrollReveal>
 
@@ -33,7 +33,7 @@ export function SuggestResourceSection() {
           </Link>
 
           <p className="text-sm text-[#F6F1E7]/70 mt-6 font-medium tracking-wide">
-            Takes less than 3 minutes to submit
+            Takes less than 3 minutes to plant a suggestion
           </p>
         </ScrollReveal>
       </div>
