@@ -91,6 +91,10 @@ function toIso(value: string) {
   return new Date(value).toISOString();
 }
 
+function plusOneHour(iso: string) {
+  return new Date(new Date(iso).getTime() + 60 * 60 * 1000).toISOString();
+}
+
 export function PortalEvents() {
   const { user, role } = useAuth();
   const { isLoaded: isMapsLoaded } = useJsApiLoader(GOOGLE_MAPS_LOADER_OPTIONS);
@@ -208,6 +212,12 @@ export function PortalEvents() {
       return;
     }
 
+    const startsAtIso = toIso(form.startsAt) || new Date().toISOString();
+    const endsAtCandidate = toIso(form.endsAt);
+    const endsAtIso = endsAtCandidate && new Date(endsAtCandidate).getTime() > new Date(startsAtIso).getTime()
+      ? endsAtCandidate
+      : plusOneHour(startsAtIso);
+
     const payload = {
       title: form.title.trim(),
       category: form.category.trim() || null,
@@ -215,8 +225,8 @@ export function PortalEvents() {
       location: locationText,
       location_lat: locationLat,
       location_lng: locationLng,
-      starts_at: toIso(form.startsAt) || new Date().toISOString(),
-      ends_at: toIso(form.endsAt),
+      starts_at: startsAtIso,
+      ends_at: endsAtIso,
       image_url: normalizedImageUrl,
       status: canModerate ? form.status : ("pending" as const),
       is_spotlight: canModerate ? form.isSpotlight : false,

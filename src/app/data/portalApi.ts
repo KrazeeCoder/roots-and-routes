@@ -295,6 +295,7 @@ export function mapEventToEventItem(event: EventRecord): EventItem {
     time: display.time,
     location: event.location,
     startsAt: event.starts_at,
+    endsAt: event.ends_at ?? undefined,
     category: event.category ?? "Community Event",
     image: event.image_url,
     postedByName: event.posted_by_name ?? "Community Contributor",

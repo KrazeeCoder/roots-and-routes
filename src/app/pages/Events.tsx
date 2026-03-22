@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useJsApiLoader, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
-import { Calendar, Check, Clock, List, Map, MapPin, Navigation, Sparkles, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
@@ -20,6 +20,22 @@ type ViewMode = "list" | "map";
 
 interface EventWithDistance extends EventItem {
   distanceMiles: number | null;
+}
+
+interface CalendarPayload {
+  title: string;
+  description: string;
+  location: string;
+  start: Date;
+  end: Date;
+}
+
+interface CalendarMenuProps {
+  payload: CalendarPayload | null;
+  triggerClassName?: string;
+  triggerVariant?: React.ComponentProps<typeof Button>["variant"];
+  triggerSize?: React.ComponentProps<typeof Button>["size"];
+  align?: "start" | "center" | "end";
 }
 
 function hasCoordinates(event: EventItem) {
@@ -43,6 +59,229 @@ function distanceMiles(latA: number, lngA: number, latB: number, lngB: number) {
     + Math.cos(toRadians(latA)) * Math.cos(toRadians(latB)) * Math.sin(dLng / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return earthRadiusMiles * c;
+}
+
+function toCalendarTimestamp(date: Date) {
+  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+}
+
+function escapeIcsText(value: string) {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
+}
+
+function buildCalendarPayload(event: EventItem, origin: string): CalendarPayload | null {
+  if (!event.startsAt) return null;
+
+  const start = new Date(event.startsAt);
+  if (!Number.isFinite(start.getTime())) return null;
+
+  const parsedEnd = event.endsAt ? new Date(event.endsAt) : null;
+  const hasValidEnd = parsedEnd && Number.isFinite(parsedEnd.getTime()) && parsedEnd.getTime() > start.getTime();
+  const end = hasValidEnd ? parsedEnd : new Date(start.getTime() + 60 * 60 * 1000);
+  const detailUrl = event.id && origin ? `${origin}/events/${event.id}` : null;
+  const descriptionLines = [
+    "Community event from Roots & Routes.",
+    event.category ? `Category: ${event.category}` : null,
+    event.postedByName ? `Organizer: ${event.postedByName}` : null,
+    detailUrl ? `Details: ${detailUrl}` : null,
+  ].filter(Boolean);
+
+  return {
+    title: event.title,
+    description: descriptionLines.join("\n"),
+    location: event.location,
+    start,
+    end,
+  };
+}
+
+function buildGoogleCalendarUrl(payload: CalendarPayload) {
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: payload.title,
+    dates: `${toCalendarTimestamp(payload.start)}/${toCalendarTimestamp(payload.end)}`,
+    details: payload.description,
+    location: payload.location,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function buildYahooCalendarUrl(payload: CalendarPayload) {
+  const params = new URLSearchParams({
+    v: "60",
+    view: "d",
+    type: "20",
+    title: payload.title,
+    st: toCalendarTimestamp(payload.start),
+    et: toCalendarTimestamp(payload.end),
+    desc: payload.description,
+    in_loc: payload.location,
+  });
+  return `https://calendar.yahoo.com/?${params.toString()}`;
+}
+
+function downloadIcs(payload: CalendarPayload) {
+  const uid = `${toCalendarTimestamp(new Date())}-${Math.random().toString(36).slice(2)}@rootsandroutes`;
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "CALSCALE:GREGORIAN",
+    "PRODID:-//Roots & Routes//Events//EN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${toCalendarTimestamp(new Date())}`,
+    `DTSTART:${toCalendarTimestamp(payload.start)}`,
+    `DTEND:${toCalendarTimestamp(payload.end)}`,
+    `SUMMARY:${escapeIcsText(payload.title)}`,
+    `DESCRIPTION:${escapeIcsText(payload.description)}`,
+    `LOCATION:${escapeIcsText(payload.location)}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+
+  const file = new Blob([`${lines.join("\r\n")}\r\n`], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(file);
+  const anchor = document.createElement("a");
+  const safeTitle = payload.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "event";
+  anchor.href = url;
+  anchor.download = `${safeTitle}.ics`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+function CalendarMenu({
+  payload,
+  triggerClassName,
+  triggerVariant = "outline",
+  triggerSize = "default",
+  align = "start",
+}: CalendarMenuProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const googleUrl = payload ? buildGoogleCalendarUrl(payload) : null;
+  const yahooUrl = payload ? buildYahooCalendarUrl(payload) : null;
+  const menuPositionClass = align === "end"
+    ? "right-0"
+    : align === "center"
+      ? "left-1/2 -translate-x-1/2"
+      : "left-0";
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative inline-block">
+      <Button
+        type="button"
+        variant={triggerVariant}
+        size={triggerSize}
+        className={triggerClassName}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        Add to Calendar
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
+      </Button>
+
+      {open ? (
+        <div
+          role="menu"
+          className={`absolute ${menuPositionClass} mt-2 w-56 rounded-md border border-[#D9C6A8] bg-white shadow-lg z-[120] p-1`}
+        >
+          <p className="px-2 py-1.5 text-sm font-medium text-[#334233]">Save This Event</p>
+          <div className="my-1 h-px bg-[#E7D9C3]" />
+
+          {googleUrl ? (
+            <a
+              href={googleUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              role="menuitem"
+              className="block rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7]"
+              onClick={() => setOpen(false)}
+            >
+              Google Calendar
+            </a>
+          ) : (
+            <span className="block rounded-sm px-2 py-1.5 text-sm text-[#9AA085] cursor-not-allowed">
+              Google Calendar
+            </span>
+          )}
+
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!payload}
+            className="w-full text-left rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7] disabled:text-[#9AA085] disabled:hover:bg-transparent disabled:cursor-not-allowed"
+            onClick={() => {
+              if (!payload) return;
+              downloadIcs(payload);
+              setOpen(false);
+            }}
+          >
+            Apple / Outlook (.ics)
+          </button>
+
+          {yahooUrl ? (
+            <a
+              href={yahooUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              role="menuitem"
+              className="block rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7]"
+              onClick={() => setOpen(false)}
+            >
+              Yahoo Calendar
+            </a>
+          ) : (
+            <span className="block rounded-sm px-2 py-1.5 text-sm text-[#9AA085] cursor-not-allowed">
+              Yahoo Calendar
+            </span>
+          )}
+
+          {!payload ? (
+            <>
+              <div className="my-1 h-px bg-[#E7D9C3]" />
+              <span className="block rounded-sm px-2 py-1.5 text-sm text-[#9AA085] cursor-not-allowed">
+                Event time unavailable
+              </span>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export function Events() {
@@ -198,6 +437,11 @@ export function Events() {
   const mapCenter = activeCenter ?? { ...bothellCenter, label: "Bothell, WA" };
   const selectedMarker = mapEvents.find((event) => event.id === selectedMarkerId);
   const featuredHref = featured?.id ? `/events/${featured.id}` : null;
+  const featuredCalendar = useMemo(() => {
+    if (!featured) return null;
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    return buildCalendarPayload(featured, origin);
+  }, [featured]);
 
   useEffect(() => {
     if (selectedMarkerId && !mapEvents.some((event) => event.id === selectedMarkerId)) {
@@ -395,9 +639,7 @@ export function Events() {
                         RSVP & Details
                       </Button>
                     )}
-                    <Button variant="outline" className="w-full sm:w-auto">
-                      Add to Calendar
-                    </Button>
+                    <CalendarMenu payload={featuredCalendar} triggerClassName="w-full sm:w-auto" />
                   </div>
                 </div>
 
@@ -644,6 +886,8 @@ export function Events() {
               <StaggerGroup className="mt-12 space-y-10">
                 {paginatedEvents.map((event, index) => {
                 const detailHref = event.id ? `/events/${event.id}` : null;
+                const origin = typeof window !== "undefined" ? window.location.origin : "";
+                const eventCalendar = buildCalendarPayload(event, origin);
 
                 return (
                   <StaggerItem key={event.id ?? index} className="relative">
@@ -689,9 +933,7 @@ export function Events() {
                                 View Details
                               </Button>
                             )}
-                            <Button variant="ghost" size="sm">
-                              Share
-                            </Button>
+                            <CalendarMenu payload={eventCalendar} triggerVariant="outline" triggerSize="sm" />
                           </div>
                         </div>
                         {event.image ? (

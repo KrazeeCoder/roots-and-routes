@@ -48,6 +48,7 @@ export interface EventItem {
   time: string;
   location: string;
   startsAt?: string;
+  endsAt?: string;
   category: string;
   image?: string | null;
   postedByName?: string;
