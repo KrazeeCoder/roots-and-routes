@@ -1,131 +1,276 @@
-import { useMemo, useState, useEffect } from "react";
-import { CheckCircle2, Lightbulb, ShieldCheck, HelpCircle, Users } from "lucide-react";
+import { useEffect } from "react";
+import { Link } from "react-router";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ClipboardList,
+  Clock3,
+  Loader2,
+  ShieldCheck,
+  Sprout,
+  UserCheck2,
+  Users,
+  XCircle,
+} from "lucide-react";
+import { useAuth } from "../auth/AuthProvider";
 import { TopoPattern } from "../components/TopoPattern";
+import { ScrollReveal } from "../components/ScrollReveal";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Textarea } from "../components/ui/textarea";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion";
-import { ScrollReveal } from "../components/ScrollReveal";
 
-type SuggestForm = {
-  name: string;
-  email: string;
-  resourceName: string;
-  category: string;
-  description: string;
-  location: string;
-};
+type ContributorAccessStatus = "approved" | "pending" | "rejected" | "unknown";
 
-const initialForm: SuggestForm = {
-  name: "",
-  email: "",
-  resourceName: "",
-  category: "",
-  description: "",
-  location: "",
-};
+const processSteps = [
+  {
+    title: "Open Contributor Login and choose Create Account",
+    description:
+      "Start on the contributor portal page and select Create Account to begin your application.",
+    actionLabel: "Create Contributor Account",
+    actionTo: "/contributor-login",
+  },
+  {
+    title: "Complete your account application and verify your email",
+    description:
+      "Provide organization and contact information, then use the verification message sent to your inbox.",
+    actionLabel: "Go to Contributor Login",
+    actionTo: "/contributor-login",
+  },
+  {
+    title: "Wait for administrator approval",
+    description:
+      "Our moderators review each account for accuracy and trust. Your dashboard shows whether your status is pending, approved, or rejected.",
+    actionLabel: "Check Account Status",
+    actionTo: "/portal",
+  },
+  {
+    title: "Sign in and submit resources in Portal Resources",
+    description:
+      "Approved contributors can add and update listings in the portal where content is reviewed before publishing.",
+    actionLabel: "Open Resource Management",
+    actionTo: "/portal/resources",
+  },
+] as const;
+
+const preparationItems = [
+  "Organization name and public-facing contact details",
+  "Program name, category, and short summary",
+  "Who the resource serves and any eligibility requirements",
+  "Operating hours, location, and access instructions",
+  "Official website, email, and phone number when available",
+] as const;
+
+function isModerationRole(role: string | null | undefined) {
+  return role === "moderator" || role === "super_admin";
+}
+
+function getContributorAccessStatus(
+  role: string | null | undefined,
+  profileStatus: "pending" | "approved" | "rejected" | undefined,
+): ContributorAccessStatus {
+  if (isModerationRole(role) || profileStatus === "approved") return "approved";
+  if (profileStatus === "pending") return "pending";
+  if (profileStatus === "rejected") return "rejected";
+  return "unknown";
+}
+
+const statusConfigMap = {
+  approved: {
+    label: "Approved",
+    title: "Signed in and ready to submit resources",
+    description: "You have contributor access. Open Resource Management to create or edit listings.",
+    primaryLabel: "Open Resource Management",
+    primaryTo: "/portal/resources",
+    secondaryLabel: "Go to Portal Dashboard",
+    secondaryTo: "/portal",
+    chipClass: "border-green-200 bg-green-50 text-green-800",
+    icon: UserCheck2,
+    iconClass: "text-green-700",
+  },
+  pending: {
+    label: "Pending Approval",
+    title: "Signed in, awaiting contributor approval",
+    description:
+      "Your application is under review. Once approved, you can submit resources in the portal.",
+    primaryLabel: "Check Account Status",
+    primaryTo: "/portal",
+    secondaryLabel: "Browse Public Directory",
+    secondaryTo: "/directory",
+    chipClass: "border-amber-200 bg-amber-50 text-amber-800",
+    icon: Clock3,
+    iconClass: "text-amber-700",
+  },
+  rejected: {
+    label: "Not Approved",
+    title: "Signed in, but contributor access is not approved",
+    description:
+      "Review your account status in the portal for next steps. You can still browse public resources.",
+    primaryLabel: "Review Account Status",
+    primaryTo: "/portal",
+    secondaryLabel: "Browse Public Directory",
+    secondaryTo: "/directory",
+    chipClass: "border-red-200 bg-red-50 text-red-800",
+    icon: XCircle,
+    iconClass: "text-red-700",
+  },
+  unknown: {
+    label: "Status Unavailable",
+    title: "Signed in, checking contributor details",
+    description:
+      "We could not determine your contributor status yet. Visit your dashboard for the latest account state.",
+    primaryLabel: "Go to Portal Dashboard",
+    primaryTo: "/portal",
+    secondaryLabel: "Browse Public Directory",
+    secondaryTo: "/directory",
+    chipClass: "border-slate-200 bg-slate-50 text-slate-800",
+    icon: ShieldCheck,
+    iconClass: "text-slate-700",
+  },
+} as const;
 
 export function Suggest() {
-  const [form, setForm] = useState<SuggestForm>(initialForm);
-  const [submitted, setSubmitted] = useState(false);
-  const [touched, setTouched] = useState<Record<keyof SuggestForm, boolean>>({
-    name: false,
-    email: false,
-    resourceName: false,
-    category: false,
-    description: false,
-    location: false,
-  });
+  const { session, user, profile, role, loading } = useAuth();
 
   useEffect(() => {
-    // Smooth scroll to top when component mounts
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   }, []);
 
-  const errors = useMemo(() => {
-    const next: Record<keyof SuggestForm, string | null> = {
-      name: null,
-      email: null,
-      resourceName: null,
-      category: null,
-      description: null,
-      location: null,
-    };
+  const isSignedIn = Boolean(session);
+  const contributorStatus = getContributorAccessStatus(role, profile?.status);
+  const statusConfig = statusConfigMap[contributorStatus];
+  const StatusIcon = statusConfig.icon;
 
-    if (!form.name.trim()) next.name = "Please share your name.";
-    if (!form.email.trim()) next.email = "Please add an email address.";
-    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) next.email = "Looks like an invalid email.";
+  const displayName =
+    profile?.display_name ||
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim() ||
+    user?.email ||
+    "Contributor";
+  const organizationName = profile?.organization_name || "Organization not set yet";
+  const accountEmail = profile?.email || user?.email || "No email on file";
 
-    if (!form.resourceName.trim()) next.resourceName = "Give your suggestion a short name.";
-    if (!form.category.trim()) next.category = "Pick a category so we can tag it right.";
-    if (!form.description.trim()) next.description = "Tell us a bit about what makes this resource helpful.";
-    if (!form.location.trim()) next.location = "Where is this resource located?";
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
+        <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-20 pb-28">
+          <div className="absolute inset-0 pointer-events-none opacity-70">
+            <TopoPattern opacity={0.12} />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/75 via-[#334233]/45 to-transparent" />
 
-    return next;
-  }, [form]);
-
-  const hasErrors = useMemo(
-    () => Object.values(errors).some((e) => e !== null),
-    [errors],
-  );
-
-  const handleChange = (field: keyof SuggestForm, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleBlur = (field: keyof SuggestForm) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    setTouched({
-      name: true,
-      email: true,
-      resourceName: true,
-      category: true,
-      description: true,
-      location: true,
-    });
-
-    if (hasErrors) return;
-
-    setSubmitted(true);
-  };
-
-  return (
-    <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-20 pb-28">
-        <div className="absolute inset-0 pointer-events-none opacity-70">
-          <TopoPattern opacity={0.12} />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/70 via-[#334233]/40 to-transparent" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
+          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <ScrollReveal>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B36A4C]/20 border border-[#B36A4C]/30 text-[#E7D9C3] text-sm font-medium mb-6">
-                <Lightbulb className="w-4 h-4 text-[#B36A4C]" />
-                Help us grow the directory
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B36A4C]/20 border border-[#B36A4C]/40 text-[#E7D9C3] text-sm font-medium mb-6">
+                <Sprout className="w-4 h-4 text-[#B36A4C]" />
+                Contributor Pathway
               </div>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
               <h1 className="font-['Cormorant_Garamond',serif] text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight mb-6">
-                Plant a <span className="text-[#B36A4C] italic">Resource</span>
+                Checking Your Contributor Access
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
-              <p className="text-[#A7AE8A] text-lg font-light leading-relaxed">
-                Share a local program, service, or organization that helps Bothell residents grow.
-                We’ll review submissions and add them to directory so others can find their path faster.
+              <div className="rounded-2xl border border-[#E7D9C3]/40 bg-[#F6F1E7]/10 p-6 max-w-2xl">
+                <p className="text-[#E7D9C3] text-base flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Checking your contributor access...
+                </p>
+              </div>
+            </ScrollReveal>
+          </div>
+
+          <div className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none text-[#F6F1E7]">
+            <svg viewBox="0 0 1440 56" fill="none" preserveAspectRatio="none" className="w-full h-14">
+              <path d="M0,0 Q360,56 720,28 T1440,0 V56 H0 Z" fill="currentColor" />
+            </svg>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
+      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-20 pb-28">
+        <div className="absolute inset-0 pointer-events-none opacity-70">
+          <TopoPattern opacity={0.12} />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/75 via-[#334233]/45 to-transparent" />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl">
+            <ScrollReveal>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B36A4C]/20 border border-[#B36A4C]/40 text-[#E7D9C3] text-sm font-medium mb-6">
+                <Sprout className="w-4 h-4 text-[#B36A4C]" />
+                {isSignedIn ? "Contributor Access Confirmed" : "Contributor Pathway"}
+              </div>
+            </ScrollReveal>
+            <ScrollReveal delay={0.1}>
+              <h1 className="font-['Cormorant_Garamond',serif] text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight mb-6">
+                {isSignedIn ? (
+                  <>
+                    Your Suggestion Route Is <span className="text-[#B36A4C] italic">Signed In</span>
+                  </>
+                ) : (
+                  <>
+                    Plant a <span className="text-[#B36A4C] italic">Resource</span> Through Contributor Access
+                  </>
+                )}
+              </h1>
+            </ScrollReveal>
+            <ScrollReveal delay={0.15}>
+              <p className="text-[#A7AE8A] text-lg font-light leading-relaxed max-w-3xl">
+                {isSignedIn
+                  ? `Signed in as ${displayName}. Contributor status is ${statusConfig.label.toLowerCase()}. ${statusConfig.description}`
+                  : "Resource submissions are limited to approved contributors. This route keeps our directory accurate, trustworthy, and safe while giving every applicant a clear process to join."}
               </p>
+            </ScrollReveal>
+            <ScrollReveal delay={0.2}>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {isSignedIn ? (
+                  <>
+                    <Button asChild className="focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]">
+                      <Link to={statusConfig.primaryTo} className="inline-flex items-center gap-2">
+                        {statusConfig.primaryLabel}
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      asChild
+                      className="border-[#E7D9C3] text-[#F6F1E7] bg-transparent hover:bg-[#F6F1E7] hover:text-[#334233] focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]"
+                    >
+                      <Link to={statusConfig.secondaryTo}>{statusConfig.secondaryLabel}</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild className="focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]">
+                      <Link to="/contributor-login" className="inline-flex items-center gap-2">
+                        Create Contributor Account
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      asChild
+                      className="border-[#E7D9C3] text-[#F6F1E7] bg-transparent hover:bg-[#F6F1E7] hover:text-[#334233] focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]"
+                    >
+                      <Link to="/contributor-login">Sign In</Link>
+                    </Button>
+                  </>
+                )}
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="text-[#E7D9C3] hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]"
+                >
+                  <Link to="/directory">Browse Public Directory</Link>
+                </Button>
+              </div>
             </ScrollReveal>
           </div>
         </div>
@@ -137,267 +282,302 @@ export function Suggest() {
         </div>
       </section>
 
-      {/* Form + Guidance */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2">
-            <ScrollReveal>
-              <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-4">
-                Tell us about it
-              </h2>
-            </ScrollReveal>
-            <ScrollReveal delay={0.1}>
-              <p className="text-[#5B473A] text-lg font-light leading-relaxed mb-10">
-                The form below is for planting services, programs, and community supports that should be on our map.
-                We don’t require login or personal details beyond what helps us follow up if we have questions.
-              </p>
-            </ScrollReveal>
+      {isSignedIn ? (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <ScrollReveal>
+            <div className={`mb-8 rounded-2xl border p-5 ${statusConfig.chipClass}`} role="status" aria-live="polite">
+              <div className="flex items-start gap-3">
+                <StatusIcon className={`w-5 h-5 mt-0.5 ${statusConfig.iconClass}`} />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide">Signed in status</p>
+                  <h2 className="text-lg font-semibold mt-1">{statusConfig.title}</h2>
+                  <p className="text-sm mt-1">
+                    Contributor status: <span className="font-semibold">{statusConfig.label}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
 
-            <ScrollReveal delay={0.2}>
-              <form onSubmit={handleSubmit} noValidate className="space-y-8">
-                {submitted ? (
-                  <div className="rounded-2xl border border-[#A7AE8A] bg-[#F6F1E7] p-8">
-                    <div className="flex items-start gap-4">
-                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233]">
-                        <CheckCircle2 className="w-6 h-6" />
-                      </span>
-                      <div>
-                        <h3 className="text-xl font-semibold text-[#334233]">Thanks for helping our community grow!</h3>
-                        <p className="text-[#5B473A] mt-2">
-                          We’ll review it and add it to directory shortly. In the meantime, you can explore other pathways to support community.
-                        </p>
-                        <div className="mt-6 flex flex-wrap gap-3">
-                          <Button asChild>
-                            <a href="/directory" className="inline-flex items-center gap-2">
-                              Explore Directory
-                            </a>
-                          </Button>
-                          <Button variant="outline" asChild>
-                            <a href="/events" className="inline-flex items-center gap-2">
-                              Upcoming Gatherings
-                            </a>
-                          </Button>
-                        </div>
-                      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="lg:col-span-2 space-y-8">
+              <ScrollReveal>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="font-['Cormorant_Garamond',serif] text-3xl text-[#334233]">
+                      Welcome Back, {displayName}
+                    </CardTitle>
+                    <CardDescription className="text-[#5B473A]">
+                      You are already signed in. Use your contributor route below instead of creating a new account.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-[#6F7553]">Account email</p>
+                      <p className="font-medium text-[#334233] break-words">{accountEmail}</p>
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <Label htmlFor="name">Your name</Label>
-                        <Input
-                          id="name"
-                          value={form.name}
-                          onChange={(e) => handleChange("name", e.target.value)}
-                          onBlur={() => handleBlur("name")}
-                          aria-invalid={Boolean(touched.name && errors.name)}
-                        />
-                        {touched.name && errors.name ? (
-                          <p className="text-sm text-destructive mt-1">{errors.name}</p>
-                        ) : null}
-                      </div>
-                      <div>
-                        <Label htmlFor="email">Your email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={form.email}
-                          onChange={(e) => handleChange("email", e.target.value)}
-                          onBlur={() => handleBlur("email")}
-                          aria-invalid={Boolean(touched.email && errors.email)}
-                        />
-                        {touched.email && errors.email ? (
-                          <p className="text-sm text-destructive mt-1">{errors.email}</p>
-                        ) : null}
-                      </div>
+                    <div>
+                      <p className="text-[#6F7553]">Organization</p>
+                      <p className="font-medium text-[#334233]">{organizationName}</p>
                     </div>
+                    <div>
+                      <p className="text-[#6F7553]">Role</p>
+                      <p className="font-medium text-[#334233] capitalize">{role || "contributor"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#6F7553]">Contributor status</p>
+                      <p className="font-medium text-[#334233]">{statusConfig.label}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <Label htmlFor="resourceName">Resource name</Label>
-                        <Input
-                          id="resourceName"
-                          value={form.resourceName}
-                          onChange={(e) => handleChange("resourceName", e.target.value)}
-                          onBlur={() => handleBlur("resourceName")}
-                          aria-invalid={Boolean(touched.resourceName && errors.resourceName)}
-                        />
-                        {touched.resourceName && errors.resourceName ? (
-                          <p className="text-sm text-destructive mt-1">{errors.resourceName}</p>
-                        ) : null}
-                      </div>
-                      <div>
-                        <Label htmlFor="category">Category or focus</Label>
-                        <Input
-                          id="category"
-                          value={form.category}
-                          onChange={(e) => handleChange("category", e.target.value)}
-                          onBlur={() => handleBlur("category")}
-                          aria-invalid={Boolean(touched.category && errors.category)}
-                        />
-                        {touched.category && errors.category ? (
-                          <p className="text-sm text-destructive mt-1">{errors.category}</p>
-                        ) : null}
-                      </div>
-                    </div>
+              <ScrollReveal delay={0.1}>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-2xl text-[#334233]">Next Step on Your Route</CardTitle>
+                    <CardDescription className="text-[#5B473A]">{statusConfig.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button asChild>
+                      <Link to={statusConfig.primaryTo} className="inline-flex items-center gap-2">
+                        {statusConfig.primaryLabel}
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <p className="text-sm text-[#5B473A]">
+                      Need full account details? Visit your <Link to="/portal" className="underline hover:text-[#B36A4C]">portal dashboard</Link>.
+                    </p>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="md:col-span-2">
-                        <Label htmlFor="description">What does it offer?</Label>
-                        <Textarea
-                          id="description"
-                          value={form.description}
-                          onChange={(e) => handleChange("description", e.target.value)}
-                          onBlur={() => handleBlur("description")}
-                          aria-invalid={Boolean(touched.description && errors.description)}
-                          placeholder="Tell us who it's for, what services are available, and any key details."
-                        />
-                        {touched.description && errors.description ? (
-                          <p className="text-sm text-destructive mt-1">{errors.description}</p>
-                        ) : null}
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label htmlFor="location">Location / access details</Label>
-                        <Textarea
-                          id="location"
-                          value={form.location}
-                          onChange={(e) => handleChange("location", e.target.value)}
-                          onBlur={() => handleBlur("location")}
-                          aria-invalid={Boolean(touched.location && errors.location)}
-                          placeholder="Physical address, online meeting info, or how to connect."
-                        />
-                        {touched.location && errors.location ? (
-                          <p className="text-sm text-destructive mt-1">{errors.location}</p>
-                        ) : null}
-                      </div>
+              <ScrollReveal delay={0.2}>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-2xl text-[#334233]">Why Contributor Approval Is Required</CardTitle>
+                    <CardDescription className="text-[#5B473A]">
+                      These safeguards keep the Roots & Routes directory reliable and safe.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
+                      <ShieldCheck className="w-5 h-5 text-[#B36A4C]" />
+                      <p className="mt-2 font-semibold text-[#334233]">Accuracy First</p>
+                      <p className="text-sm text-[#5B473A] mt-1">
+                        Verified contributors reduce outdated or incomplete listing information.
+                      </p>
                     </div>
+                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
+                      <Users className="w-5 h-5 text-[#B36A4C]" />
+                      <p className="mt-2 font-semibold text-[#334233]">Community Safety</p>
+                      <p className="text-sm text-[#5B473A] mt-1">
+                        Account screening helps prevent misuse and protects community trust.
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
+                      <ClipboardList className="w-5 h-5 text-[#B36A4C]" />
+                      <p className="mt-2 font-semibold text-[#334233]">Moderation Quality</p>
+                      <p className="text-sm text-[#5B473A] mt-1">
+                        Review workflows keep published resources consistent and verifiable.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="text-sm text-[#5B473A]">
-                        Thanks for helping our community grow! and follow up if we need clarification.
-                      </div>
-                      <Button type="submit">Submit suggestion</Button>
-                    </div>
-                  </div>
-                )}
-              </form>
-            </ScrollReveal>
+            <div className="space-y-8">
+              <ScrollReveal delay={0.05}>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-[#334233]">Quick Actions</CardTitle>
+                    <CardDescription className="text-[#5B473A]">Routes for your current account status.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button asChild className="w-full justify-between">
+                      <Link to={statusConfig.primaryTo}>
+                        {statusConfig.primaryLabel}
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full justify-between">
+                      <Link to="/portal">
+                        Go to Portal Dashboard
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="ghost" className="w-full justify-between text-[#334233] hover:text-[#B36A4C]">
+                      <Link to="/directory">
+                        Browse Public Directory
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+
+              <ScrollReveal delay={0.15}>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-[#334233]">What to Prepare</CardTitle>
+                    <CardDescription className="text-[#5B473A]">
+                      Keep these details ready before submitting or updating a listing.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3" aria-label="Contributor preparation checklist">
+                      {preparationItems.map((item) => (
+                        <li key={item} className="flex items-start gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-[#6F7553] mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-[#5B473A]">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            </div>
           </div>
+        </section>
+      ) : (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="lg:col-span-2 space-y-8">
+              <ScrollReveal>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="font-['Cormorant_Garamond',serif] text-3xl text-[#334233]">
+                      Your Route to Suggest Resources
+                    </CardTitle>
+                    <CardDescription className="text-[#5B473A]">
+                      Follow these four steps to become an approved contributor and submit listings through the portal.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ol className="space-y-4" aria-label="Contributor onboarding process">
+                      {processSteps.map((step, index) => (
+                        <li key={step.title} className="rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-5">
+                          <div className="flex items-start gap-4">
+                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#334233] text-[#F6F1E7] text-sm font-semibold">
+                              {index + 1}
+                            </span>
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold text-[#334233]">{step.title}</h3>
+                              <p className="text-sm text-[#5B473A] mt-1">{step.description}</p>
+                              <Button
+                                asChild
+                                variant="link"
+                                className="h-auto px-0 mt-2 text-[#334233] underline decoration-[#B36A4C] underline-offset-4 hover:text-[#B36A4C]"
+                              >
+                                <Link to={step.actionTo}>{step.actionLabel}</Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
 
-          <div className="space-y-10">
-            <ScrollReveal>
-              <Card className="border-[#E7D9C3] bg-white">
-                <CardHeader>
-                  <CardTitle className="text-lg">What makes a great suggestion?</CardTitle>
-                  <CardDescription>
-                    Share the info that helps us add your resource quickly and accurately.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233]">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#334233]">Clear access details</p>
-                      <p className="text-sm text-[#5B473A]">
-                        Provide hours, eligibility, and whether people need an appointment.
+              <ScrollReveal delay={0.1}>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-2xl text-[#334233]">Why Contributor Approval Is Required</CardTitle>
+                    <CardDescription className="text-[#5B473A]">
+                      This policy protects quality and trust across the Roots & Routes directory.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
+                      <ShieldCheck className="w-5 h-5 text-[#B36A4C]" />
+                      <p className="mt-2 font-semibold text-[#334233]">Accuracy First</p>
+                      <p className="text-sm text-[#5B473A] mt-1">
+                        Approved contributors provide verifiable details, reducing outdated or incomplete listings.
                       </p>
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233]">
-                      <Lightbulb className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#334233]">Why it matters</p>
-                      <p className="text-sm text-[#5B473A]">
-                        Help us understand who benefits and what makes this resource unique.
+                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
+                      <Users className="w-5 h-5 text-[#B36A4C]" />
+                      <p className="mt-2 font-semibold text-[#334233]">Community Safety</p>
+                      <p className="text-sm text-[#5B473A] mt-1">
+                        Screening contributors helps prevent misuse and keeps the platform focused on public benefit.
                       </p>
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233]">
-                      <CheckCircle2 className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-[#334233]">Up-to-date info</p>
-                      <p className="text-sm text-[#5B473A]">
-                        If dates or details change, let us know so the community can trust the listing.
+                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
+                      <ClipboardList className="w-5 h-5 text-[#B36A4C]" />
+                      <p className="mt-2 font-semibold text-[#334233]">Moderation Quality</p>
+                      <p className="text-sm text-[#5B473A] mt-1">
+                        Structured review workflows keep submissions consistent and easier to verify before publication.
                       </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </ScrollReveal>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            </div>
 
-            <ScrollReveal delay={0.1}>
-              <Card className="border-[#E7D9C3] bg-white">
-                <CardHeader>
-                  <CardTitle className="text-lg">Need help?</CardTitle>
-                  <CardDescription>
-                    If you’d rather share details privately, here are other ways to get in touch.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#B36A4C]/10 text-[#B36A4C]">
-                        <HelpCircle className="w-5 h-5" />
-                      </span>
-                      <div>
-                        <p className="font-semibold text-[#334233]">Email our team</p>
-                        <p className="text-sm text-[#5B473A]">rootsandroutes.bothell@gmail.com</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#B36A4C]/10 text-[#B36A4C]">
-                        <Users className="w-5 h-5" />
-                      </span>
-                      <div>
-                        <p className="font-semibold text-[#334233]">Join the community chat</p>
-                        <p className="text-sm text-[#5B473A]">Connect with volunteers and organizers in our online group.</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </ScrollReveal>
+            <div className="space-y-8">
+              <ScrollReveal delay={0.05}>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-[#334233]">Quick Actions</CardTitle>
+                    <CardDescription className="text-[#5B473A]">
+                      Use these links to move through the contributor process.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button asChild className="w-full justify-between">
+                      <Link to="/contributor-login">
+                        Create Contributor Account
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full justify-between">
+                      <Link to="/contributor-login">
+                        Sign In
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full justify-between">
+                      <Link to="/portal/resources">
+                        Open Resource Management
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="ghost" className="w-full justify-between text-[#334233] hover:text-[#B36A4C]">
+                      <Link to="/directory">
+                        Browse Public Directory
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
 
-            <ScrollReveal delay={0.2}>
-              <Accordion type="single" collapsible className="rounded-2xl border border-[#E7D9C3] bg-white">
-                <AccordionItem value="q1">
-                  <AccordionTrigger>How long does it take to appear in the directory?</AccordionTrigger>
-                  <AccordionContent>
-                    <p className="text-sm text-[#5B473A]">
-                      We review submissions within a few days. If we have questions, we’ll reach out using the email you provide.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="q2">
-                  <AccordionTrigger>Can I suggest something that’s not a formal organization?</AccordionTrigger>
-                  <AccordionContent>
-                    <p className="text-sm text-[#5B473A]">
-                      Yes! We welcome suggestions for mutual aid groups, informal programs, and community-led efforts too.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="q3">
-                  <AccordionTrigger>Who reviews submissions?</AccordionTrigger>
-                  <AccordionContent>
-                    <p className="text-sm text-[#5B473A]">
-                      A team of volunteers checks details for accuracy and makes sure listings fit the scope of the directory.
-                    </p>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </ScrollReveal>
+              <ScrollReveal delay={0.15}>
+                <Card className="border-[#E7D9C3] bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-[#334233]">What to Prepare</CardTitle>
+                    <CardDescription className="text-[#5B473A]">
+                      Bring these details so your contributor account and future submissions can move quickly.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3" aria-label="Contributor preparation checklist">
+                      {preparationItems.map((item) => (
+                        <li key={item} className="flex items-start gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-[#6F7553] mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-[#5B473A]">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </ScrollReveal>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
