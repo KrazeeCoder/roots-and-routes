@@ -161,14 +161,14 @@ export function About() {
               Community impact
             </h2>
           </ScrollReveal>
-          <StaggerGroup className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <StaggerItem>
               <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div className="text-5xl font-bold text-[#334233]">
-                  <CountUp end={150} suffix="+" />
+                  <CountUp end={40} suffix="+" />
                 </div>
                 <div className="mt-2 text-sm text-[#5B473A]">Verified community resources</div>
               </div>
@@ -182,17 +182,6 @@ export function About() {
                   <CountUp end={1200} suffix="+" />
                 </div>
                 <div className="mt-2 text-sm text-[#5B473A]">Community members reached</div>
-              </div>
-            </StaggerItem>
-            <StaggerItem>
-              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                  <HeartPulse className="w-6 h-6" />
-                </div>
-                <div className="text-5xl font-bold text-[#334233]">
-                  <CountUp end={85} suffix="+" />
-                </div>
-                <div className="mt-2 text-sm text-[#5B473A]">Volunteer hours logged</div>
               </div>
             </StaggerItem>
           </StaggerGroup>

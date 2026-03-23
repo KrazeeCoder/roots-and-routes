@@ -18,6 +18,7 @@ import {
 import type { ContentStatus, EventRecord } from "../types/portal";
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/googleMaps";
 import { validateProfanity } from "../../utils/profanityFilter";
+import { validateUrl, validateRequired, validateMaxLength } from "../../utils/validation";
 
 interface EventFormState {
   title: string;
@@ -168,14 +169,33 @@ export function PortalEvents() {
     setError(null);
     setGeoNotice(null);
 
-    // Validate profanity in text fields
-    const titleError = validateProfanity(form.title, "Event title");
-    const categoryError = validateProfanity(form.category, "Category");
-    const descriptionError = validateProfanity(form.description, "Description");
-    const locationError = validateProfanity(form.location, "Location");
+    // Validate required fields
+    const titleError = validateRequired(form.title, "Event title");
+    const locationError = validateRequired(form.location, "Location");
 
-    if (titleError || categoryError || descriptionError || locationError) {
-      setError(titleError || categoryError || descriptionError || locationError);
+    // Validate profanity in text fields
+    const profanityTitleError = validateProfanity(form.title, "Event title");
+    const profanityCategoryError = validateProfanity(form.category, "Category");
+    const profanityDescriptionError = validateProfanity(form.description, "Description");
+    const profanityLocationError = validateProfanity(form.location, "Location");
+
+    // Validate input formats
+    const imageError = validateUrl(form.imageUrl);
+
+    // Validate length constraints
+    const titleLengthError = validateMaxLength(form.title, "Event title", 200);
+    const categoryLengthError = validateMaxLength(form.category, "Category", 100);
+    const descriptionLengthError = validateMaxLength(form.description, "Description", 1000);
+    const locationLengthError = validateMaxLength(form.location, "Location", 500);
+
+    // Check for any validation errors
+    const firstError = titleError || locationError ||
+                       profanityTitleError || profanityCategoryError || profanityDescriptionError || profanityLocationError ||
+                       imageError ||
+                       titleLengthError || categoryLengthError || descriptionLengthError || locationLengthError;
+
+    if (firstError) {
+      setError(firstError);
       setSaving(false);
       return;
     }

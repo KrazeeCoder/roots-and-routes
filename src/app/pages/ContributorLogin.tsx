@@ -13,6 +13,7 @@ import {
 } from "../data/portalApi";
 import { useAuth } from "../auth/AuthProvider";
 import { validateProfanity } from "../../utils/profanityFilter";
+import { validateEmail, validatePhone, validateRequired, validateMaxLength } from "../../utils/validation";
 
 type AuthMode = "signin" | "signup" | "forgot";
 
@@ -87,15 +88,39 @@ export function ContributorLogin() {
     setError(null);
     setMessage(null);
 
-    // Validate profanity in text fields
-    const orgError = validateProfanity(signUp.organizationName, "Organization name");
-    const displayError = validateProfanity(signUp.displayName, "Display name");
-    const firstNameError = validateProfanity(signUp.firstName, "First name");
-    const middleNameError = validateProfanity(signUp.middleName, "Middle name");
-    const lastNameError = validateProfanity(signUp.lastName, "Last name");
+    // Validate required fields
+    const orgError = validateRequired(signUp.organizationName, "Organization name");
+    const firstNameError = validateRequired(signUp.firstName, "First name");
+    const lastNameError = validateRequired(signUp.lastName, "Last name");
+    const emailError = validateRequired(signUp.email, "Email");
+    const phoneError = validateRequired(signUp.phone, "Phone");
 
-    if (orgError || displayError || firstNameError || middleNameError || lastNameError) {
-      setError(orgError || displayError || firstNameError || middleNameError || lastNameError);
+    // Validate profanity in text fields
+    const profanityOrgError = validateProfanity(signUp.organizationName, "Organization name");
+    const profanityDisplayError = validateProfanity(signUp.displayName, "Display name");
+    const profanityFirstNameError = validateProfanity(signUp.firstName, "First name");
+    const profanityMiddleNameError = validateProfanity(signUp.middleName, "Middle name");
+    const profanityLastNameError = validateProfanity(signUp.lastName, "Last name");
+
+    // Validate input formats
+    const emailFormatError = validateEmail(signUp.email);
+    const phoneFormatError = validatePhone(signUp.phone);
+
+    // Validate length constraints
+    const orgLengthError = validateMaxLength(signUp.organizationName, "Organization name", 200);
+    const displayLengthError = validateMaxLength(signUp.displayName, "Display name", 100);
+    const firstNameLengthError = validateMaxLength(signUp.firstName, "First name", 50);
+    const middleNameLengthError = validateMaxLength(signUp.middleName, "Middle name", 50);
+    const lastNameLengthError = validateMaxLength(signUp.lastName, "Last name", 50);
+
+    // Check for any validation errors
+    const firstError = orgError || firstNameError || lastNameError || emailError || phoneError ||
+                       profanityOrgError || profanityDisplayError || profanityFirstNameError || profanityMiddleNameError || profanityLastNameError ||
+                       emailFormatError || phoneFormatError ||
+                       orgLengthError || displayLengthError || firstNameLengthError || middleNameLengthError || lastNameLengthError;
+
+    if (firstError) {
+      setError(firstError);
       setSubmitting(false);
       return;
     }
@@ -122,7 +147,6 @@ export function ContributorLogin() {
         email: signUp.email,
         phone: signUp.phone,
         password: signUp.password,
-        confirmPassword: signUp.confirmPassword,
       });
 
       if (result.session) {

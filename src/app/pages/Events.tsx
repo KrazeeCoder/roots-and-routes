@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import { useJsApiLoader, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
 import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
+import { validateZipCode } from "../../utils/validation";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -491,6 +492,13 @@ export function Events() {
 
     if (!trimmedZip) {
       setNearbyMessage("Enter a ZIP code to search nearby events.");
+      return;
+    }
+
+    // Validate ZIP code format
+    const zipError = validateZipCode(trimmedZip);
+    if (zipError) {
+      setNearbyMessage(zipError);
       return;
     }
 
