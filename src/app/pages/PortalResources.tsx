@@ -16,6 +16,7 @@ import {
 } from "../data/portalApi";
 import type { ContentStatus, ResourceRecord } from "../types/portal";
 import { validateProfanity } from "../../utils/profanityFilter";
+import { validateEmail, validatePhone, validateUrl, validateRequired, validateMaxLength } from "../../utils/validation";
 
 interface ResourceFormState {
   name: string;
@@ -69,29 +70,6 @@ function normalizeHttpUrl(raw: string) {
 
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
   return parsed.toString();
-}
-
-function normalizeEmail(raw: string) {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed)) {
-    return null;
-  }
-
-  return trimmed.toLowerCase();
-}
-
-function hasPlaceholderHost(url: string) {
-  try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    return hostname === "example.com"
-      || hostname.endsWith(".example.com")
-      || hostname === "localhost"
-      || hostname.endsWith(".localhost");
-  } catch {
-    return true;
-  }
 }
 
 export function PortalResources() {
@@ -168,54 +146,56 @@ export function PortalResources() {
     setSaving(true);
     setError(null);
 
-    // Validate profanity in text fields
-    const nameError = validateProfanity(form.name, "Resource name");
-    const categoryError = validateProfanity(form.category, "Category");
-    const descriptionError = validateProfanity(form.description, "Description");
-    const fullDescriptionError = validateProfanity(form.fullDescription, "Full description");
-    const addressError = validateProfanity(form.address, "Address");
-    const hoursError = validateProfanity(form.hours, "Hours");
-    const tagsError = validateProfanity(form.tags, "Tags");
-    const spotlightError = validateProfanity(form.spotlightSubtitle, "Spotlight subtitle");
+    // Validate required fields
+    const nameError = validateRequired(form.name, "Resource name");
+    const categoryError = validateRequired(form.category, "Category");
+    const descriptionError = validateRequired(form.description, "Description");
+    const addressError = validateRequired(form.address, "Address");
 
-    if (nameError || categoryError || descriptionError || fullDescriptionError || 
-        addressError || hoursError || tagsError || spotlightError) {
-      setError(nameError || categoryError || descriptionError || fullDescriptionError || 
-               addressError || hoursError || tagsError || spotlightError);
+    // Validate profanity in text fields
+    const profanityNameError = validateProfanity(form.name, "Resource name");
+    const profanityCategoryError = validateProfanity(form.category, "Category");
+    const profanityDescriptionError = validateProfanity(form.description, "Description");
+    const profanityFullDescriptionError = validateProfanity(form.fullDescription, "Full description");
+    const profanityAddressError = validateProfanity(form.address, "Address");
+    const profanityHoursError = validateProfanity(form.hours, "Hours");
+    const profanityTagsError = validateProfanity(form.tags, "Tags");
+    const profanitySpotlightError = validateProfanity(form.spotlightSubtitle, "Spotlight subtitle");
+
+    // Validate input formats
+    const emailError = validateEmail(form.email);
+    const phoneError = validatePhone(form.phone);
+    const websiteError = validateUrl(form.website);
+    const imageError = validateUrl(form.imageUrl);
+
+    // Validate length constraints
+    const nameLengthError = validateMaxLength(form.name, "Resource name", 200);
+    const categoryLengthError = validateMaxLength(form.category, "Category", 100);
+    const descriptionLengthError = validateMaxLength(form.description, "Description", 500);
+    const fullDescriptionLengthError = validateMaxLength(form.fullDescription, "Full description", 2000);
+    const addressLengthError = validateMaxLength(form.address, "Address", 500);
+    const hoursLengthError = validateMaxLength(form.hours, "Hours", 200);
+    const tagsLengthError = validateMaxLength(form.tags, "Tags", 300);
+    const spotlightLengthError = validateMaxLength(form.spotlightSubtitle, "Spotlight subtitle", 200);
+
+    // Check for any validation errors
+    const firstError = nameError || categoryError || descriptionError || addressError ||
+                       profanityNameError || profanityCategoryError || profanityDescriptionError || 
+                       profanityFullDescriptionError || profanityAddressError || profanityHoursError || 
+                       profanityTagsError || profanitySpotlightError ||
+                       emailError || phoneError || websiteError || imageError ||
+                       nameLengthError || categoryLengthError || descriptionLengthError || 
+                       fullDescriptionLengthError || addressLengthError || hoursLengthError || 
+                       tagsLengthError || spotlightLengthError;
+
+    if (firstError) {
+      setError(firstError);
       setSaving(false);
       return;
     }
 
     const normalizedWebsite = normalizeHttpUrl(form.website);
-    if (form.website.trim() && !normalizedWebsite) {
-      setSaving(false);
-      setError("Website must be a valid URL (for example: https://example.org).");
-      return;
-    }
-    if (normalizedWebsite && hasPlaceholderHost(normalizedWebsite)) {
-      setSaving(false);
-      setError("Website cannot use placeholder domains like example.com or localhost.");
-      return;
-    }
-
     const normalizedImageUrl = normalizeHttpUrl(form.imageUrl);
-    if (form.imageUrl.trim() && !normalizedImageUrl) {
-      setSaving(false);
-      setError("Image URL must be a valid URL (for example: https://images.unsplash.com/...).");
-      return;
-    }
-    if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
-      setSaving(false);
-      setError("Image URL cannot use placeholder domains like example.com or localhost.");
-      return;
-    }
-
-    const normalizedEmail = normalizeEmail(form.email);
-    if (form.email.trim() && !normalizedEmail) {
-      setSaving(false);
-      setError("Email must be valid (for example: hello@organization.org).");
-      return;
-    }
 
     const payload = {
       name: form.name.trim(),
@@ -224,7 +204,7 @@ export function PortalResources() {
       full_description: form.fullDescription.trim() || null,
       address: form.address.trim(),
       phone: form.phone.trim() || null,
-      email: normalizedEmail,
+      email: form.email.trim() || null,
       website: normalizedWebsite,
       hours: form.hours.trim() || null,
       tags: form.tags
