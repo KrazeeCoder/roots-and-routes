@@ -12,6 +12,7 @@ import {
   signUpContributor,
 } from "../data/portalApi";
 import { useAuth } from "../auth/AuthProvider";
+import { validateProfanity } from "../../utils/profanityFilter";
 
 type AuthMode = "signin" | "signup" | "forgot";
 
@@ -85,6 +86,19 @@ export function ContributorLogin() {
     setSubmitting(true);
     setError(null);
     setMessage(null);
+
+    // Validate profanity in text fields
+    const orgError = validateProfanity(signUp.organizationName, "Organization name");
+    const displayError = validateProfanity(signUp.displayName, "Display name");
+    const firstNameError = validateProfanity(signUp.firstName, "First name");
+    const middleNameError = validateProfanity(signUp.middleName, "Middle name");
+    const lastNameError = validateProfanity(signUp.lastName, "Last name");
+
+    if (orgError || displayError || firstNameError || middleNameError || lastNameError) {
+      setError(orgError || displayError || firstNameError || middleNameError || lastNameError);
+      setSubmitting(false);
+      return;
+    }
 
     if (signUp.password.length < 8) {
       setError("Password must be at least 8 characters.");

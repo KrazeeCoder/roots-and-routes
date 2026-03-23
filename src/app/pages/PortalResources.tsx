@@ -15,6 +15,7 @@ import {
   updateResource,
 } from "../data/portalApi";
 import type { ContentStatus, ResourceRecord } from "../types/portal";
+import { validateProfanity } from "../../utils/profanityFilter";
 
 interface ResourceFormState {
   name: string;
@@ -166,6 +167,24 @@ export function PortalResources() {
 
     setSaving(true);
     setError(null);
+
+    // Validate profanity in text fields
+    const nameError = validateProfanity(form.name, "Resource name");
+    const categoryError = validateProfanity(form.category, "Category");
+    const descriptionError = validateProfanity(form.description, "Description");
+    const fullDescriptionError = validateProfanity(form.fullDescription, "Full description");
+    const addressError = validateProfanity(form.address, "Address");
+    const hoursError = validateProfanity(form.hours, "Hours");
+    const tagsError = validateProfanity(form.tags, "Tags");
+    const spotlightError = validateProfanity(form.spotlightSubtitle, "Spotlight subtitle");
+
+    if (nameError || categoryError || descriptionError || fullDescriptionError || 
+        addressError || hoursError || tagsError || spotlightError) {
+      setError(nameError || categoryError || descriptionError || fullDescriptionError || 
+               addressError || hoursError || tagsError || spotlightError);
+      setSaving(false);
+      return;
+    }
 
     const normalizedWebsite = normalizeHttpUrl(form.website);
     if (form.website.trim() && !normalizedWebsite) {

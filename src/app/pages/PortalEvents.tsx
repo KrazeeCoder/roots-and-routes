@@ -17,6 +17,7 @@ import {
 } from "../data/portalApi";
 import type { ContentStatus, EventRecord } from "../types/portal";
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/googleMaps";
+import { validateProfanity } from "../../utils/profanityFilter";
 
 interface EventFormState {
   title: string;
@@ -166,6 +167,18 @@ export function PortalEvents() {
     setSaving(true);
     setError(null);
     setGeoNotice(null);
+
+    // Validate profanity in text fields
+    const titleError = validateProfanity(form.title, "Event title");
+    const categoryError = validateProfanity(form.category, "Category");
+    const descriptionError = validateProfanity(form.description, "Description");
+    const locationError = validateProfanity(form.location, "Location");
+
+    if (titleError || categoryError || descriptionError || locationError) {
+      setError(titleError || categoryError || descriptionError || locationError);
+      setSaving(false);
+      return;
+    }
 
     const locationText = form.location.trim();
     let locationLat = form.locationLat;
