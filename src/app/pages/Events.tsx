@@ -701,6 +701,23 @@ export function Events() {
             </div>
           </ScrollReveal>
 
+          <ScrollReveal delay={0.08}>
+            <div className="mt-6 rounded-3xl border border-[#D9C6A8] bg-gradient-to-r from-[#F8F5F0] via-[#F6F1E7] to-[#F1E7D8] p-5 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide font-semibold text-[#6F7553]">Monthly View</p>
+                  <p className="text-[#334233] font-semibold mt-1">Need a full month-at-a-glance calendar?</p>
+                  <p className="text-sm text-[#5B473A] mt-1">Open the community calendar to click dates and review day-specific events instantly.</p>
+                </div>
+                <Button variant="default" asChild className="w-full sm:w-auto">
+                  <Link to="/calendar" className="inline-flex items-center gap-2">
+                    <Calendar className="w-4 h-4" /> Open Full Calendar
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </ScrollReveal>
+
           <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
               <div className="inline-flex rounded-xl border border-[#E7D9C3] overflow-hidden">
