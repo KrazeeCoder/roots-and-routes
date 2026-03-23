@@ -1,0 +1,80 @@
+﻿{
+    "metadata":  {
+                     "generated_at":  "2026-03-23T00:00:00Z",
+                     "area":  "Bothell, WA",
+                     "resource_count":  82,
+                     "event_count":  80,
+                     "source_count":  85
+                 },
+    "resources":  [
+                      {
+                          "name":  "Bloomberg Hill Park",
+                          "category":  "Community Events",
+                          "description":  "Public park and outdoor community space maintained by the city.",
+                          "full_description":  "Official city park page identifying this location as a public park or open space for outdoor recreation and neighborhood use.",
+                          "address":  "20301 Hollyhills Dr NE, Bothell, WA 98011",
+                          "phone":  null,
+                          "location_lng":  null,
+                          "starts_at":  "2026-05-06T17:00:00-07:00",
+                          "ends_at":  "2026-05-06T20:00:00-07:00",
+                          "image_url":  null,
+                          "status":  "published",
+                          "is_spotlight":  false,
+                          "posted_by_name":  "Community Contributor",
+                          "source_url":  "https://bothellkenmorechamber.org/community-events/month/2026-05/",
+                          "image_source_url\r\n":  null,
+                          "image_license":  null,
+                          "image_attribution":  null,
+                          "last_verified_date":  "2026-03-23"
+                      },
+                      {
+                          "title":  "Wine Wednesday at The Cottage",
+                          "category":  "Community Events",
+                          "description":  "Weekly wine tasting at The Cottage with a featured boutique winery.",
+                          "location":  "The Cottage, 10029 NE 183rd St, Bothell, WA 98011",
+                          "location_lat":  null,
+                          "location_lng":  null,
+                          "starts_at":  "2026-05-13T17:00:00-07:00",
+                          "ends_at":  "2026-05-13T20:00:00-07:00",
+                          "image_url":  null,
+                          "status":  "published",
+                          "is_spotlight":  false,
+                          "posted_by_name":  "Community Contributor",
+                          "source_url":  "https://bothellkenmorechamber.org/community-events/month/2026-05/",
+                          "image_source_url\r\n":  null,
+                          "image_license":  null,
+                          "image_attribution":  null,
+                          "last_verified_date":  "2026-03-23"
+                      }
+                  ],
+    "attributions":  [
+
+                     ],
+    "rejected_records":  [
+                             {
+                                 "name_or_title":  "Hopelink Mobile Market",
+                                 "reason":  "Skipped because the official source did not provide a single stable physical address for one record.",
+                                 "source_url":  "https://www.hopelink.org/programs/food-program/mobile-market/"
+                             },
+                             {
+                                 "name_or_title":  "Domestic\r\n Violence Services of Snohomish County",
+                                 "reason":  "Skipped because a street address was not sufficiently verified from the official source during extraction.",
+                                 "source_url":  "https://dvs-snoco.org/"
+                             },
+                             {
+                                 "name_or_title":  "Bothell\r\n Youth Court",
+                                 "reason":  "Skipped because the program page did not provide a clearly extractable program-specific service address.",
+                                 "source_url":  "https://www.bothellwa.gov/230/Youth-Court"
+                             },
+                             {
+                                 "name_or_title":  "Pop-Up\r\n Book Sale: Friends of the Bothell Library",
+                                 "reason":  "Skipped because the event had already occurred before 2026-03-23.",
+                                 "source_url":  "https://kcls.bibliocommons.com/events/68f952ec3cbc052f008126d6"
+                             },
+                             {
+                                 "name_or_title":  "Lunar\r\n New Year Chinese Story Time | 歡慶春節中文故事時間",
+                                 "reason":  "Skipped because the event had already occurred before 2026-03-23.",
+                                 "source_url":  "https://kcls.bibliocommons.com/events/6945dd3676261f2800601051\r\n"
+                             }
+                         ]
+}

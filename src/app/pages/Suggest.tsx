@@ -272,6 +272,18 @@ export function Suggest() {
                 </Button>
               </div>
             </ScrollReveal>
+            <ScrollReveal delay={0.25}>
+              <div className="mt-5 rounded-xl border border-[#E7D9C3]/40 bg-[#F6F1E7]/10 p-4 max-w-3xl">
+                <p className="text-sm text-[#E7D9C3]">
+                  <span className="font-semibold text-[#F6F1E7]">TSA Judges:</span> Contributor login information for
+                  submitting events is provided on the{" "}
+                  <Link to="/contributor-login" className="underline underline-offset-4 hover:text-white">
+                    Contributor Login page
+                  </Link>
+                  .
+                </p>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
 
