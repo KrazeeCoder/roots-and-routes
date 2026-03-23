@@ -15,6 +15,8 @@ import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/goo
 const bothellCenter = { lat: 47.7614, lng: -122.2052 };
 const radiusOptions = [5, 10, 25, 50] as const;
 const EVENTS_PER_PAGE = 3;
+const MAILCHIMP_FORM_ACTION = "https://app.us15.list-manage.com/subscribe/post?u=1a4d66e4b7bf806af9a2a7a96&id=ed25e2a503&f_id=00d7a2e1f0";
+const MAILCHIMP_HONEYPOT_NAME = "b_1a4d66e4b7bf806af9a2a7a96_ed25e2a503";
 
 type ViewMode = "list" | "map";
 
@@ -1020,12 +1022,47 @@ export function Events() {
                   <Calendar className="w-4 h-4" /> Full Community Calendar
                 </Link>
               </Button>
-              <Button variant="secondary" asChild>
-                <a href="#" className="inline-flex items-center gap-2">
-                  <Users className="w-4 h-4" /> Join Our Mailing List
-                </a>
-              </Button>
             </div>
+          </div>
+
+          <div id="mailing-list" className="mt-10 rounded-2xl border border-[#D9C6A8] bg-white p-6 sm:p-8 shadow-sm">
+            <h3 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233]">Subscribe</h3>
+            <p className="mt-2 text-sm text-[#5B473A]">
+              Get updates on new community events and resources.
+            </p>
+
+            <form
+              action={MAILCHIMP_FORM_ACTION}
+              method="post"
+              id="mc-embedded-subscribe-form"
+              name="mc-embedded-subscribe-form"
+              target="_blank"
+              noValidate
+              className="mt-5 flex flex-col sm:flex-row gap-3 sm:items-end"
+            >
+              <div className="w-full sm:max-w-md">
+                <Label htmlFor="mce-EMAIL" className="text-[#334233]">
+                  Email Address <span className="text-[#B36A4C]">*</span>
+                </Label>
+                <Input
+                  id="mce-EMAIL"
+                  name="EMAIL"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  className="mt-2"
+                />
+              </div>
+
+              <div style={{ position: "absolute", left: "-5000px" }} aria-hidden="true">
+                <input type="text" name={MAILCHIMP_HONEYPOT_NAME} tabIndex={-1} defaultValue="" />
+              </div>
+
+              <Button type="submit" variant="default" className="sm:mt-0">
+                Subscribe
+              </Button>
+            </form>
           </div>
         </div>
       </section>
