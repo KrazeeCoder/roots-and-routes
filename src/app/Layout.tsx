@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation } from "react-router";
 import { Trees, Menu } from "lucide-react";
 
 const navItems = [
-  { name: "Directory", href: "/directory", isRoute: true },
+  { name: "Resources", href: "/directory", isRoute: true },
   { name: "Events", href: "/events", isRoute: true },
   { name: "Spotlights", href: "/spotlights", isRoute: true },
   { name: "References", href: "/reference", isRoute: true },
