@@ -109,6 +109,16 @@ export function About() {
       {/* Values */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <ScrollReveal>
+          <div className="mb-10 rounded-2xl border border-[#B36A4C]/40 bg-[#B36A4C]/10 p-5 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-[#334233]">TSA Compliance Statement</h2>
+            <p className="mt-2 text-sm sm:text-base text-[#5B473A] leading-relaxed">
+              This website uses React, Vite, and Tailwind CSS. All page layouts, styling, and interface components were built by our team.
+              No pre-built template or theme was used.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal>
           <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
             Our values
           </h2>
