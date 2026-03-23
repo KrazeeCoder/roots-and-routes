@@ -55,6 +55,12 @@ const knownBrokenImageIds = [
   "images.unsplash.com",
 ];
 
+interface ImageCitation {
+  type: "Resource" | "Event";
+  label: string;
+  url: string;
+}
+
 function ensureAbsoluteUrl(url: string) {
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `https://${url}`;
@@ -87,6 +93,8 @@ export function Reference() {
   const [resourceWebsites, setResourceWebsites] = useState<string[]>([]);
   const [resourceImages, setResourceImages] = useState<string[]>([]);
   const [eventImages, setEventImages] = useState<string[]>([]);
+  const [resourceImageCitations, setResourceImageCitations] = useState<ImageCitation[]>([]);
+  const [eventImageCitations, setEventImageCitations] = useState<ImageCitation[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,10 +118,28 @@ export function Reference() {
             .map((resource) => resource.image_url)
             .filter((image): image is string => Boolean(image)),
         );
+        setResourceImageCitations(
+          resources
+            .filter((resource) => Boolean(resource.image_url))
+            .map((resource) => ({
+              type: "Resource" as const,
+              label: resource.name,
+              url: resource.image_url as string,
+            })),
+        );
         setEventImages(
           events
             .map((event) => event.image_url)
             .filter((image): image is string => Boolean(image)),
+        );
+        setEventImageCitations(
+          events
+            .filter((event) => Boolean(event.image_url))
+            .map((event) => ({
+              type: "Event" as const,
+              label: event.title,
+              url: event.image_url as string,
+            })),
         );
       } catch (error) {
         console.error("Could not load citation sources", error);
@@ -161,6 +187,23 @@ export function Reference() {
       ),
     ).sort((a, b) => a.localeCompare(b)),
     [eventImages, resourceImages],
+  );
+
+  const publishedImageCitations = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          [...resourceImageCitations, ...eventImageCitations]
+            .map((citation) => ({
+              ...citation,
+              url: ensureAbsoluteUrl(citation.url),
+            }))
+            .filter((citation) => !isPlaceholderDomain(citation.url))
+            .filter((citation) => !isKnownBrokenImage(citation.url))
+            .map((citation) => [`${citation.type}:${citation.label}:${citation.url}`, citation]),
+        ).values(),
+      ).sort((a, b) => a.label.localeCompare(b.label) || a.url.localeCompare(b.url)),
+    [eventImageCitations, resourceImageCitations],
   );
 
   return (
@@ -340,6 +383,37 @@ export function Reference() {
                       {source.name}
                     </a>
                   ))}
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-sm font-semibold text-[#334233] mb-3">Published Content Image Citations</h3>
+                  <p className="text-xs text-[#5B473A] mb-4">
+                    These citations pair each published resource/event title with its image source URL.
+                  </p>
+                  {publishedImageCitations.length === 0 ? (
+                    <p className="text-sm text-[#6F7553]">
+                      No published resource or event images found yet.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[360px] overflow-y-auto pr-2">
+                      {publishedImageCitations.map((citation) => (
+                        <div key={`${citation.type}-${citation.label}-${citation.url}`} className="rounded-lg border border-[#E7D9C3] bg-white p-3">
+                          <p className="text-xs font-semibold text-[#334233]">
+                            {citation.type}: {citation.label}
+                          </p>
+                          <a
+                            href={citation.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-xs font-mono text-[#B36A4C] break-all hover:underline"
+                          >
+                            <LinkIcon className="w-3 h-3" />
+                            {citation.url}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </ScrollReveal>
