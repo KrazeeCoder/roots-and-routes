@@ -22,6 +22,7 @@ import {
 import { EVENT_CATEGORY_SUGGESTIONS } from "../constants/eventCategorySuggestions";
 import { AddressAutocompleteInput } from "../components/forms/AddressAutocompleteInput";
 import { CategoryPicker } from "../components/forms/CategoryPicker";
+import { ResourceHoursSelector } from "../components/forms/ResourceHoursSelector";
 import { TagChipInput, joinTagsForValidation } from "../components/forms/TagChipInput";
 import { validateProfanity } from "../../utils/profanityFilter";
 import { validateEmail, validatePhone, validateRequired, validateUrl, validateMaxLength } from "../../utils/validation";
@@ -392,7 +393,14 @@ export function Suggest() {
                         required
                       />
                     </div>
-                    <div><Label htmlFor="resource-hours">Hours</Label><Input id="resource-hours" value={resourceForm.hours} onChange={(event) => setResourceForm((prev) => ({ ...prev, hours: event.target.value }))} /></div>
+                    <div>
+                      <Label htmlFor="resource-hours">Hours</Label>
+                      <ResourceHoursSelector
+                        id="resource-hours"
+                        value={resourceForm.hours}
+                        onChange={(next) => setResourceForm((prev) => ({ ...prev, hours: next }))}
+                      />
+                    </div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div><Label htmlFor="resource-website">Website</Label><Input id="resource-website" value={resourceForm.website} onChange={(event) => setResourceForm((prev) => ({ ...prev, website: event.target.value }))} /></div>

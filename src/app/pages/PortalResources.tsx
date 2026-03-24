@@ -24,6 +24,7 @@ import {
 } from "../constants/resourceCategories";
 import { AddressAutocompleteInput } from "../components/forms/AddressAutocompleteInput";
 import { CategoryPicker } from "../components/forms/CategoryPicker";
+import { ResourceHoursSelector } from "../components/forms/ResourceHoursSelector";
 import { TagChipInput, joinTagsForValidation } from "../components/forms/TagChipInput";
 
 interface ResourceFormState {
@@ -337,10 +338,10 @@ export function PortalResources() {
                 </div>
                 <div>
                   <Label htmlFor="resource-hours">Hours</Label>
-                  <Input
+                  <ResourceHoursSelector
                     id="resource-hours"
                     value={form.hours}
-                    onChange={(event) => setForm((prev) => ({ ...prev, hours: event.target.value }))}
+                    onChange={(next) => setForm((prev) => ({ ...prev, hours: next }))}
                   />
                 </div>
               </div>
