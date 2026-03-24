@@ -15,7 +15,7 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Button } from "../components/ui/button";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
@@ -158,6 +158,15 @@ export function Calendar() {
               <p className="text-[#A7AE8A] text-lg font-light leading-relaxed">
                 Browse all upcoming community gatherings in a calendar view. Select a day to review details instantly.
               </p>
+            </ScrollReveal>
+            <ScrollReveal delay={0.2}>
+              <div className="mt-6">
+                <Button variant="outline" className="border-[#E7D9C3]/40 bg-white/5 text-[#F6F1E7] hover:bg-white/10 hover:text-white" asChild>
+                  <Link to="/events">
+                    <ArrowLeft className="w-4 h-4" /> Back to Events
+                  </Link>
+                </Button>
+              </div>
             </ScrollReveal>
           </div>
         </div>
