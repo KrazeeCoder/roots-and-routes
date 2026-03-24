@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useJsApiLoader, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
-import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { validateZipCode } from "../../utils/validation";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
@@ -575,10 +575,14 @@ export function Events() {
                     <Calendar className="w-4 h-4" /> Featured Gathering
                   </a>
                 </Button>
-                <Button asChild className="w-full sm:w-auto" variant="secondary">
-                  <a href="#upcoming" className="inline-flex items-center gap-2">
-                    <Users className="w-4 h-4" /> See All Gatherings
-                  </a>
+                <Button
+                  asChild
+                  className="w-full sm:w-auto"
+                  variant="secondary"
+                >
+                  <Link to="/calendar" className="inline-flex items-center gap-2">
+                    <Calendar className="w-4 h-4" /> Open Full Calendar
+                  </Link>
                 </Button>
               </div>
             </ScrollReveal>
@@ -592,7 +596,32 @@ export function Events() {
         </div>
       </section>
 
-      <section id="featured" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section id="featured" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
+        <ScrollReveal>
+          <div className="mb-12 rounded-3xl border-2 border-[#B36A4C]/45 bg-gradient-to-r from-[#FFF9EF] via-[#F6F1E7] to-[#EEDFC9] p-5 sm:p-6 shadow-lg ring-1 ring-[#B36A4C]/25">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#7E664F]">Event Calendar</p>
+                <h2 className="font-['Cormorant_Garamond',serif] text-2xl sm:text-3xl font-bold text-[#334233] mt-2">
+                  Need the full month-at-a-glance?
+                </h2>
+                <p className="text-[#5B473A] text-sm sm:text-base mt-2 leading-relaxed">
+                  Open the community calendar to click dates and review day-specific events instantly.
+                </p>
+              </div>
+              <Button
+                variant="default"
+                asChild
+                className="w-full sm:w-auto sm:min-w-64 h-12 px-8 text-base font-semibold rounded-lg shadow-md"
+              >
+                <Link to="/calendar" className="inline-flex items-center justify-center gap-2.5">
+                  <Calendar className="size-5" /> Open Full Calendar
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </ScrollReveal>
+
         <div className="flex flex-col lg:flex-row gap-10 lg:items-center">
           <div className="flex-1">
             <ScrollReveal>
@@ -630,13 +659,29 @@ export function Events() {
                       {featured?.title ?? "No published event yet"}
                     </h3>
                   )}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 text-[#5B473A] text-sm mt-4">
-                    <span className="inline-flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#A7AE8A]" /> {featured?.time ?? "Time TBD"}
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-[#A7AE8A]" /> {featured?.location ?? "Location TBD"}
-                    </span>
+                  <div className="mt-5 rounded-2xl border border-[#D9C6A8] bg-[#F8F5F0] divide-y divide-[#E7D9C3]">
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
+                        <Clock className="size-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[11px] uppercase tracking-wide font-semibold text-[#6F7553]">Time</p>
+                        <p className="mt-0.5 text-[#334233] font-semibold text-base leading-snug">
+                          {featured?.time ?? "Time TBD"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
+                        <MapPin className="size-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[11px] uppercase tracking-wide font-semibold text-[#6F7553]">Location</p>
+                        <p className="mt-0.5 text-[#334233] font-medium text-sm sm:text-base leading-snug break-words">
+                          {featured?.location ?? "Location TBD"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:gap-4">
@@ -711,24 +756,7 @@ export function Events() {
             </div>
           </ScrollReveal>
 
-          <ScrollReveal delay={0.08}>
-            <div className="mt-6 rounded-3xl border border-[#D9C6A8] bg-gradient-to-r from-[#F8F5F0] via-[#F6F1E7] to-[#F1E7D8] p-5 shadow-sm">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-wide font-semibold text-[#6F7553]">Monthly View</p>
-                  <p className="text-[#334233] font-semibold mt-1">Need a full month-at-a-glance calendar?</p>
-                  <p className="text-sm text-[#5B473A] mt-1">Open the community calendar to click dates and review day-specific events instantly.</p>
-                </div>
-                <Button variant="default" asChild className="w-full sm:w-auto">
-                  <Link to="/calendar" className="inline-flex items-center gap-2">
-                    <Calendar className="w-4 h-4" /> Open Full Calendar
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </ScrollReveal>
-
-          <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white p-5 shadow-sm">
+          <div className="mt-6 rounded-3xl border border-[#E7D9C3] bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
               <div className="inline-flex rounded-xl border border-[#E7D9C3] overflow-hidden">
                 <button

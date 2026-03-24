@@ -1,10 +1,8 @@
 import { HeroSection } from "../components/home/HeroSection";
 import { WaypointsSection } from "../components/home/WaypointsSection";
 import { SpotlightSection } from "../components/home/SpotlightSection";
-import { FindPathSection } from "../components/home/FindPathSection";
-import { EventsSection } from "../components/home/EventsSection";
+import { TestimonialsSection } from "../components/home/TestimonialsSection";
 import { EmailSignupSection } from "../components/home/EmailSignupSection";
-import { SuggestResourceSection } from "../components/home/SuggestResourceSection";
 
 export function Home() {
   return (
@@ -12,10 +10,8 @@ export function Home() {
       <HeroSection />
       <WaypointsSection />
       <SpotlightSection />
-      <FindPathSection />
-      <EventsSection />
+      <TestimonialsSection />
       <EmailSignupSection />
-      <SuggestResourceSection />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Wheat, HeartPulse, Home, Users, Briefcase, Calendar, Search, Filter, HandHeart } from "lucide-react";
-import { EventItem, Step, Waypoint, DirectoryEntry, SpotlightItem } from "../types/home";
+import { EventItem, Step, Waypoint, DirectoryEntry, SpotlightItem, HomepageTestimonial } from "../types/home";
 
 export const waypoints: Waypoint[] = [
   { name: "Food Assistance", icon: Wheat, desc: "Pantries, meal programs, and fresh produce." },
@@ -263,6 +263,39 @@ export const spotlights: SpotlightItem[] = [
     location: "Citywide",
     featured: false,
     image: null,
+  },
+];
+
+export const homeTestimonials: HomepageTestimonial[] = [
+  {
+    quote: "I found a food pickup site and a tutoring program in one evening. The map made everything feel manageable.",
+    attribution: "Alex R.",
+    role: "Bothell Parent",
+    image: "https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    quote: "The directory helped our group connect neighbors to weekend clinics much faster than before.",
+    attribution: "Maya T.",
+    role: "Volunteer Organizer",
+    image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    quote: "I used the events tab to plan my month and finally met people working on the same community projects.",
+    attribution: "Jordan L.",
+    role: "Resident",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    quote: "The category filters are simple and clear. I could quickly point a friend to housing support and job help.",
+    attribution: "Chris N.",
+    role: "Community Advocate",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    quote: "Roots & Routes feels like a single front door for local support. It saved me a lot of searching.",
+    attribution: "Sam P.",
+    role: "Local Mentor",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
   },
 ];
 

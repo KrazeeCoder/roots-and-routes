@@ -62,9 +62,14 @@ export function RatingComponent({
 
   const openDialog = () => {
     setSelectedRating(currentRating ?? 0);
-    setReason(getRatingReason(spotlightId) ?? "");
+    setReason("");
     setError(null);
     setIsDialogOpen(true);
+
+    void (async () => {
+      const existingReason = await getRatingReason(spotlightId);
+      setReason((current) => (current.trim().length > 0 ? current : (existingReason ?? "")));
+    })();
   };
 
   const handleSubmitRating = async () => {

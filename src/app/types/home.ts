@@ -29,6 +29,13 @@ export interface SpotlightItem {
   featured?: boolean;
 }
 
+export interface HomepageTestimonial {
+  quote: string;
+  attribution: string;
+  role: string;
+  image: string;
+}
+
 export interface Waypoint {
   name: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;

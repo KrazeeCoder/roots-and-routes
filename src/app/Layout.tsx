@@ -4,9 +4,9 @@ import { Trees, Menu } from "lucide-react";
 import { RESOURCE_CATEGORIES } from "./constants/resourceCategories";
 
 const navItems = [
-  { name: "Resources", href: "/directory", isRoute: true },
+  { name: "Resource Hub", href: "/directory", isRoute: true },
   { name: "Events", href: "/events", isRoute: true },
-  { name: "Spotlights", href: "/spotlights", isRoute: true },
+  { name: "Highlights", href: "/spotlights", isRoute: true },
   { name: "References", href: "/reference", isRoute: true },
   { name: "About", href: "/about", isRoute: true },
 ];

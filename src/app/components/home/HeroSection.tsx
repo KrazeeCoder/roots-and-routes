@@ -34,16 +34,16 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#F6F1E7] border-b border-[#E7D9C3] pt-12 pb-24 lg:pt-24 lg:pb-32">
+    <section className="relative overflow-hidden bg-[#F6F1E7] border-b border-[#E7D9C3] pt-10 pb-16 lg:pt-16 lg:pb-20">
       <div className="absolute inset-0 z-0 pointer-events-none text-[#5B473A]">
         <TopoPattern opacity={0.06} />
       </div>
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           
           {/* Left Column (Text & Search) */}
-          <div className="lg:col-span-6 space-y-8 lg:pr-8">
+          <div className="lg:col-span-6 space-y-6 lg:pr-4">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -58,7 +58,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="font-['Cormorant_Garamond',serif] text-5xl sm:text-6xl lg:text-7xl font-bold text-[#334233] leading-[1.1] tracking-tight"
+              className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl lg:text-6xl font-bold text-[#334233] leading-[1.1] tracking-tight"
             >
               Navigate your journey to <span className="text-[#B36A4C] italic pr-2">community roots.</span>
             </motion.h1>
@@ -67,7 +67,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg sm:text-xl text-[#5B473A] max-w-lg leading-relaxed font-light"
+              className="text-base sm:text-lg text-[#5B473A] max-w-lg leading-relaxed font-light"
             >
               Roots & Routes helps Bothell residents discover essential resources, connect with local events, and forge meaningful pathways within our community.
             </motion.p>
@@ -77,7 +77,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-10"
+              className="mt-6"
             >
               <form className="group" onSubmit={handleSearchSubmit}>
                 <div className="relative">
@@ -88,7 +88,7 @@ export function HeroSection() {
                     type="text"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    className="block w-full pl-12 pr-4 sm:pr-40 py-5 sm:text-lg border-2 border-[#E7D9C3] rounded-2xl bg-white shadow-sm focus:ring-0 focus:border-[#A7AE8A] transition-all text-[#334233] placeholder-[#A7AE8A]"
+                    className="block w-full pl-12 pr-4 sm:pr-40 py-4 sm:text-lg border-2 border-[#E7D9C3] rounded-2xl bg-white shadow-sm focus:ring-0 focus:border-[#A7AE8A] transition-all text-[#334233] placeholder-[#A7AE8A]"
                     placeholder={searchTarget === "events" ? "Search events..." : "Search resources..."}
                     aria-label={`Search ${searchTarget}`}
                   />
@@ -149,11 +149,11 @@ export function HeroSection() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-6 relative h-[500px] lg:h-[600px] w-full mt-12 lg:mt-0"
+            className="lg:col-span-6 relative h-[360px] sm:h-[430px] lg:h-[470px] w-full mt-8 lg:mt-0"
           >
             {/* Layered Cards and Shapes */}
-            <div className="absolute top-10 right-0 w-[85%] h-[80%] bg-[#E7D9C3] rounded-3xl rotate-3 shadow-sm border border-[#A7AE8A]/20"></div>
-            <div className="absolute top-0 right-4 w-[85%] h-[85%] bg-white rounded-3xl -rotate-2 shadow-lg overflow-hidden border border-[#E7D9C3]">
+            <div className="absolute top-6 right-0 w-[90%] h-[88%] bg-[#E7D9C3] rounded-3xl rotate-2 shadow-sm border border-[#A7AE8A]/20"></div>
+            <div className="absolute top-0 right-3 w-[90%] h-[90%] bg-white rounded-3xl -rotate-1 shadow-lg overflow-hidden border border-[#E7D9C3]">
               <ImageWithFallback 
                 src="https://images.unsplash.com/photo-1630123738777-fdd4f8b7d16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWNpZmljJTIwbm9ydGh3ZXN0JTIwdHJhaWx8ZW58MXx8fHwxNzczNzM0OTMyfDA&ixlib=rb-4.1.0&q=80&w=1080"
                 alt="Pacific Northwest Trail" 
@@ -163,10 +163,10 @@ export function HeroSection() {
               <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/40 to-transparent"></div>
               
               {/* Overlay card */}
-              <Link to="/directory?category=Community%20Events" className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-xl border border-[#E7D9C3] hover:bg-white hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
+              <Link to="/directory?category=Community%20Events" className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-[#E7D9C3] hover:bg-white hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] group-hover:text-[#B36A4C] transition-colors">Bothell Community Trails</h3>
+                    <h3 className="font-['Cormorant_Garamond',serif] text-lg sm:text-xl font-bold text-[#334233] group-hover:text-[#B36A4C] transition-colors">Bothell Community Trails</h3>
                     <p className="text-sm text-[#6F7553] mt-1 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5" /> 3.2 miles of connected paths
                     </p>
@@ -177,35 +177,6 @@ export function HeroSection() {
                 </div>
               </Link>
             </div>
-
-            {/* Decorative Map / Route Line */}
-            <div className="absolute top-1/4 -left-12 lg:-left-20 w-32 h-64 z-20 pointer-events-none opacity-60">
-              <svg viewBox="0 0 100 200" fill="none" stroke="#B36A4C" strokeWidth="2" strokeDasharray="4 4">
-                <path d="M100 0 C 80 50, 20 100, 50 150 C 70 180, 0 200, 0 200" />
-                <circle cx="100" cy="0" r="4" fill="#F6F1E7" stroke="#B36A4C" strokeWidth="2" />
-                <circle cx="50" cy="150" r="4" fill="#F6F1E7" stroke="#B36A4C" strokeWidth="2" />
-                <circle cx="0" cy="200" r="4" fill="#F6F1E7" stroke="#B36A4C" strokeWidth="2" />
-              </svg>
-            </div>
-            
-            {/* Local Guide Accent */}
-            <div className="absolute top-12 -left-10 z-20 hidden sm:block">
-              <div className="rounded-2xl border border-[#E7D9C3] bg-[#F6F1E7]/95 backdrop-blur-sm px-4 py-3 shadow-lg">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-[#6F7553]">Local Guide</p>
-                <p className="font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] leading-none mt-1">
-                  Bothell
-                </p>
-                <p className="mt-2 text-xs text-[#5B473A] inline-flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#B36A4C]" />
-                  Community Pathways
-                </p>
-              </div>
-
-              <div className="mt-3 ml-2 relative w-20 h-20 rounded-full border border-dashed border-[#A7AE8A]/70 bg-[#E7D9C3]/55">
-                <div className="absolute inset-4 rounded-full border border-[#B36A4C]/45 bg-[#B36A4C]/12" />
-              </div>
-            </div>
-
           </motion.div>
         </div>
       </div>
