@@ -4,8 +4,12 @@ import { ArrowLeft, Clock, ExternalLink, Globe, Mail, MapPin, Phone, Tag, User }
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
+import { RatingComponent } from "../components/engagement/RatingComponent";
+import { EngagementButtons } from "../components/engagement/EngagementButtons";
 import { getPublishedResourceById } from "../data/portalApi";
 import type { ResourceRecord } from "../types/portal";
+import type { SpotlightEngagement } from "../types/engagement";
+import { getSpotlightEngagement, incrementViewCount } from "../../utils/engagementSupabase";
 
 function normalizeWebsite(url: string) {
   const trimmed = url.trim();
@@ -30,6 +34,7 @@ function normalizeEmail(email: string) {
 export function ResourceDetail() {
   const { resourceId } = useParams<{ resourceId: string }>();
   const [resource, setResource] = useState<ResourceRecord | null>(null);
+  const [engagement, setEngagement] = useState<SpotlightEngagement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +66,45 @@ export function ResourceDetail() {
       cancelled = true;
     };
   }, [resourceId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadResourceEngagement() {
+      if (!resource?.id) {
+        setEngagement(null);
+        return;
+      }
+
+      try {
+        const initial = await getSpotlightEngagement(resource.id);
+        if (cancelled) return;
+        setEngagement(initial);
+
+        await incrementViewCount(resource.id);
+        const refreshed = await getSpotlightEngagement(resource.id);
+        if (cancelled) return;
+        setEngagement(refreshed);
+      } catch (nextError) {
+        console.error("Could not load resource engagement", nextError);
+      }
+    }
+
+    void loadResourceEngagement();
+    return () => {
+      cancelled = true;
+    };
+  }, [resource?.id]);
+
+  const refreshEngagement = async () => {
+    if (!resource?.id) return;
+    try {
+      const latest = await getSpotlightEngagement(resource.id);
+      setEngagement(latest);
+    } catch (nextError) {
+      console.error("Could not refresh resource engagement", nextError);
+    }
+  };
 
   if (loading) {
     return (
@@ -147,6 +191,41 @@ export function ResourceDetail() {
                   Organized by {resource.posted_by_name}
                 </p>
               ) : null}
+            </div>
+
+            <div className="rounded-2xl border border-[#E7D9C3] bg-[#F6F1E7] p-5 sm:p-6">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-[#334233]">
+                    Community Feedback
+                  </h3>
+                  <p className="mt-1 text-sm text-[#6F7553]">See current rating and add your own score.</p>
+                  <div className="mt-3">
+                    <RatingComponent
+                      spotlightId={resource.id}
+                      currentRating={engagement?.userEngagement.userRating ?? null}
+                      averageRating={engagement?.stats.averageRating ?? 0}
+                      totalRatings={engagement?.stats.totalRatings ?? 0}
+                      size="sm"
+                      showCount={true}
+                      onRatingChange={() => {
+                        void refreshEngagement();
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {engagement ? (
+                  <div className="sm:pt-7">
+                    <EngagementButtons
+                      spotlightId={resource.id}
+                      engagement={engagement}
+                      onUpdate={(newEngagement) => setEngagement(newEngagement)}
+                      compact={true}
+                    />
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,6 +1,16 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Star } from "lucide-react";
-import { addRating, removeRating } from "../../../utils/engagementSupabase";
+import { addRating, getRatingReason } from "../../../utils/engagementSupabase";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 
 interface RatingComponentProps {
   spotlightId: string;
@@ -13,6 +23,11 @@ interface RatingComponentProps {
   onRatingChange?: (newRating: number | null) => void;
 }
 
+function clampStarFill(value: number, starIndex: number) {
+  const fill = (value - starIndex) * 100;
+  return Math.max(0, Math.min(100, fill));
+}
+
 export function RatingComponent({
   spotlightId,
   currentRating,
@@ -23,153 +38,177 @@ export function RatingComponent({
   showCount = true,
   onRatingChange,
 }: RatingComponentProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hoveredRating, setHoveredRating] = useState(0);
+  const [selectedRating, setSelectedRating] = useState<number>(currentRating ?? 0);
+  const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const sizeClasses = {
-    sm: "w-4 h-4",
-    md: "w-5 h-5",
-    lg: "w-6 h-6",
+    sm: "h-3.5 w-3.5",
+    md: "h-4 w-4",
+    lg: "h-5 w-5",
   };
 
-  const containerSizeClasses = {
-    sm: "gap-1",
-    md: "gap-1",
-    lg: "gap-2",
+  const averageLabel = useMemo(() => {
+    if (totalRatings === 0) return "Not yet rated";
+    return `${averageRating.toFixed(1)} / 5`;
+  }, [averageRating, totalRatings]);
+
+  const ratingCountLabel = useMemo(() => {
+    if (!showCount) return null;
+    return `(${totalRatings} ${totalRatings === 1 ? "rating" : "ratings"})`;
+  }, [showCount, totalRatings]);
+
+  const openDialog = () => {
+    setSelectedRating(currentRating ?? 0);
+    setReason(getRatingReason(spotlightId) ?? "");
+    setError(null);
+    setIsDialogOpen(true);
   };
 
-  const handleRatingClick = async (rating: number) => {
+  const handleSubmitRating = async () => {
     if (readonly || isSubmitting) return;
 
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const result = await addRating(spotlightId, rating);
-      if (result.success) {
-        onRatingChange?.(rating);
-      } else {
-        setError(result.error || "Failed to submit rating");
-      }
-    } catch {
-      setError("An unexpected error occurred");
-    } finally {
-      setIsSubmitting(false);
+    if (selectedRating < 1 || selectedRating > 5) {
+      setError("Please choose a rating from 1 to 5.");
+      return;
     }
-  };
 
-  const handleRemoveRating = async () => {
-    if (readonly || isSubmitting || !currentRating) return;
+    if (!reason.trim()) {
+      setError("Please include a short reason for your rating.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const result = await removeRating(spotlightId);
+      const result = await addRating(spotlightId, selectedRating, reason.trim());
       if (result.success) {
-        onRatingChange?.(null);
+        onRatingChange?.(selectedRating);
+        setIsDialogOpen(false);
       } else {
-        setError(result.error || "Failed to remove rating");
+        setError(result.error || "Failed to submit rating.");
       }
     } catch {
-      setError("An unexpected error occurred");
+      setError("An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const renderStars = () => {
-    const stars = [];
-    const displayRating = readonly ? averageRating : (hoveredRating || currentRating || 0);
-
-    for (let i = 1; i <= 5; i++) {
-      const isFilled = i <= Math.floor(displayRating);
-      const isHovered = i <= hoveredRating && !readonly;
-      const isCurrent = i === currentRating && !readonly;
-
-      stars.push(
-        <button
-          key={i}
-          type="button"
-          onClick={() => handleRatingClick(i)}
-          onMouseEnter={() => !readonly && setHoveredRating(i)}
-          onMouseLeave={() => !readonly && setHoveredRating(0)}
-          disabled={readonly || isSubmitting}
-          className={`
-            transition-all duration-200 transform
-            ${readonly ? "cursor-default" : "cursor-pointer hover:scale-110"}
-            ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}
-          `}
-          title={readonly ? `${averageRating.toFixed(1)} out of 5` : `Rate ${i} star${i > 1 ? "s" : ""}`}
-        >
-          <Star
-            className={`
-              ${sizeClasses[size]}
-              ${isFilled ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-              ${isHovered && !readonly ? "text-yellow-300 fill-yellow-300" : ""}
-              ${isCurrent && !readonly ? "text-yellow-500 fill-yellow-500" : ""}
-              ${readonly ? "drop-shadow-sm" : ""}
-            `}
-          />
-        </button>,
-      );
-    }
-
-    return stars;
   };
 
   return (
-    <div className="flex flex-col items-start">
-      <div className={`flex items-center ${containerSizeClasses[size]}`}>
-        {renderStars()}
-
-        {!readonly && currentRating && (
-          <button
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-[#6F7553]">
+          Average
+        </span>
+        <div className="inline-flex items-center gap-1.5">
+          {Array.from({ length: 5 }).map((_, starIndex) => {
+            const fillPercent = clampStarFill(averageRating, starIndex);
+            return (
+              <span key={starIndex} className="relative inline-flex">
+                <Star className={`${sizeClasses[size]} text-[#D4C4B0]`} />
+                <span
+                  className="absolute inset-0 overflow-hidden"
+                  style={{ width: `${fillPercent}%` }}
+                >
+                  <Star className={`${sizeClasses[size]} fill-[#B36A4C] text-[#B36A4C]`} />
+                </span>
+              </span>
+            );
+          })}
+        </div>
+        <span className="text-sm font-semibold text-[#334233]">{averageLabel}</span>
+        {ratingCountLabel ? <span className="text-xs text-[#6F7553]">{ratingCountLabel}</span> : null}
+        {!readonly ? (
+          <Button
             type="button"
-            onClick={handleRemoveRating}
-            disabled={isSubmitting}
-            className="ml-2 text-xs text-[#6F7553] hover:text-red-600 transition-colors"
-            title="Remove your rating"
+            size="sm"
+            variant="outline"
+            onClick={openDialog}
+            className="ml-1 h-7 px-3 text-xs border-[#D8C9AF] text-[#334233] hover:border-[#B36A4C] hover:text-[#B36A4C]"
           >
-            Clear
-          </button>
-        )}
+            Rate
+          </Button>
+        ) : null}
       </div>
 
-      {showCount && (
-        <div className="mt-2">
-          {totalRatings > 0 ? (
-            <span className="text-sm text-[#5B473A]">
-              Average rating:{" "}
-              <span className="font-semibold text-[#334233]">{averageRating.toFixed(1)} / 5</span>{" "}
-              ({totalRatings} {totalRatings === 1 ? "rating" : "ratings"})
-            </span>
-          ) : (
-            <span className="text-sm text-[#5B473A]">
-              Average rating: <span className="font-semibold text-[#334233]">Not yet rated</span>
-            </span>
-          )}
-        </div>
-      )}
-
-      {!readonly && (
-        <p className="mt-1 text-xs text-[#6F7553]">
-          {currentRating ? `Selected score: ${currentRating} / 5` : "Select your rating"}
-        </p>
-      )}
-
       {error && (
-        <div className="mt-2 text-xs text-red-500">
-          {error}
-        </div>
+        <p className="text-xs text-red-600">{error}</p>
       )}
 
-      {isSubmitting && (
-        <div className="mt-2 text-xs text-gray-500">
-          Submitting...
-        </div>
-      )}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="border-[#E7D9C3] bg-[#F6F1E7] text-[#334233]">
+          <DialogHeader>
+            <DialogTitle className="font-['Cormorant_Garamond',serif] text-2xl text-[#334233]">
+              Rate This Listing
+            </DialogTitle>
+            <DialogDescription className="text-[#6F7553]">
+              Choose a score and share a short reason for your rating.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 text-sm font-medium text-[#334233]">Your score</p>
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: 5 }).map((_, index) => {
+                  const starValue = index + 1;
+                  const isFilled = starValue <= selectedRating;
+                  return (
+                    <button
+                      key={starValue}
+                      type="button"
+                      onClick={() => setSelectedRating(starValue)}
+                      className="transition-transform hover:scale-110"
+                      aria-label={`Rate ${starValue} out of 5`}
+                    >
+                      <Star
+                        className={`h-6 w-6 ${
+                          isFilled ? "fill-[#B36A4C] text-[#B36A4C]" : "text-[#D4C4B0]"
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-[#334233]">Reason</p>
+              <Textarea
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder="Briefly explain your rating..."
+                className="min-h-24 border-[#D8C9AF] bg-white text-[#334233] placeholder:text-[#8F8F7A]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="border-[#D8C9AF] text-[#334233]"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                void handleSubmitRating();
+              }}
+              disabled={isSubmitting}
+              className="bg-[#334233] hover:bg-[#B36A4C] text-white"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Rating"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

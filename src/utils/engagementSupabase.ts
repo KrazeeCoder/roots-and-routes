@@ -28,6 +28,7 @@ function getRatingStorageKeys(spotlightId: string) {
     ratingKey: `spotlight_rating_${spotlightId}`,
     countKey: `spotlight_rating_count_${spotlightId}`,
     sumKey: `spotlight_rating_sum_${spotlightId}`,
+    reasonKey: `spotlight_rating_reason_${spotlightId}`,
   };
 }
 
@@ -51,14 +52,18 @@ function getRatingAggregate(spotlightId: string) {
 }
 
 // Ratings functionality
-export async function addRating(spotlightId: string, rating: number): Promise<{ success: boolean; error?: string }> {
+export async function addRating(
+  spotlightId: string,
+  rating: number,
+  reason?: string,
+): Promise<{ success: boolean; error?: string }> {
   // Remove authentication requirement for demo
   if (rating < 1 || rating > 5) {
     return { success: false, error: 'Rating must be between 1 and 5' };
   }
 
   try {
-    const { ratingKey, countKey, sumKey } = getRatingStorageKeys(spotlightId);
+    const { ratingKey, countKey, sumKey, reasonKey } = getRatingStorageKeys(spotlightId);
     const existing = getRatingAggregate(spotlightId);
 
     const hadPreviousRating = existing.userRating !== null;
@@ -71,6 +76,11 @@ export async function addRating(spotlightId: string, rating: number): Promise<{ 
     localStorage.setItem(ratingKey, rating.toString());
     localStorage.setItem(countKey, Math.max(0, nextCount).toString());
     localStorage.setItem(sumKey, Math.max(0, nextSum).toString());
+    if (reason && reason.trim().length > 0) {
+      localStorage.setItem(reasonKey, reason.trim());
+    } else {
+      localStorage.removeItem(reasonKey);
+    }
     
     return { success: true };
   } catch (error) {
@@ -82,11 +92,12 @@ export async function addRating(spotlightId: string, rating: number): Promise<{ 
 export async function removeRating(spotlightId: string): Promise<{ success: boolean; error?: string }> {
   // Remove authentication requirement for demo
   try {
-    const { ratingKey, countKey, sumKey } = getRatingStorageKeys(spotlightId);
+    const { ratingKey, countKey, sumKey, reasonKey } = getRatingStorageKeys(spotlightId);
     const existing = getRatingAggregate(spotlightId);
 
     if (existing.userRating !== null) {
       localStorage.removeItem(ratingKey);
+      localStorage.removeItem(reasonKey);
 
       const nextCount = Math.max(0, existing.totalRatings - 1);
       const nextSum = Math.max(0, existing.ratingSum - existing.userRating);
@@ -102,6 +113,11 @@ export async function removeRating(spotlightId: string): Promise<{ success: bool
     console.error('Error removing rating:', error);
     return { success: false, error: 'Failed to remove rating' };
   }
+}
+
+export function getRatingReason(spotlightId: string): string | null {
+  const { reasonKey } = getRatingStorageKeys(spotlightId);
+  return localStorage.getItem(reasonKey);
 }
 
 // Comments functionality
