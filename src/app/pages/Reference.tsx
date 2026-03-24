@@ -13,14 +13,14 @@ const HERO_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/08/Both
 const EVENTS_FALLBACK_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg";
 
 const additionalReferenceImages = [
-  "https://snohomishtalk.com/wp-content/uploads/2023/11/Snohomish-Holiday-Lights-bothell.jpg",
-  "https://www.bothellwa.gov/PhotoGallery/8/DSC_0019.JPG",
-  "https://komonews.com/resources/media/3d6a23d3-40fa-41df-a2a2-6a7b47757f3f-large16x9_FTP13BothellParkPKGMPI_frame_1599.jpg?1513237652429",
-  "https://th.bing.com/th/id/R.92828e16bc5ec7a6cd000351fe7350ee?rik=7x07Uss9zIqoHw&pid=ImgRaw&r=0",
-  "https://s3-media2.fl.yelpcdn.com/bphoto/mc9BDeBAMVY5laY66kHm3Q/ls.jpg",
-  "https://www.communitytransit.org/images/default-source/about-images/bothell_city_hall-_2022.jpg?Status=Master&sfvrsn=4c31799d_1",
-  "https://www.beginatbothell.com/wp-content/uploads/2024/05/Blyth-Park.png",
-  "https://d2660z551umiy9.cloudfront.net/images/Promos/Anderson/Main%20page/Fall%20Winter/anderson-header-5.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/0/08/Bothell_Way_northbound_from_Main_Street_in_Bothell%2C_WA.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/e/ec/Bothell_Landing_Bridge_01.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/2/2c/Bothell%2C_WA_-_Country_Village_09_-_in_front_of_Clock_Tower_Building.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/f/f4/Bothell_Library.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/d/d3/U.W._Bothell_01.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/c/c8/Centennial_Park_under_a_blue_sky_in_Bothell.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/1/15/Snohomish_County_portion_of_North_Creek_Forest_in_Bothell%2C_WA%2C_just_north_of_King_County_border%2C_with_sign_in_foreground.JPG",
 ];
 
 const developmentSources = [
@@ -51,8 +51,10 @@ const researchSources = [
   { name: "City of Bothell: Maps & GIS", url: "https://www.bothellwa.gov/233/Maps-GIS" },
 ];
 
-const knownBrokenImageIds = [
+const allowedImageHosts = [
   "images.unsplash.com",
+  "upload.wikimedia.org",
+  "commons.wikimedia.org",
 ];
 
 interface ImageCitation {
@@ -75,9 +77,15 @@ function isPlaceholderDomain(url: string) {
   }
 }
 
-function isKnownBrokenImage(url: string) {
-  const lower = url.toLowerCase();
-  return knownBrokenImageIds.some((id) => lower.includes(id));
+function isAllowedImageSource(url: string) {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return allowedImageHosts.some(
+      (allowedHost) => hostname === allowedHost || hostname.endsWith(`.${allowedHost}`),
+    );
+  } catch {
+    return false;
+  }
 }
 
 function shortenUrl(url: string) {
@@ -183,7 +191,7 @@ export function Reference() {
           ...eventImages,
         ]
           .filter((url) => !isPlaceholderDomain(url))
-          .filter((url) => !isKnownBrokenImage(url)),
+          .filter((url) => isAllowedImageSource(url)),
       ),
     ).sort((a, b) => a.localeCompare(b)),
     [eventImages, resourceImages],
@@ -199,7 +207,7 @@ export function Reference() {
               url: ensureAbsoluteUrl(citation.url),
             }))
             .filter((citation) => !isPlaceholderDomain(citation.url))
-            .filter((citation) => !isKnownBrokenImage(citation.url))
+            .filter((citation) => isAllowedImageSource(citation.url))
             .map((citation) => [`${citation.type}:${citation.label}:${citation.url}`, citation]),
         ).values(),
       ).sort((a, b) => a.label.localeCompare(b.label) || a.url.localeCompare(b.url)),
@@ -360,6 +368,14 @@ export function Reference() {
                   <Globe className="w-6 h-6 text-[#B36A4C]" />
                   Image Sources
                 </h2>
+                <p className="text-sm text-[#5B473A]">
+                  All third-party images shown on this site are sourced from Unsplash or Wikimedia Commons and are
+                  used under those platforms&apos; license terms with attribution on this page.
+                </p>
+                <p className="text-sm text-[#5B473A]">
+                  Community submission policy: contributors are responsible for only uploading media they created or
+                  are licensed/authorized to share. By submitting content, contributors affirm they have those rights.
+                </p>
                 <p className="text-sm text-[#5B473A] italic mb-4">
                   These are the exact image URLs currently used across home data, hero/fallback visuals, and published portal content.
                 </p>
