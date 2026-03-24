@@ -443,33 +443,6 @@ export function ContributorLogin() {
               <CardContent className="p-5 space-y-4">
                 <div className="space-y-3">
                   <div className="p-3 rounded-xl bg-white border border-[#E7D9C3] text-sm shadow-sm hover:border-[#B36A4C]/50 transition-colors">
-                    <p className="font-bold text-[#334233] text-[10px] uppercase tracking-wider mb-2 text-[#B36A4C]">Admin Access</p>
-                    <div className="space-y-2 mb-3">
-                      <div>
-                        <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Username:</p>
-                        <p className="font-mono text-[11px] break-all text-[#334233]">Rootsandroutes.bothell@outlook.com</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Password:</p>
-                        <p className="font-mono text-[11px] text-[#334233]">judges!!</p>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      className="w-full h-8 text-xs bg-[#B36A4C] hover:bg-[#B36A4C]/90"
-                      onClick={() => {
-                        setMode("signin");
-                        setEmail("Rootsandroutes.bothell@outlook.com");
-                        setPassword("judges!!");
-                      }}
-                    >
-                      Autofill Admin
-                    </Button>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-white border border-[#E7D9C3] text-sm shadow-sm hover:border-[#B36A4C]/50 transition-colors">
                     <p className="font-bold text-[#334233] text-[10px] uppercase tracking-wider mb-2 text-[#A7AE8A]">Contributor Access</p>
                     <div className="space-y-2 mb-3">
                       <div>
@@ -483,9 +456,9 @@ export function ContributorLogin() {
                     </div>
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="default"
                       size="sm"
-                      className="w-full h-8 text-xs border-[#A7AE8A] text-[#334233] hover:bg-[#A7AE8A]/10"
+                      className="w-full h-8 text-xs bg-[#334233] hover:bg-[#B36A4C]"
                       onClick={() => {
                         setMode("signin");
                         setEmail("Rootsandroutes.bothell+1@outlook.com");
@@ -493,6 +466,33 @@ export function ContributorLogin() {
                       }}
                     >
                       Autofill Contributor
+                    </Button>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-[#E7D9C3] text-sm shadow-sm hover:border-[#B36A4C]/50 transition-colors">
+                    <p className="font-bold text-[#334233] text-[10px] uppercase tracking-wider mb-2 text-[#B36A4C]">Admin Access</p>
+                    <div className="space-y-2 mb-3">
+                      <div>
+                        <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Username:</p>
+                        <p className="font-mono text-[11px] break-all text-[#334233]">Rootsandroutes.bothell@outlook.com</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Password:</p>
+                        <p className="font-mono text-[11px] text-[#334233]">judges!!</p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-8 text-xs border-[#B36A4C] text-[#334233] hover:bg-[#B36A4C]/10"
+                      onClick={() => {
+                        setMode("signin");
+                        setEmail("Rootsandroutes.bothell@outlook.com");
+                        setPassword("judges!!");
+                      }}
+                    >
+                      Autofill Admin
                     </Button>
                   </div>
                 </div>

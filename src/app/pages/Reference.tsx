@@ -11,6 +11,12 @@ import { listPublishedEvents, listPublishedResources } from "../data/portalApi";
 
 const HERO_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/08/Bothell_Way_northbound_from_Main_Street_in_Bothell%2C_WA.jpg";
 const EVENTS_FALLBACK_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg";
+const COPYRIGHT_CHECKLIST_DRIVE_VIEW_URL = "https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/view";
+const COPYRIGHT_CHECKLIST_DRIVE_PREVIEW_URL = "https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/preview";
+const COPYRIGHT_CHECKLIST_DOWNLOAD_URL = "/StudentCopyrightChecklist.pdf";
+const WORKLOG_DRIVE_VIEW_URL = "https://drive.google.com/file/d/1no-PkCYWgZ9pZp7qSL_dS2aGdXFbJSHA/view";
+const WORKLOG_DRIVE_PREVIEW_URL = "https://drive.google.com/file/d/1no-PkCYWgZ9pZp7qSL_dS2aGdXFbJSHA/preview";
+const WORKLOG_DOWNLOAD_URL = "/StudentWorklog.pdf";
 
 const additionalReferenceImages = [
   "https://upload.wikimedia.org/wikipedia/commons/0/08/Bothell_Way_northbound_from_Main_Street_in_Bothell%2C_WA.jpg",
@@ -257,18 +263,27 @@ export function Reference() {
                     <h3 className="text-xl font-semibold text-[#334233]">Copyright Checklist</h3>
                     <p className="text-sm text-[#5B473A] mt-1">Completed PDF checklist for copyright compliance.</p>
                   </div>
-                  <a
-                    href="https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/view"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold text-[#B36A4C] hover:underline whitespace-nowrap"
-                  >
-                    Open in New Tab
-                  </a>
+                  <div className="flex items-center gap-4">
+                    <a
+                      href={COPYRIGHT_CHECKLIST_DRIVE_VIEW_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-[#B36A4C] hover:underline whitespace-nowrap"
+                    >
+                      Open in New Tab
+                    </a>
+                    <a
+                      href={COPYRIGHT_CHECKLIST_DOWNLOAD_URL}
+                      download
+                      className="text-xs font-semibold text-[#334233] hover:underline whitespace-nowrap"
+                    >
+                      Download PDF
+                    </a>
+                  </div>
                 </div>
                 <div className="overflow-hidden rounded-xl border border-[#E7D9C3] bg-[#F6F1E7]">
                   <iframe
-                    src="https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/preview"
+                    src={COPYRIGHT_CHECKLIST_DRIVE_PREVIEW_URL}
                     title="Copyright Checklist PDF"
                     className="w-full h-[320px] sm:h-[380px]"
                     loading="lazy"
@@ -284,18 +299,27 @@ export function Reference() {
                     <h3 className="text-xl font-semibold text-[#334233]">Work Log</h3>
                     <p className="text-sm text-[#5B473A] mt-1">Completed plan of work log for this project entry.</p>
                   </div>
-                  <a
-                    href="https://drive.google.com/file/d/1no-PkCYWgZ9pZp7qSL_dS2aGdXFbJSHA/view"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-semibold text-[#B36A4C] hover:underline whitespace-nowrap"
-                  >
-                    Open in New Tab
-                  </a>
+                  <div className="flex items-center gap-4">
+                    <a
+                      href={WORKLOG_DRIVE_VIEW_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-[#B36A4C] hover:underline whitespace-nowrap"
+                    >
+                      Open in New Tab
+                    </a>
+                    <a
+                      href={WORKLOG_DOWNLOAD_URL}
+                      download
+                      className="text-xs font-semibold text-[#334233] hover:underline whitespace-nowrap"
+                    >
+                      Download PDF
+                    </a>
+                  </div>
                 </div>
                 <div className="overflow-hidden rounded-xl border border-[#E7D9C3] bg-[#F6F1E7]">
                   <iframe
-                    src="https://drive.google.com/file/d/1no-PkCYWgZ9pZp7qSL_dS2aGdXFbJSHA/preview"
+                    src={WORKLOG_DRIVE_PREVIEW_URL}
                     title="Work Log PDF"
                     className="w-full h-[320px] sm:h-[380px]"
                     loading="lazy"
