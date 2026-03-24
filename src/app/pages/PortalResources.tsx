@@ -17,10 +17,15 @@ import {
 import type { ContentStatus, ResourceRecord } from "../types/portal";
 import { validateProfanity } from "../../utils/profanityFilter";
 import { validateEmail, validatePhone, validateUrl, validateRequired, validateMaxLength } from "../../utils/validation";
+import {
+  RESOURCE_CATEGORIES,
+  isResourceCategory,
+  type ResourceCategory,
+} from "../constants/resourceCategories";
 
 interface ResourceFormState {
   name: string;
-  category: string;
+  category: ResourceCategory | "";
   description: string;
   fullDescription: string;
   address: string;
@@ -52,8 +57,8 @@ const defaultForm: ResourceFormState = {
   spotlightSubtitle: "",
 };
 
-const contributorStatuses: ContentStatus[] = ["draft", "pending", "archived"];
-const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
+const contributorStatuses: ContentStatus[] = ["draft", "pending"];
+const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected"];
 
 function normalizeHttpUrl(raw: string) {
   const trimmed = raw.trim();
@@ -107,11 +112,11 @@ export function PortalResources() {
   const sortedResources = useMemo(
     () =>
       [...resources]
-        .filter(resource => canModerate ? resource.status !== "archived" : true)
+        .filter((resource) => resource.status !== "archived")
         .sort(
           (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
         ),
-    [resources, canModerate],
+    [resources],
   );
 
   const resetForm = () => {
@@ -149,6 +154,10 @@ export function PortalResources() {
     // Validate required fields
     const nameError = validateRequired(form.name, "Resource name");
     const categoryError = validateRequired(form.category, "Category");
+    const invalidCategoryError =
+      form.category && !isResourceCategory(form.category)
+        ? "Category must be one of the approved resource categories."
+        : null;
     const descriptionError = validateRequired(form.description, "Description");
     const addressError = validateRequired(form.address, "Address");
 
@@ -179,7 +188,7 @@ export function PortalResources() {
     const spotlightLengthError = validateMaxLength(form.spotlightSubtitle, "Spotlight subtitle", 200);
 
     // Check for any validation errors
-    const firstError = nameError || categoryError || descriptionError || addressError ||
+    const firstError = nameError || categoryError || invalidCategoryError || descriptionError || addressError ||
                        profanityNameError || profanityCategoryError || profanityDescriptionError || 
                        profanityFullDescriptionError || profanityAddressError || profanityHoursError || 
                        profanityTagsError || profanitySpotlightError ||
@@ -194,12 +203,18 @@ export function PortalResources() {
       return;
     }
 
+    if (!form.category || !isResourceCategory(form.category)) {
+      setError("Category must be one of the approved resource categories.");
+      setSaving(false);
+      return;
+    }
+
     const normalizedWebsite = normalizeHttpUrl(form.website);
     const normalizedImageUrl = normalizeHttpUrl(form.imageUrl);
 
     const payload = {
       name: form.name.trim(),
-      category: form.category.trim(),
+      category: form.category,
       description: form.description.trim(),
       full_description: form.fullDescription.trim() || null,
       address: form.address.trim(),
@@ -275,12 +290,24 @@ export function PortalResources() {
                 </div>
                 <div>
                   <Label htmlFor="resource-category">Category</Label>
-                  <Input
+                  <select
                     id="resource-category"
                     value={form.category}
-                    onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, category: event.target.value as ResourceCategory | "" }))
+                    }
                     required
-                  />
+                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                  >
+                    <option value="" disabled>
+                      Select a category
+                    </option>
+                    {RESOURCE_CATEGORIES.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

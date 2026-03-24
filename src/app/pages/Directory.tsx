@@ -5,17 +5,14 @@ import { motion, AnimatePresence } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
+import {
+  RESOURCE_CATEGORIES,
+  RESOURCE_CATEGORY_META,
+  isResourceCategory,
+  type ResourceCategoryFilter,
+} from "../constants/resourceCategories";
 import { listPublishedResources, mapResourceToDirectoryEntry } from "../data/portalApi";
 import type { DirectoryEntry } from "../types/home";
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Food:    "bg-[#A7AE8A]/20 text-[#5B473A] border-[#A7AE8A]/40",
-  Health:  "bg-[#B36A4C]/10 text-[#B36A4C] border-[#B36A4C]/30",
-  Housing: "bg-[#334233]/10 text-[#334233] border-[#334233]/30",
-  Youth:   "bg-[#E7D9C3] text-[#5B473A] border-[#C2B99E]",
-  Jobs:    "bg-[#6F7553]/10 text-[#6F7553] border-[#6F7553]/30",
-  Legal:   "bg-[#F6F1E7] text-[#5B473A] border-[#E7D9C3]",
-};
 
 function normalizeWebsite(url: string) {
   const trimmed = url.trim();
@@ -25,8 +22,16 @@ function normalizeWebsite(url: string) {
 }
 
 function normalizeCategoryParam(value: string | null) {
-  if (!value) return "All";
-  return value.toLowerCase() === "all" ? "All" : value;
+  if (!value || value.toLowerCase() === "all") return "All";
+  return isResourceCategory(value) ? value : "All";
+}
+
+function getCategoryBadgeClassName(category: string) {
+  if (isResourceCategory(category)) {
+    return RESOURCE_CATEGORY_META[category].badgeClassName;
+  }
+
+  return "bg-[#E7D9C3] text-[#5B473A] border-[#C2B99E]";
 }
 
 export function Directory() {
@@ -36,7 +41,7 @@ export function Directory() {
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(true);
   const [query, setQuery] = useState(queryParam);
-  const [activeCategory, setActiveCategory] = useState(categoryParam);
+  const [activeCategory, setActiveCategory] = useState<ResourceCategoryFilter>(categoryParam);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -65,54 +70,27 @@ export function Directory() {
     };
   }, []);
 
-  const waypointCategories = [
-    'Food Assistance',
-    'Housing Support', 
-    'Health & Wellness',
-    'Youth Programs',
-    'Job Help',
-    'Community Events',
-    'Basic Needs',
-    'Food',
-    'Financial Assistance',
-    'Seniors',
-    'Health',
-    'Education',
-    'Civic',
-    'Arts',
-    'Culture'
-  ];
-
-  const filtered = useMemo(() => {
+  const queryFiltered = useMemo(() => {
     const q = query.toLowerCase().trim();
     return entries.filter((entry) => {
-      // Exclude waypoint categories from directory (check both exact and partial matches)
-      const isWaypointCategory = waypointCategories.some(cat => 
-        entry.category === cat || entry.category.includes(cat) || cat.includes(entry.category)
-      );
-      const matchesCategory = activeCategory === "All" || entry.category === activeCategory;
       const matchesQuery =
         !q ||
         entry.name.toLowerCase().includes(q) ||
         entry.description.toLowerCase().includes(q) ||
         entry.tags.some((t) => t.toLowerCase().includes(q));
-      return !isWaypointCategory && matchesCategory && matchesQuery;
+      return matchesQuery;
     });
-  }, [query, activeCategory, entries]);
+  }, [query, entries]);
 
-  const allCategories = useMemo(
-    () => {
-      const categories = entries
-        .filter(entry => {
-          // Exclude waypoint categories from available categories
-          return !waypointCategories.some(cat => 
-            entry.category === cat || entry.category.includes(cat) || cat.includes(entry.category)
-          );
-        })
-        .map(entry => entry.category);
-      return ["All", ...Array.from(new Set(categories))].sort();
-    },
-    [entries],
+  const filtered = useMemo(
+    () =>
+      queryFiltered.filter((entry) => activeCategory === "All" || entry.category === activeCategory),
+    [activeCategory, queryFiltered],
+  );
+
+  const allCategories: ResourceCategoryFilter[] = useMemo(
+    () => ["All", ...RESOURCE_CATEGORIES],
+    [],
   );
 
   return (
@@ -259,8 +237,8 @@ export function Directory() {
                       {cat}
                       <span className="float-right text-xs opacity-50">
                         {cat === "All"
-                          ? filtered.length
-                          : filtered.filter((e) => e.category === cat).length}
+                          ? queryFiltered.length
+                          : queryFiltered.filter((e) => e.category === cat).length}
                       </span>
                     </button>
                   </li>
@@ -356,7 +334,7 @@ export function Directory() {
                       <div className="p-6 flex flex-col flex-grow">
                         {/* Category badge */}
                         <div className="mb-3">
-                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${CATEGORY_COLORS[entry.category] ?? "bg-[#E7D9C3] text-[#5B473A] border-[#C2B99E]"}`}>
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getCategoryBadgeClassName(entry.category)}`}>
                             {entry.category}
                           </span>
                         </div>

@@ -134,6 +134,20 @@ check (
   )
 ) not valid;
 
+alter table if exists public.resources drop constraint if exists resources_category_waypoint_check;
+alter table if exists public.resources
+add constraint resources_category_waypoint_check
+check (
+  category in (
+    'Food Assistance',
+    'Health & Wellness',
+    'Housing Support',
+    'Youth Programs',
+    'Job Help',
+    'Community Events'
+  )
+) not valid;
+
 alter table if exists public.events drop constraint if exists events_image_url_not_placeholder;
 alter table if exists public.events
 add constraint events_image_url_not_placeholder

@@ -51,12 +51,6 @@ const researchSources = [
   { name: "City of Bothell: Maps & GIS", url: "https://www.bothellwa.gov/233/Maps-GIS" },
 ];
 
-const allowedImageHosts = [
-  "images.unsplash.com",
-  "upload.wikimedia.org",
-  "commons.wikimedia.org",
-];
-
 interface ImageCitation {
   type: "Resource" | "Event";
   label: string;
@@ -72,17 +66,6 @@ function isPlaceholderDomain(url: string) {
   try {
     const parsed = new URL(url);
     return parsed.hostname === "example.com" || parsed.hostname.endsWith(".example.com");
-  } catch {
-    return false;
-  }
-}
-
-function isAllowedImageSource(url: string) {
-  try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    return allowedImageHosts.some(
-      (allowedHost) => hostname === allowedHost || hostname.endsWith(`.${allowedHost}`),
-    );
   } catch {
     return false;
   }
@@ -190,8 +173,8 @@ export function Reference() {
           ...resourceImages,
           ...eventImages,
         ]
+          .map(ensureAbsoluteUrl)
           .filter((url) => !isPlaceholderDomain(url))
-          .filter((url) => isAllowedImageSource(url)),
       ),
     ).sort((a, b) => a.localeCompare(b)),
     [eventImages, resourceImages],
@@ -207,7 +190,6 @@ export function Reference() {
               url: ensureAbsoluteUrl(citation.url),
             }))
             .filter((citation) => !isPlaceholderDomain(citation.url))
-            .filter((citation) => isAllowedImageSource(citation.url))
             .map((citation) => [`${citation.type}:${citation.label}:${citation.url}`, citation]),
         ).values(),
       ).sort((a, b) => a.label.localeCompare(b.label) || a.url.localeCompare(b.url)),
@@ -369,8 +351,8 @@ export function Reference() {
                   Image Sources
                 </h2>
                 <p className="text-sm text-[#5B473A]">
-                  All third-party images shown on this site are sourced from Unsplash or Wikimedia Commons and are
-                  used under those platforms&apos; license terms with attribution on this page.
+                  Third-party images shown on this site are listed here with direct source URLs for attribution and
+                  review.
                 </p>
                 <p className="text-sm text-[#5B473A]">
                   Community submission policy: contributors are responsible for only uploading media they created or

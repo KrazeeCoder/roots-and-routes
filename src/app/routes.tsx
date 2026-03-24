@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { Layout } from "./Layout";
 import { Home } from "./pages/Home";
 import { Directory } from "./pages/Directory";
-import { WaypointCategory } from "./pages/WaypointCategory";
+import { WaypointsRedirect } from "./pages/WaypointsRedirect";
 import { Spotlights } from "./pages/Spotlights";
 import { Events } from "./pages/Events";
 import { Calendar } from "./pages/Calendar";
@@ -26,7 +26,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: Home },
       { path: "directory", Component: Directory },
-      { path: "waypoints", Component: WaypointCategory },
+      { path: "waypoints", Component: WaypointsRedirect },
       { path: "spotlights", Component: Spotlights },
       { path: "events", Component: Events },
       { path: "events/:eventId", Component: EventDetail },

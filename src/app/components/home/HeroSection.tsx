@@ -163,7 +163,7 @@ export function HeroSection() {
               <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/40 to-transparent"></div>
               
               {/* Overlay card */}
-              <Link to="/directory?category=Parks%20%26%20Recreation" className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-xl border border-[#E7D9C3] hover:bg-white hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
+              <Link to="/directory?category=Community%20Events" className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-xl border border-[#E7D9C3] hover:bg-white hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] group-hover:text-[#B36A4C] transition-colors">Bothell Community Trails</h3>

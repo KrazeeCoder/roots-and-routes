@@ -157,7 +157,11 @@ export async function listPortalResources(
   role: ContributorRole,
   userId: string,
 ): Promise<ResourceRecord[]> {
-  let query = supabase.from("resources").select("*").order("updated_at", { ascending: false });
+  let query = supabase
+    .from("resources")
+    .select("*")
+    .neq("status", "archived")
+    .order("updated_at", { ascending: false });
   if (role === "contributor") {
     query = query.eq("created_by", userId);
   }
@@ -187,7 +191,7 @@ export async function listModerationResources(): Promise<ResourceRecord[]> {
   const { data, error } = await supabase
     .from("resources")
     .select("*")
-    .in("status", ["draft", "pending", "published", "rejected", "archived"])
+    .in("status", ["draft", "pending", "published", "rejected"])
     .order("updated_at", { ascending: false });
 
   if (error) throw error;

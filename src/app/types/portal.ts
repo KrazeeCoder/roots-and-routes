@@ -1,3 +1,5 @@
+import type { ResourceCategory } from "../constants/resourceCategories";
+
 export type ContributorRole = "contributor" | "moderator" | "super_admin";
 
 export type ContentStatus =
@@ -25,7 +27,7 @@ export interface ContributorProfile {
 export interface ResourceRecord {
   id: string;
   name: string;
-  category: string;
+  category: ResourceCategory;
   description: string;
   full_description: string | null;
   address: string;
@@ -65,7 +67,7 @@ export interface EventRecord {
 
 export interface ResourcePayload {
   name: string;
-  category: string;
+  category: ResourceCategory;
   description: string;
   full_description?: string | null;
   address: string;

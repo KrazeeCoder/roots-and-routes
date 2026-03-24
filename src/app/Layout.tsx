@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
 import { Trees, Menu } from "lucide-react";
+import { RESOURCE_CATEGORIES } from "./constants/resourceCategories";
 
 const navItems = [
   { name: "Resources", href: "/directory", isRoute: true },
@@ -199,36 +200,16 @@ export function Layout() {
           <div>
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Resources</h3>
             <ul className="space-y-3 text-sm">
-              <li>
-                <Link to={`/waypoints?category=${encodeURIComponent('Food Assistance')}`} className="hover:text-white transition-colors">
-                  Food Assistance
-                </Link>
-              </li>
-              <li>
-                <Link to={`/waypoints?category=${encodeURIComponent('Housing Support')}`} className="hover:text-white transition-colors">
-                  Housing Support
-                </Link>
-              </li>
-              <li>
-                <Link to={`/waypoints?category=${encodeURIComponent('Health & Wellness')}`} className="hover:text-white transition-colors">
-                  Health & Wellness
-                </Link>
-              </li>
-              <li>
-                <Link to={`/waypoints?category=${encodeURIComponent('Youth Programs')}`} className="hover:text-white transition-colors">
-                  Youth Programs
-                </Link>
-              </li>
-              <li>
-                <Link to={`/waypoints?category=${encodeURIComponent('Job Help')}`} className="hover:text-white transition-colors">
-                  Job Help
-                </Link>
-              </li>
-              <li>
-                <Link to={`/waypoints?category=${encodeURIComponent('Community Events')}`} className="hover:text-white transition-colors">
-                  Community Events
-                </Link>
-              </li>
+              {RESOURCE_CATEGORIES.map((category) => (
+                <li key={category}>
+                  <Link
+                    to={`/directory?category=${encodeURIComponent(category)}`}
+                    className="hover:text-white transition-colors"
+                  >
+                    {category}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

@@ -1,16 +1,16 @@
 import { Link } from "react-router";
-import { Wheat, HeartPulse, Home, Users, Briefcase, Calendar } from 'lucide-react';
-import { ScrollReveal, StaggerGroup, StaggerItem } from '../ScrollReveal';
+import { ScrollReveal, StaggerGroup, StaggerItem } from "../ScrollReveal";
+import {
+  RESOURCE_CATEGORIES,
+  RESOURCE_CATEGORY_META,
+} from "../../constants/resourceCategories";
 
 export function WaypointsSection() {
-  const waypoints = [
-    { category: "Food Assistance", icon: Wheat, desc: "Nourishment stops and meal programs to fuel your journey." },
-    { category: "Health & Wellness", icon: HeartPulse, desc: "Wellbeing checkpoints and care along your path." },
-    { category: "Housing Support", icon: Home, desc: "Shelter waypoints and stability resources." },
-    { category: "Youth Programs", icon: Users, desc: "Growth milestones and mentorship journeys." },
-    { category: "Job Help", icon: Briefcase, desc: "Career pathways and employment routes." },
-    { category: "Community Events", icon: Calendar, desc: "Gathering points and shared experiences." },
-  ];
+  const waypoints = RESOURCE_CATEGORIES.map((category) => ({
+    category,
+    icon: RESOURCE_CATEGORY_META[category].icon,
+    desc: RESOURCE_CATEGORY_META[category].waypointDescription,
+  }));
 
   return (
     <section className="bg-gradient-to-br from-[#E7D9C3] via-[#DCD2B8] to-[#D4C9A8] py-20 relative overflow-hidden">
@@ -42,7 +42,7 @@ export function WaypointsSection() {
           {waypoints.map((point, index) => (
             <StaggerItem key={`${point.category}-${index}`}>
               <Link
-                to={`/waypoints?category=${encodeURIComponent(point.category)}`}
+                to={`/directory?category=${encodeURIComponent(point.category)}`}
                 className="group relative bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-[#A7AE8A]/30 hover:border-[#B36A4C] hover:shadow-2xl hover:bg-white transition-all duration-400 transform hover:-translate-y-2 overflow-hidden flex flex-col h-full"
               >
                 {/* Enhanced decorative trail marker background accent */}
@@ -62,7 +62,7 @@ export function WaypointsSection() {
 
                 {/* Enhanced arrow link */}
                 <div className="mt-auto flex items-center text-[#B36A4C] font-semibold text-base opacity-0 group-hover:opacity-100 transition-all duration-400 transform translate-y-2 group-hover:translate-y-0">
-                  Explore <span className="ml-2 inline-block transition-transform duration-400 group-hover:translate-x-2">→</span>
+                  Explore <span className="ml-2 inline-block transition-transform duration-400 group-hover:translate-x-2">{"->"}</span>
                 </div>
               </Link>
             </StaggerItem>

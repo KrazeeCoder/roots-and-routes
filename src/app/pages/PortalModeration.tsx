@@ -16,7 +16,8 @@ import type { ContentStatus, ContributorProfile, EventRecord, ResourceRecord } f
 import { Trash2, UserCheck, UserX, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
-const moderationStatuses: ContentStatus[] = ["pending", "published", "rejected", "archived", "draft"];
+const resourceModerationStatuses: ContentStatus[] = ["pending", "published", "rejected", "draft"];
+const eventModerationStatuses: ContentStatus[] = ["pending", "published", "rejected", "archived", "draft"];
 
 export function PortalModeration() {
   const [resources, setResources] = useState<ResourceRecord[]>([]);
@@ -157,7 +158,7 @@ export function PortalModeration() {
                     </div>
                     <p className="text-sm text-[#5B473A] mt-2 line-clamp-2">{resource.description}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {moderationStatuses.map((status) => (
+                      {resourceModerationStatuses.map((status) => (
                         <Button
                           key={`${resource.id}-${status}`}
                           type="button"
@@ -214,7 +215,7 @@ export function PortalModeration() {
                       • {event.location}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {moderationStatuses.map((status) => (
+                      {eventModerationStatuses.map((status) => (
                         <Button
                           key={`${event.id}-${status}`}
                           type="button"

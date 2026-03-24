@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { MapPin, Phone, Globe, Clock, ArrowLeft, Star, Users, ArrowRight } from 'lucide-react';
 import { supabase } from '../../utils/supabase';
+import {
+  RESOURCE_CATEGORY_META,
+  isResourceCategory,
+  type ResourceCategory,
+} from '../constants/resourceCategories';
 
 interface WaypointResource {
   id: string;
@@ -18,38 +23,17 @@ interface WaypointResource {
   posted_by_name?: string;
 }
 
-const categoryColors: Record<string, { bg: string; text: string; border: string }> = {
-  'Food Assistance': {
-    bg: 'bg-gradient-to-br from-[#A7AE8A]/10 to-[#A7AE8A]/5',
-    text: 'text-[#5B473A]',
-    border: 'border-[#A7AE8A]/20'
-  },
-  'Health & Wellness': {
-    bg: 'bg-gradient-to-br from-[#B36A4C]/10 to-[#B36A4C]/5',
-    text: 'text-[#B36A4C]',
-    border: 'border-[#B36A4C]/20'
-  },
-  'Housing Support': {
-    bg: 'bg-gradient-to-br from-[#334233]/10 to-[#334233]/5',
-    text: 'text-[#334233]',
-    border: 'border-[#334233]/20'
-  },
-  'Youth Programs': {
-    bg: 'bg-gradient-to-br from-[#E7D9C3]/20 to-[#E7D9C3]/10',
-    text: 'text-[#5B473A]',
-    border: 'border-[#E7D9C3]/30'
-  },
-  'Job Help': {
-    bg: 'bg-gradient-to-br from-[#6F7553]/10 to-[#6F7553]/5',
-    text: 'text-[#6F7553]',
-    border: 'border-[#6F7553]/20'
-  },
-  'Community Events': {
-    bg: 'bg-gradient-to-br from-[#F6F1E7]/50 to-[#E7D9C3]/30',
-    text: 'text-[#5B473A]',
-    border: 'border-[#C2B99E]/30'
-  }
-};
+function getCategoryColors(category: string) {
+  const fallbackCategory: ResourceCategory = 'Food Assistance';
+  const canonicalCategory = isResourceCategory(category) ? category : fallbackCategory;
+  const meta = RESOURCE_CATEGORY_META[canonicalCategory];
+
+  return {
+    bg: meta.sectionBackgroundClassName,
+    text: meta.sectionTextClassName,
+    border: meta.sectionBorderClassName,
+  };
+}
 
 export function WaypointCategory() {
   const [searchParams] = useSearchParams();
@@ -84,7 +68,7 @@ export function WaypointCategory() {
     fetchResources();
   }, [category]);
 
-  const colors = categoryColors[category] || categoryColors['Food Assistance'];
+  const colors = getCategoryColors(category);
 
   if (!category) {
     return (
