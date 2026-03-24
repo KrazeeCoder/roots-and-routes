@@ -16,22 +16,22 @@ export function Portal() {
   return (
     <PortalShell
       title="Portal Overview"
-      description="Create and manage your resources and events. Published content appears on the public site automatically."
+      description="Approved contributors can publish resources and events directly. Public community submissions still go through moderator review."
     >
-      {isPending && (
+      {!canModerate && isPending && (
         <div className="mb-8 p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 flex items-start gap-3">
           <ShieldCheck className="w-5 h-5 mt-0.5 flex-shrink-0" />
           <div>
             <p className="font-semibold">Account Pending Approval</p>
             <p className="text-sm mt-1">
-              Your contributor account is currently under review by our administrators. 
+              Your contributor account is currently under review by our administrators.
               You will be able to manage resources and events once your account is approved.
             </p>
           </div>
         </div>
       )}
 
-      {isRejected && (
+      {!canModerate && isRejected && (
         <div className="mb-8 p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 flex items-start gap-3">
           <ShieldCheck className="w-5 h-5 mt-0.5 flex-shrink-0" />
           <div>
@@ -50,7 +50,7 @@ export function Portal() {
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-[#B36A4C]" /> Resources
             </CardTitle>
-            <CardDescription>Add or update community resource listings.</CardDescription>
+            <CardDescription>Create resource listings as drafts, publish them immediately, or archive outdated entries.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full" disabled={!isApproved}>
@@ -68,7 +68,7 @@ export function Portal() {
             <CardTitle className="flex items-center gap-2">
               <CalendarDays className="w-5 h-5 text-[#B36A4C]" /> Events
             </CardTitle>
-            <CardDescription>Create event postings and update schedules.</CardDescription>
+            <CardDescription>Create event postings as drafts, publish them immediately, or archive past listings.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full" disabled={!isApproved}>
@@ -87,7 +87,7 @@ export function Portal() {
               <CardTitle className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-[#B36A4C]" /> Moderation
               </CardTitle>
-              <CardDescription>Review pending and rejected submissions across contributors.</CardDescription>
+              <CardDescription>Review public proposals, approve contributor accounts, and manage site content.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild className="w-full">
@@ -97,6 +97,27 @@ export function Portal() {
           </Card>
         ) : null}
       </div>
+
+      <Card className="mt-8 border-[#E7D9C3]">
+        <CardHeader>
+          <CardTitle>How publishing works</CardTitle>
+          <CardDescription>The site now uses a dual-trust workflow.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-4">
+            <p className="font-semibold text-[#334233]">Approved contributors</p>
+            <p className="mt-2 text-[#5B473A]">Can create and update official resources and events that publish immediately when marked as published.</p>
+          </div>
+          <div className="rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-4">
+            <p className="font-semibold text-[#334233]">Public users</p>
+            <p className="mt-2 text-[#5B473A]">Can submit resource and event proposals from the public site, but those proposals stay pending until a moderator reviews them.</p>
+          </div>
+          <div className="rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-4">
+            <p className="font-semibold text-[#334233]">Moderators</p>
+            <p className="mt-2 text-[#5B473A]">Approve contributor accounts, review public proposals, and manage the official content library.</p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="mt-8 border-[#E7D9C3]">
         <CardHeader>

@@ -44,11 +44,11 @@ const defaultForm: EventFormState = {
   startsAt: "",
   endsAt: "",
   imageUrl: "",
-  status: "pending",
+  status: "published",
   isSpotlight: false,
 };
 
-const contributorStatuses: ContentStatus[] = ["draft", "pending", "archived"];
+const contributorStatuses: ContentStatus[] = ["draft", "published", "archived"];
 const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
 
 function normalizeHttpUrl(raw: string) {
@@ -156,7 +156,9 @@ export function PortalEvents() {
       startsAt: toInputDate(event.starts_at),
       endsAt: event.ends_at ? toInputDate(event.ends_at) : "",
       imageUrl: event.image_url ?? "",
-      status: event.status,
+      status: canModerate || contributorStatuses.includes(event.status)
+        ? event.status
+        : "draft",
       isSpotlight: event.is_spotlight,
     });
   };
@@ -261,7 +263,7 @@ export function PortalEvents() {
       starts_at: startsAtIso,
       ends_at: endsAtIso,
       image_url: normalizedImageUrl,
-      status: canModerate ? form.status : ("pending" as const),
+      status: canModerate ? form.status : form.status,
       is_spotlight: canModerate ? form.isSpotlight : false,
     };
 
@@ -297,13 +299,16 @@ export function PortalEvents() {
   return (
     <PortalShell
       title="Manage Events"
-      description="Create and update upcoming events. Published events appear on public event pages."
+      description="Create and update upcoming events. Approved contributors can publish events immediately, save drafts, or archive old listings."
     >
       <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1fr] gap-8">
         <Card className="border-[#E7D9C3]">
           <CardHeader>
             <CardTitle>{editingId ? "Edit event" : "Create event"}</CardTitle>
-            <CardDescription>Use clear location/time details so attendees can plan confidently.</CardDescription>
+            <CardDescription>
+              Use clear location/time details so attendees can plan confidently.
+              {!canModerate ? " Draft stays private, published goes live immediately, and archived removes the event from public pages." : ""}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={handleSave}>
@@ -391,7 +396,6 @@ export function PortalEvents() {
                       setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
                     }
                     className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                    disabled={!canModerate}
                   >
                     {statuses.map((status) => (
                       <option key={status} value={status}>
@@ -433,8 +437,8 @@ export function PortalEvents() {
 
         <Card className="border-[#E7D9C3]">
           <CardHeader>
-            <CardTitle>Your event submissions</CardTitle>
-            <CardDescription>Review status and update details over time.</CardDescription>
+            <CardTitle>Your event listings</CardTitle>
+            <CardDescription>Published events go live immediately for approved contributors. Archived events remain available here for maintenance.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <p className="text-sm text-[#6F7553]">Loading events...</p> : null}

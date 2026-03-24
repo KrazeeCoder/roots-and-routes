@@ -52,13 +52,13 @@ const defaultForm: ResourceFormState = {
   hours: "",
   tags: "",
   imageUrl: "",
-  status: "pending",
+  status: "published",
   isSpotlight: false,
   spotlightSubtitle: "",
 };
 
-const contributorStatuses: ContentStatus[] = ["draft", "pending"];
-const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected"];
+const contributorStatuses: ContentStatus[] = ["draft", "published", "archived"];
+const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
 
 function normalizeHttpUrl(raw: string) {
   const trimmed = raw.trim();
@@ -112,7 +112,6 @@ export function PortalResources() {
   const sortedResources = useMemo(
     () =>
       [...resources]
-        .filter((resource) => resource.status !== "archived")
         .sort(
           (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
         ),
@@ -138,7 +137,9 @@ export function PortalResources() {
       hours: resource.hours ?? "",
       tags: resource.tags.join(", "),
       imageUrl: resource.image_url ?? "",
-      status: resource.status,
+      status: canModerate || contributorStatuses.includes(resource.status)
+        ? resource.status
+        : "draft",
       isSpotlight: resource.is_spotlight,
       spotlightSubtitle: resource.spotlight_subtitle ?? "",
     });
@@ -227,7 +228,7 @@ export function PortalResources() {
         .map((tag) => tag.trim())
         .filter(Boolean),
       image_url: normalizedImageUrl,
-      status: canModerate ? form.status : ("pending" as const),
+      status: canModerate ? form.status : form.status,
       is_spotlight: canModerate ? form.isSpotlight : false,
       spotlight_subtitle: canModerate ? form.spotlightSubtitle.trim() || null : null,
     };
@@ -264,7 +265,7 @@ export function PortalResources() {
   return (
     <PortalShell
       title="Manage Resources"
-      description="Create and manage directory listings. Contributor updates are reviewed before they go public."
+      description="Create and manage directory listings. Approved contributors can publish immediately, save drafts privately, or archive outdated entries."
     >
       <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1fr] gap-8">
         <Card className="border-[#E7D9C3]">
@@ -272,6 +273,7 @@ export function PortalResources() {
             <CardTitle>{editingId ? "Edit resource" : "Create resource"}</CardTitle>
             <CardDescription>
               Keep listing details clear and current so residents can find help quickly.
+              {!canModerate ? " Draft stays private, published goes live immediately, and archived hides the listing from public pages." : ""}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -405,7 +407,6 @@ export function PortalResources() {
                       setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
                     }
                     className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                    disabled={!canModerate}
                   >
                     {statuses.map((status) => (
                       <option key={status} value={status}>
@@ -460,8 +461,8 @@ export function PortalResources() {
 
         <Card className="border-[#E7D9C3]">
           <CardHeader>
-            <CardTitle>Your resource submissions</CardTitle>
-            <CardDescription>Status and visibility are controlled by workflow + role permissions.</CardDescription>
+            <CardTitle>Your resource listings</CardTitle>
+            <CardDescription>Published listings are live right away for approved contributors. Archived listings stay here for reference.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <p className="text-sm text-[#6F7553]">Loading resources...</p> : null}

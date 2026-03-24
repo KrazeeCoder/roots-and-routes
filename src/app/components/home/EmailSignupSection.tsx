@@ -59,7 +59,7 @@ export function EmailSignupSection() {
                 >
                   <Link to="/suggest">
                     <PlusCircle className="w-4 h-4" />
-                    Suggest a Resource
+                    Submit to the Hub
                   </Link>
                 </Button>
               </div>

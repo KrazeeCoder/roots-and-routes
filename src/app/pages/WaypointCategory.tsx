@@ -159,13 +159,13 @@ export function WaypointCategory() {
               No resources found
             </h3>
             <p className="text-[#5B473A] text-lg mb-6 max-w-xl mx-auto font-light leading-relaxed">
-              We haven't added any resources to this category yet. Check back soon or suggest a resource!
+              We haven't added any resources to this category yet. Check back soon or submit a resource proposal.
             </p>
             <Link 
-              to="/suggest" 
+              to="/suggest?type=resource" 
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#B36A4C] text-white rounded-lg hover:bg-[#8A5543] transition-all transform hover:scale-105 shadow-lg font-semibold"
             >
-              Suggest a Resource
+              Submit a Resource
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -272,13 +272,13 @@ export function WaypointCategory() {
             Can't find what you need?
           </h3>
           <p className="text-[#5B473A] text-base mb-6 max-w-2xl mx-auto font-light leading-relaxed">
-            Help us grow our community resource directory by suggesting organizations that serve the Bothell area.
+            Help us grow our community resource directory by submitting organizations that serve the Bothell area.
           </p>
           <Link 
-            to="/suggest" 
+            to="/suggest?type=resource" 
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#B36A4C] text-white rounded-lg hover:bg-[#8A5543] transition-all transform hover:scale-105 shadow-lg font-semibold"
           >
-            Suggest a Resource
+            Submit a Resource
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

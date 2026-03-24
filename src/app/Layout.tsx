@@ -86,7 +86,7 @@ export function Layout() {
                 to="/suggest"
                 className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-[#334233] hover:bg-[#B36A4C] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
               >
-                Suggest
+                Submit
               </Link>
               <Link
                 to="/contributor-login"
@@ -135,7 +135,7 @@ export function Layout() {
                 onClick={() => setIsMenuOpen(false)}
                 className="block text-center px-4 py-2.5 rounded-xl bg-[#334233] text-white text-sm font-semibold"
               >
-                Suggest
+                Submit
               </Link>
               <Link
                 to="/contributor-login"
@@ -223,7 +223,7 @@ export function Layout() {
               </li>
               <li>
                 <Link to="/suggest" className="hover:text-white transition-colors">
-                  Suggest a Resource
+                  Submit to the Hub
                 </Link>
               </li>
               <li>

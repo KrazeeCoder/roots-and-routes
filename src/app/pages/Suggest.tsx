@@ -1,598 +1,465 @@
-import { useEffect } from "react";
-import { Link } from "react-router";
-import {
-  ArrowRight,
-  CheckCircle2,
-  ClipboardList,
-  Clock3,
-  Loader2,
-  ShieldCheck,
-  Sprout,
-  UserCheck2,
-  Users,
-  XCircle,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router";
+import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, Sparkles } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { TopoPattern } from "../components/TopoPattern";
 import { ScrollReveal } from "../components/ScrollReveal";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
+import {
+  createPublicEventSubmission,
+  createPublicResourceSubmission,
+  isModerator,
+} from "../data/portalApi";
+import {
+  RESOURCE_CATEGORIES,
+  isResourceCategory,
+  type ResourceCategory,
+} from "../constants/resourceCategories";
+import { validateProfanity } from "../../utils/profanityFilter";
+import { validateEmail, validatePhone, validateRequired, validateUrl, validateMaxLength } from "../../utils/validation";
 
-type ContributorAccessStatus = "approved" | "pending" | "rejected" | "unknown";
+type SubmissionKind = "resource" | "event";
 
-const processSteps = [
-  {
-    title: "Open Contributor Login and choose Create Account",
-    description:
-      "Start on the contributor portal page and select Create Account to begin your application.",
-    actionLabel: "Create Contributor Account",
-    actionTo: "/contributor-login",
-  },
-  {
-    title: "Complete your account application and verify your email",
-    description:
-      "Provide organization and contact information, then use the verification message sent to your inbox.",
-    actionLabel: "Go to Contributor Login",
-    actionTo: "/contributor-login",
-  },
-  {
-    title: "Wait for administrator approval",
-    description:
-      "Our moderators review each account for accuracy and trust. Your dashboard shows whether your status is pending, approved, or rejected.",
-    actionLabel: "Check Account Status",
-    actionTo: "/portal",
-  },
-  {
-    title: "Sign in and submit resources in Portal Resources",
-    description:
-      "Approved contributors can add and update listings in the portal where content is reviewed before publishing.",
-    actionLabel: "Open Resource Management",
-    actionTo: "/portal/resources",
-  },
-] as const;
-
-const preparationItems = [
-  "Organization name and public-facing contact details",
-  "Program name, category, and short summary",
-  "Who the resource serves and any eligibility requirements",
-  "Operating hours, location, and access instructions",
-  "Official website, email, and phone number when available",
-] as const;
-
-function isModerationRole(role: string | null | undefined) {
-  return role === "moderator" || role === "super_admin";
+interface ResourceFormState {
+  resourceName: string;
+  organizationName: string;
+  category: ResourceCategory | "";
+  description: string;
+  fullDescription: string;
+  address: string;
+  hours: string;
+  website: string;
+  contactEmail: string;
+  contactPhone: string;
+  tags: string;
+  imageUrl: string;
+  submitterName: string;
+  submitterEmail: string;
+  submitterConnection: string;
 }
 
-function getContributorAccessStatus(
-  role: string | null | undefined,
-  profileStatus: "pending" | "approved" | "rejected" | undefined,
-): ContributorAccessStatus {
-  if (isModerationRole(role) || profileStatus === "approved") return "approved";
-  if (profileStatus === "pending") return "pending";
-  if (profileStatus === "rejected") return "rejected";
-  return "unknown";
+interface EventFormState {
+  title: string;
+  category: string;
+  description: string;
+  location: string;
+  startsAt: string;
+  endsAt: string;
+  imageUrl: string;
+  organizerName: string;
+  organizerEmail: string;
+  organizerPhone: string;
+  submitterName: string;
+  submitterEmail: string;
+  submitterConnection: string;
 }
 
-const statusConfigMap = {
-  approved: {
-    label: "Approved",
-    title: "Signed in and ready to submit resources",
-    description: "You have contributor access. Open Resource Management to create or edit listings.",
-    primaryLabel: "Open Resource Management",
-    primaryTo: "/portal/resources",
-    secondaryLabel: "Go to Portal Dashboard",
-    secondaryTo: "/portal",
-    chipClass: "border-green-200 bg-green-50 text-green-800",
-    icon: UserCheck2,
-    iconClass: "text-green-700",
-  },
-  pending: {
-    label: "Pending Approval",
-    title: "Signed in, awaiting contributor approval",
-    description:
-      "Your application is under review. Once approved, you can submit resources in the portal.",
-    primaryLabel: "Check Account Status",
-    primaryTo: "/portal",
-    secondaryLabel: "Browse Public Directory",
-    secondaryTo: "/directory",
-    chipClass: "border-amber-200 bg-amber-50 text-amber-800",
-    icon: Clock3,
-    iconClass: "text-amber-700",
-  },
-  rejected: {
-    label: "Not Approved",
-    title: "Signed in, but contributor access is not approved",
-    description:
-      "Review your account status in the portal for next steps. You can still browse public resources.",
-    primaryLabel: "Review Account Status",
-    primaryTo: "/portal",
-    secondaryLabel: "Browse Public Directory",
-    secondaryTo: "/directory",
-    chipClass: "border-red-200 bg-red-50 text-red-800",
-    icon: XCircle,
-    iconClass: "text-red-700",
-  },
-  unknown: {
-    label: "Status Unavailable",
-    title: "Signed in, checking contributor details",
-    description:
-      "We could not determine your contributor status yet. Visit your dashboard for the latest account state.",
-    primaryLabel: "Go to Portal Dashboard",
-    primaryTo: "/portal",
-    secondaryLabel: "Browse Public Directory",
-    secondaryTo: "/directory",
-    chipClass: "border-slate-200 bg-slate-50 text-slate-800",
-    icon: ShieldCheck,
-    iconClass: "text-slate-700",
-  },
-} as const;
+const defaultResourceForm: ResourceFormState = {
+  resourceName: "",
+  organizationName: "",
+  category: "",
+  description: "",
+  fullDescription: "",
+  address: "",
+  hours: "",
+  website: "",
+  contactEmail: "",
+  contactPhone: "",
+  tags: "",
+  imageUrl: "",
+  submitterName: "",
+  submitterEmail: "",
+  submitterConnection: "",
+};
+
+const defaultEventForm: EventFormState = {
+  title: "",
+  category: "",
+  description: "",
+  location: "",
+  startsAt: "",
+  endsAt: "",
+  imageUrl: "",
+  organizerName: "",
+  organizerEmail: "",
+  organizerPhone: "",
+  submitterName: "",
+  submitterEmail: "",
+  submitterConnection: "",
+};
+
+function normalizeHttpUrl(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+function toIso(value: string) {
+  if (!value) return null;
+  return new Date(value).toISOString();
+}
+
+function plusOneHour(iso: string) {
+  return new Date(new Date(iso).getTime() + 60 * 60 * 1000).toISOString();
+}
 
 export function Suggest() {
-  const { session, user, profile, role, loading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { profile, role } = useAuth();
+  const [kind, setKind] = useState<SubmissionKind>(searchParams.get("type") === "event" ? "event" : "resource");
+  const [resourceForm, setResourceForm] = useState<ResourceFormState>(defaultResourceForm);
+  const [eventForm, setEventForm] = useState<EventFormState>(defaultEventForm);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const hasDirectPublishingAccess = isModerator(role) || profile?.status === "approved";
 
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, []);
 
-  const isSignedIn = Boolean(session);
-  const contributorStatus = getContributorAccessStatus(role, profile?.status);
-  const statusConfig = statusConfigMap[contributorStatus];
-  const StatusIcon = statusConfig.icon;
+  useEffect(() => {
+    const nextKind = searchParams.get("type") === "event" ? "event" : "resource";
+    setKind(nextKind);
+  }, [searchParams]);
 
-  const displayName =
-    profile?.display_name ||
-    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim() ||
-    user?.email ||
-    "Contributor";
-  const organizationName = profile?.organization_name || "Organization not set yet";
-  const accountEmail = profile?.email || user?.email || "No email on file";
+  const switchKind = (nextKind: SubmissionKind) => {
+    setKind(nextKind);
+    setError(null);
+    setSuccessMessage(null);
+    setSearchParams(nextKind === "event" ? { type: "event" } : { type: "resource" });
+  };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
-        <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-20 pb-28">
-          <div className="absolute inset-0 pointer-events-none opacity-70">
-            <TopoPattern opacity={0.12} />
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/75 via-[#334233]/45 to-transparent" />
+  const handleResourceSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setSuccessMessage(null);
 
-          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ScrollReveal>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B36A4C]/20 border border-[#B36A4C]/40 text-[#E7D9C3] text-sm font-medium mb-6">
-                <Sprout className="w-4 h-4 text-[#B36A4C]" />
-                Contributor Pathway
-              </div>
-            </ScrollReveal>
-            <ScrollReveal delay={0.1}>
-              <h1 className="font-['Cormorant_Garamond',serif] text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight mb-6">
-                Checking Your Contributor Access
-              </h1>
-            </ScrollReveal>
-            <ScrollReveal delay={0.15}>
-              <div className="rounded-2xl border border-[#E7D9C3]/40 bg-[#F6F1E7]/10 p-6 max-w-2xl">
-                <p className="text-[#E7D9C3] text-base flex items-center gap-3">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Checking your contributor access...
-                </p>
-              </div>
-            </ScrollReveal>
-          </div>
+    const firstError =
+      validateRequired(resourceForm.resourceName, "Resource name")
+      || validateRequired(resourceForm.category, "Category")
+      || validateRequired(resourceForm.description, "Description")
+      || validateRequired(resourceForm.address, "Address")
+      || validateRequired(resourceForm.submitterName, "Your name")
+      || validateRequired(resourceForm.submitterEmail, "Your email")
+      || validateProfanity(resourceForm.resourceName, "Resource name")
+      || validateProfanity(resourceForm.organizationName, "Organization name")
+      || validateProfanity(resourceForm.description, "Description")
+      || validateProfanity(resourceForm.fullDescription, "Full description")
+      || validateProfanity(resourceForm.address, "Address")
+      || validateProfanity(resourceForm.hours, "Hours")
+      || validateProfanity(resourceForm.tags, "Tags")
+      || validateProfanity(resourceForm.submitterName, "Your name")
+      || validateProfanity(resourceForm.submitterConnection, "Connection")
+      || validateEmail(resourceForm.submitterEmail)
+      || validateEmail(resourceForm.contactEmail)
+      || validatePhone(resourceForm.contactPhone)
+      || validateUrl(resourceForm.website)
+      || validateUrl(resourceForm.imageUrl)
+      || validateMaxLength(resourceForm.resourceName, "Resource name", 200)
+      || validateMaxLength(resourceForm.organizationName, "Organization name", 200)
+      || validateMaxLength(resourceForm.description, "Description", 500)
+      || validateMaxLength(resourceForm.fullDescription, "Full description", 2000)
+      || validateMaxLength(resourceForm.address, "Address", 500)
+      || validateMaxLength(resourceForm.hours, "Hours", 200)
+      || validateMaxLength(resourceForm.tags, "Tags", 300);
 
-          <div className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none text-[#F6F1E7]">
-            <svg viewBox="0 0 1440 56" fill="none" preserveAspectRatio="none" className="w-full h-14">
-              <path d="M0,0 Q360,56 720,28 T1440,0 V56 H0 Z" fill="currentColor" />
-            </svg>
-          </div>
-        </section>
-      </div>
-    );
-  }
+    if (firstError) {
+      setError(firstError);
+      setSubmitting(false);
+      return;
+    }
+
+    if (!resourceForm.category || !isResourceCategory(resourceForm.category)) {
+      setError("Category must be one of the approved resource categories.");
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      await createPublicResourceSubmission({
+        resource_name: resourceForm.resourceName.trim(),
+        organization_name: resourceForm.organizationName.trim() || null,
+        category: resourceForm.category,
+        description: resourceForm.description.trim(),
+        full_description: resourceForm.fullDescription.trim() || null,
+        address: resourceForm.address.trim(),
+        hours: resourceForm.hours.trim() || null,
+        website: normalizeHttpUrl(resourceForm.website),
+        contact_email: resourceForm.contactEmail.trim() || null,
+        contact_phone: resourceForm.contactPhone.trim() || null,
+        tags: resourceForm.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+        image_url: normalizeHttpUrl(resourceForm.imageUrl),
+        submitter_name: resourceForm.submitterName.trim(),
+        submitter_email: resourceForm.submitterEmail.trim(),
+        submitter_connection: resourceForm.submitterConnection.trim() || null,
+      });
+
+      setResourceForm(defaultResourceForm);
+      setSuccessMessage("Resource proposal received. It is pending moderator review and is not live on the site yet.");
+    } catch (nextError) {
+      console.error(nextError);
+      setError("Could not submit this resource proposal right now.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEventSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    const firstError =
+      validateRequired(eventForm.title, "Event title")
+      || validateRequired(eventForm.location, "Location")
+      || validateRequired(eventForm.startsAt, "Start date and time")
+      || validateRequired(eventForm.submitterName, "Your name")
+      || validateRequired(eventForm.submitterEmail, "Your email")
+      || validateProfanity(eventForm.title, "Event title")
+      || validateProfanity(eventForm.category, "Category")
+      || validateProfanity(eventForm.description, "Description")
+      || validateProfanity(eventForm.location, "Location")
+      || validateProfanity(eventForm.organizerName, "Organizer name")
+      || validateProfanity(eventForm.submitterName, "Your name")
+      || validateProfanity(eventForm.submitterConnection, "Connection")
+      || validateEmail(eventForm.submitterEmail)
+      || validateEmail(eventForm.organizerEmail)
+      || validatePhone(eventForm.organizerPhone)
+      || validateUrl(eventForm.imageUrl)
+      || validateMaxLength(eventForm.title, "Event title", 200)
+      || validateMaxLength(eventForm.category, "Category", 100)
+      || validateMaxLength(eventForm.description, "Description", 1000)
+      || validateMaxLength(eventForm.location, "Location", 500);
+
+    if (firstError) {
+      setError(firstError);
+      setSubmitting(false);
+      return;
+    }
+
+    const startsAtIso = toIso(eventForm.startsAt);
+    if (!startsAtIso) {
+      setError("Start date and time is required.");
+      setSubmitting(false);
+      return;
+    }
+
+    const endsAtCandidate = toIso(eventForm.endsAt);
+    const endsAtIso = endsAtCandidate && new Date(endsAtCandidate).getTime() > new Date(startsAtIso).getTime()
+      ? endsAtCandidate
+      : plusOneHour(startsAtIso);
+
+    try {
+      await createPublicEventSubmission({
+        title: eventForm.title.trim(),
+        category: eventForm.category.trim() || null,
+        description: eventForm.description.trim() || null,
+        location: eventForm.location.trim(),
+        starts_at: startsAtIso,
+        ends_at: endsAtIso,
+        image_url: normalizeHttpUrl(eventForm.imageUrl),
+        organizer_name: eventForm.organizerName.trim() || null,
+        organizer_email: eventForm.organizerEmail.trim() || null,
+        organizer_phone: eventForm.organizerPhone.trim() || null,
+        submitter_name: eventForm.submitterName.trim(),
+        submitter_email: eventForm.submitterEmail.trim(),
+        submitter_connection: eventForm.submitterConnection.trim() || null,
+      });
+
+      setEventForm(defaultEventForm);
+      setSuccessMessage("Event proposal received. It is pending moderator review and is not live on the site yet.");
+    } catch (nextError) {
+      console.error(nextError);
+      setError("Could not submit this event proposal right now.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
-      <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-20 pb-28">
-        <div className="absolute inset-0 pointer-events-none opacity-70">
-          <TopoPattern opacity={0.12} />
-        </div>
+      <section className="relative overflow-hidden bg-[#334233] pb-28 pt-20 text-[#F6F1E7]">
+        <div className="absolute inset-0 pointer-events-none opacity-70"><TopoPattern opacity={0.12} /></div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/75 via-[#334233]/45 to-transparent" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
             <ScrollReveal>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B36A4C]/20 border border-[#B36A4C]/40 text-[#E7D9C3] text-sm font-medium mb-6">
-                <Sprout className="w-4 h-4 text-[#B36A4C]" />
-                {isSignedIn ? "Contributor Access Confirmed" : "Contributor Pathway"}
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#B36A4C]/40 bg-[#B36A4C]/20 px-3 py-1.5 text-sm font-medium text-[#E7D9C3]">
+                <Sparkles className="h-4 w-4 text-[#B36A4C]" />
+                Community Resource Hub Submissions
               </div>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
-              <h1 className="font-['Cormorant_Garamond',serif] text-5xl sm:text-6xl font-bold leading-[1.1] tracking-tight mb-6">
-                {isSignedIn ? (
-                  <>
-                    Your Suggestion Route Is <span className="text-[#B36A4C] italic">Signed In</span>
-                  </>
-                ) : (
-                  <>
-                    Plant a <span className="text-[#B36A4C] italic">Resource</span> Through Contributor Access
-                  </>
-                )}
+              <h1 className="mb-6 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
+                Submit to the <span className="text-[#B36A4C] italic">Community Hub</span>
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
-              <p className="text-[#A7AE8A] text-lg font-light leading-relaxed max-w-3xl">
-                {isSignedIn
-                  ? `Signed in as ${displayName}. Contributor status is ${statusConfig.label.toLowerCase()}. ${statusConfig.description}`
-                  : "Resource submissions are limited to approved contributors. This route keeps our directory accurate, trustworthy, and safe while giving every applicant a clear process to join."}
+              <p className="max-w-3xl text-lg font-light leading-relaxed text-[#A7AE8A]">
+                Anyone can propose a community resource or event. Public submissions stay pending until a moderator reviews them, while approved contributors can publish official listings directly from the portal.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.2}>
               <div className="mt-8 flex flex-wrap gap-3">
-                {isSignedIn ? (
-                  <>
-                    <Button asChild className="focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]">
-                      <Link to={statusConfig.primaryTo} className="inline-flex items-center gap-2">
-                        {statusConfig.primaryLabel}
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      asChild
-                      className="border-[#E7D9C3] text-[#F6F1E7] bg-transparent hover:bg-[#F6F1E7] hover:text-[#334233] focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]"
-                    >
-                      <Link to={statusConfig.secondaryTo}>{statusConfig.secondaryLabel}</Link>
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button asChild className="focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]">
-                      <Link to="/contributor-login" className="inline-flex items-center gap-2">
-                        Create Contributor Account
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      asChild
-                      className="border-[#E7D9C3] text-[#F6F1E7] bg-transparent hover:bg-[#F6F1E7] hover:text-[#334233] focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]"
-                    >
-                      <Link to="/contributor-login">Sign In</Link>
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="text-[#E7D9C3] hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#F6F1E7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#334233]"
-                >
-                  <Link to="/directory">Browse Public Directory</Link>
+                <Button asChild><Link to="/contributor-login">Contributor Portal</Link></Button>
+                <Button asChild variant="outline" className="border-[#E7D9C3] bg-transparent text-[#F6F1E7] hover:bg-[#F6F1E7] hover:text-[#334233]">
+                  <Link to="/directory">Browse Resources</Link>
                 </Button>
               </div>
             </ScrollReveal>
-            <ScrollReveal delay={0.25}>
-              <div className="mt-6 max-w-3xl rounded-2xl border-2 border-[#B36A4C] bg-[#B36A4C]/25 p-5 shadow-lg shadow-black/10">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F6F1E7]">Important for TSA Judges</p>
-                <p className="mt-2 text-base leading-relaxed text-[#F6F1E7]">
-                  Contributor login credentials for event submission are on the Contributor Login page.
-                </p>
-                <Link
-                  to="/contributor-login"
-                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-white underline underline-offset-4 hover:text-[#F6F1E7]"
-                >
-                  Open Contributor Login page
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </ScrollReveal>
           </div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none text-[#F6F1E7]">
-          <svg viewBox="0 0 1440 56" fill="none" preserveAspectRatio="none" className="w-full h-14">
-            <path d="M0,0 Q360,56 720,28 T1440,0 V56 H0 Z" fill="currentColor" />
-          </svg>
         </div>
       </section>
 
-      {isSignedIn ? (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <ScrollReveal>
-            <div className={`mb-8 rounded-2xl border p-5 ${statusConfig.chipClass}`} role="status" aria-live="polite">
-              <div className="flex items-start gap-3">
-                <StatusIcon className={`w-5 h-5 mt-0.5 ${statusConfig.iconClass}`} />
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide">Signed in status</p>
-                  <h2 className="text-lg font-semibold mt-1">{statusConfig.title}</h2>
-                  <p className="text-sm mt-1">
-                    Contributor status: <span className="font-semibold">{statusConfig.label}</span>
-                  </p>
-                </div>
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        {hasDirectPublishingAccess ? (
+          <div className="mb-8 rounded-2xl border border-green-200 bg-green-50 p-5 text-green-900">
+            <p className="font-semibold">You already have direct publishing access.</p>
+            <p className="mt-1 text-sm">Approved contributors and moderators can create official resources/events in the portal without waiting for public-submission approval.</p>
+            <Button asChild className="mt-4"><Link to="/portal">Open Portal</Link></Button>
+          </div>
+        ) : null}
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="border-[#E7D9C3] lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Public proposal form</CardTitle>
+              <CardDescription>Choose whether you are proposing a resource or an event.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="inline-flex rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-1">
+                <button type="button" onClick={() => switchKind("resource")} className={`rounded-lg px-4 py-2 text-sm font-semibold ${kind === "resource" ? "bg-[#334233] text-white" : "text-[#334233]"}`}>
+                  Resource
+                </button>
+                <button type="button" onClick={() => switchKind("event")} className={`rounded-lg px-4 py-2 text-sm font-semibold ${kind === "event" ? "bg-[#334233] text-white" : "text-[#334233]"}`}>
+                  Event
+                </button>
               </div>
-            </div>
-          </ScrollReveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <div className="lg:col-span-2 space-y-8">
-              <ScrollReveal>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="font-['Cormorant_Garamond',serif] text-3xl text-[#334233]">
-                      Welcome Back, {displayName}
-                    </CardTitle>
-                    <CardDescription className="text-[#5B473A]">
-                      You are already signed in. Use your contributor route below instead of creating a new account.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-[#6F7553]">Account email</p>
-                      <p className="font-medium text-[#334233] break-words">{accountEmail}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#6F7553]">Organization</p>
-                      <p className="font-medium text-[#334233]">{organizationName}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#6F7553]">Role</p>
-                      <p className="font-medium text-[#334233] capitalize">{role || "contributor"}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#6F7553]">Contributor status</p>
-                      <p className="font-medium text-[#334233]">{statusConfig.label}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              {successMessage ? <p className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">{successMessage}</p> : null}
 
-              <ScrollReveal delay={0.1}>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-2xl text-[#334233]">Next Step on Your Route</CardTitle>
-                    <CardDescription className="text-[#5B473A]">{statusConfig.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button asChild>
-                      <Link to={statusConfig.primaryTo} className="inline-flex items-center gap-2">
-                        {statusConfig.primaryLabel}
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                    <p className="text-sm text-[#5B473A]">
-                      Need full account details? Visit your <Link to="/portal" className="underline hover:text-[#B36A4C]">portal dashboard</Link>.
-                    </p>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
+              {kind === "resource" ? (
+                <form className="space-y-4" onSubmit={handleResourceSubmit}>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label htmlFor="resource-name">Resource name</Label><Input id="resource-name" value={resourceForm.resourceName} onChange={(event) => setResourceForm((prev) => ({ ...prev, resourceName: event.target.value }))} required /></div>
+                    <div><Label htmlFor="resource-organization">Organization name</Label><Input id="resource-organization" value={resourceForm.organizationName} onChange={(event) => setResourceForm((prev) => ({ ...prev, organizationName: event.target.value }))} /></div>
+                  </div>
+                  <div><Label htmlFor="resource-category">Category</Label><select id="resource-category" value={resourceForm.category} onChange={(event) => setResourceForm((prev) => ({ ...prev, category: event.target.value as ResourceCategory | "" }))} className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm" required><option value="" disabled>Select a category</option>{RESOURCE_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
+                  <div><Label htmlFor="resource-description">Short description</Label><Textarea id="resource-description" value={resourceForm.description} onChange={(event) => setResourceForm((prev) => ({ ...prev, description: event.target.value }))} required /></div>
+                  <div><Label htmlFor="resource-full-description">Full description</Label><Textarea id="resource-full-description" value={resourceForm.fullDescription} onChange={(event) => setResourceForm((prev) => ({ ...prev, fullDescription: event.target.value }))} /></div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label htmlFor="resource-address">Address</Label><Input id="resource-address" value={resourceForm.address} onChange={(event) => setResourceForm((prev) => ({ ...prev, address: event.target.value }))} required /></div>
+                    <div><Label htmlFor="resource-hours">Hours</Label><Input id="resource-hours" value={resourceForm.hours} onChange={(event) => setResourceForm((prev) => ({ ...prev, hours: event.target.value }))} /></div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div><Label htmlFor="resource-website">Website</Label><Input id="resource-website" value={resourceForm.website} onChange={(event) => setResourceForm((prev) => ({ ...prev, website: event.target.value }))} /></div>
+                    <div><Label htmlFor="resource-contact-email">Contact email</Label><Input id="resource-contact-email" value={resourceForm.contactEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactEmail: event.target.value }))} /></div>
+                    <div><Label htmlFor="resource-contact-phone">Contact phone</Label><Input id="resource-contact-phone" value={resourceForm.contactPhone} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactPhone: event.target.value }))} /></div>
+                    <div><Label htmlFor="resource-image-url">Image URL</Label><Input id="resource-image-url" value={resourceForm.imageUrl} onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))} /></div>
+                  </div>
+                  <div><Label htmlFor="resource-tags">Tags (comma-separated)</Label><Input id="resource-tags" value={resourceForm.tags} onChange={(event) => setResourceForm((prev) => ({ ...prev, tags: event.target.value }))} /></div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label htmlFor="resource-submitter-name">Your name</Label><Input id="resource-submitter-name" value={resourceForm.submitterName} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterName: event.target.value }))} required /></div>
+                    <div><Label htmlFor="resource-submitter-email">Your email</Label><Input id="resource-submitter-email" type="email" value={resourceForm.submitterEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required /></div>
+                  </div>
+                  <div><Label htmlFor="resource-connection">Your connection to this resource</Label><Textarea id="resource-connection" value={resourceForm.submitterConnection} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} /></div>
+                  <Button type="submit" disabled={submitting}>{submitting ? "Submitting..." : "Submit Resource Proposal"}</Button>
+                </form>
+              ) : (
+                <form className="space-y-4" onSubmit={handleEventSubmit}>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label htmlFor="event-title">Event title</Label><Input id="event-title" value={eventForm.title} onChange={(event) => setEventForm((prev) => ({ ...prev, title: event.target.value }))} required /></div>
+                    <div><Label htmlFor="event-category">Category</Label><Input id="event-category" value={eventForm.category} onChange={(event) => setEventForm((prev) => ({ ...prev, category: event.target.value }))} /></div>
+                  </div>
+                  <div><Label htmlFor="event-description">Description</Label><Textarea id="event-description" value={eventForm.description} onChange={(event) => setEventForm((prev) => ({ ...prev, description: event.target.value }))} /></div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label htmlFor="event-location">Location</Label><Input id="event-location" value={eventForm.location} onChange={(event) => setEventForm((prev) => ({ ...prev, location: event.target.value }))} required /></div>
+                    <div><Label htmlFor="event-image-url">Image URL</Label><Input id="event-image-url" value={eventForm.imageUrl} onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))} /></div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label htmlFor="event-starts-at">Starts at</Label><Input id="event-starts-at" type="datetime-local" value={eventForm.startsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, startsAt: event.target.value }))} required /></div>
+                    <div><Label htmlFor="event-ends-at">Ends at</Label><Input id="event-ends-at" type="datetime-local" value={eventForm.endsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, endsAt: event.target.value }))} /></div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div><Label htmlFor="event-organizer-name">Organizer name</Label><Input id="event-organizer-name" value={eventForm.organizerName} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerName: event.target.value }))} /></div>
+                    <div><Label htmlFor="event-organizer-email">Organizer email</Label><Input id="event-organizer-email" value={eventForm.organizerEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerEmail: event.target.value }))} /></div>
+                    <div><Label htmlFor="event-organizer-phone">Organizer phone</Label><Input id="event-organizer-phone" value={eventForm.organizerPhone} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerPhone: event.target.value }))} /></div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div><Label htmlFor="event-submitter-name">Your name</Label><Input id="event-submitter-name" value={eventForm.submitterName} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterName: event.target.value }))} required /></div>
+                    <div><Label htmlFor="event-submitter-email">Your email</Label><Input id="event-submitter-email" type="email" value={eventForm.submitterEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required /></div>
+                  </div>
+                  <div><Label htmlFor="event-connection">Your connection to this event</Label><Textarea id="event-connection" value={eventForm.submitterConnection} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} /></div>
+                  <Button type="submit" disabled={submitting}>{submitting ? "Submitting..." : "Submit Event Proposal"}</Button>
+                </form>
+              )}
+            </CardContent>
+          </Card>
 
-              <ScrollReveal delay={0.2}>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-2xl text-[#334233]">Why Contributor Approval Is Required</CardTitle>
-                    <CardDescription className="text-[#5B473A]">
-                      These safeguards keep the Roots & Routes directory reliable and safe.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
-                      <ShieldCheck className="w-5 h-5 text-[#B36A4C]" />
-                      <p className="mt-2 font-semibold text-[#334233]">Accuracy First</p>
-                      <p className="text-sm text-[#5B473A] mt-1">
-                        Verified contributors reduce outdated or incomplete listing information.
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
-                      <Users className="w-5 h-5 text-[#B36A4C]" />
-                      <p className="mt-2 font-semibold text-[#334233]">Community Safety</p>
-                      <p className="text-sm text-[#5B473A] mt-1">
-                        Account screening helps prevent misuse and protects community trust.
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
-                      <ClipboardList className="w-5 h-5 text-[#B36A4C]" />
-                      <p className="mt-2 font-semibold text-[#334233]">Moderation Quality</p>
-                      <p className="text-sm text-[#5B473A] mt-1">
-                        Review workflows keep published resources consistent and verifiable.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            </div>
+          <div className="space-y-6">
+            <Card className="border-[#E7D9C3]">
+              <CardHeader>
+                <CardTitle>How this workflow works</CardTitle>
+                <CardDescription>Two trust levels keep the hub open and accurate.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm text-[#5B473A]">
+                <div className="flex gap-3">
+                  <ClipboardList className="mt-0.5 h-5 w-5 text-[#B36A4C]" />
+                  <p><span className="font-semibold text-[#334233]">Public proposals:</span> Anyone can submit a resource or event, but it stays pending until a moderator reviews it.</p>
+                </div>
+                <div className="flex gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 text-[#B36A4C]" />
+                  <p><span className="font-semibold text-[#334233]">Approved contributors:</span> Verified organizations can manage official resources and events directly in the portal.</p>
+                </div>
+                <div className="flex gap-3">
+                  <FileText className="mt-0.5 h-5 w-5 text-[#B36A4C]" />
+                  <p><span className="font-semibold text-[#334233]">Official content:</span> Only approved contributor content and moderator-approved public proposals appear on public pages.</p>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div className="space-y-8">
-              <ScrollReveal delay={0.05}>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-[#334233]">Quick Actions</CardTitle>
-                    <CardDescription className="text-[#5B473A]">Routes for your current account status.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button asChild className="w-full justify-between">
-                      <Link to={statusConfig.primaryTo}>
-                        {statusConfig.primaryLabel}
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full justify-between">
-                      <Link to="/portal">
-                        Go to Portal Dashboard
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="ghost" className="w-full justify-between text-[#334233] hover:text-[#B36A4C]">
-                      <Link to="/directory">
-                        Browse Public Directory
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-
-              <ScrollReveal delay={0.15}>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-[#334233]">What to Prepare</CardTitle>
-                    <CardDescription className="text-[#5B473A]">
-                      Keep these details ready before submitting or updating a listing.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3" aria-label="Contributor preparation checklist">
-                      {preparationItems.map((item) => (
-                        <li key={item} className="flex items-start gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-[#6F7553] mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-[#5B473A]">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            </div>
+            <Card className="border-[#E7D9C3]">
+              <CardHeader>
+                <CardTitle>Need direct publishing access?</CardTitle>
+                <CardDescription>Contributor accounts are for verified organizations and repeat contributors.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-[#5B473A]">
+                <p>Contributors can save drafts, publish official listings immediately, and manage their resources/events over time.</p>
+                <Button asChild variant="outline" className="w-full justify-between">
+                  <Link to="/contributor-login">
+                    Apply for Contributor Access
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" className="w-full justify-between text-[#334233]">
+                  <Link to="/events">
+                    Browse Public Events
+                    <CalendarDays className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
-        </section>
-      ) : (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <div className="lg:col-span-2 space-y-8">
-              <ScrollReveal>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="font-['Cormorant_Garamond',serif] text-3xl text-[#334233]">
-                      Your Route to Suggest Resources
-                    </CardTitle>
-                    <CardDescription className="text-[#5B473A]">
-                      Follow these four steps to become an approved contributor and submit listings through the portal.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ol className="space-y-4" aria-label="Contributor onboarding process">
-                      {processSteps.map((step, index) => (
-                        <li key={step.title} className="rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-5">
-                          <div className="flex items-start gap-4">
-                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#334233] text-[#F6F1E7] text-sm font-semibold">
-                              {index + 1}
-                            </span>
-                            <div className="flex-1">
-                              <h3 className="text-lg font-semibold text-[#334233]">{step.title}</h3>
-                              <p className="text-sm text-[#5B473A] mt-1">{step.description}</p>
-                              <Button
-                                asChild
-                                variant="link"
-                                className="h-auto px-0 mt-2 text-[#334233] underline decoration-[#B36A4C] underline-offset-4 hover:text-[#B36A4C]"
-                              >
-                                <Link to={step.actionTo}>{step.actionLabel}</Link>
-                              </Button>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-
-              <ScrollReveal delay={0.1}>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-2xl text-[#334233]">Why Contributor Approval Is Required</CardTitle>
-                    <CardDescription className="text-[#5B473A]">
-                      This policy protects quality and trust across the Roots & Routes directory.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
-                      <ShieldCheck className="w-5 h-5 text-[#B36A4C]" />
-                      <p className="mt-2 font-semibold text-[#334233]">Accuracy First</p>
-                      <p className="text-sm text-[#5B473A] mt-1">
-                        Approved contributors provide verifiable details, reducing outdated or incomplete listings.
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
-                      <Users className="w-5 h-5 text-[#B36A4C]" />
-                      <p className="mt-2 font-semibold text-[#334233]">Community Safety</p>
-                      <p className="text-sm text-[#5B473A] mt-1">
-                        Screening contributors helps prevent misuse and keeps the platform focused on public benefit.
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
-                      <ClipboardList className="w-5 h-5 text-[#B36A4C]" />
-                      <p className="mt-2 font-semibold text-[#334233]">Moderation Quality</p>
-                      <p className="text-sm text-[#5B473A] mt-1">
-                        Structured review workflows keep submissions consistent and easier to verify before publication.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            </div>
-
-            <div className="space-y-8">
-              <ScrollReveal delay={0.05}>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-[#334233]">Quick Actions</CardTitle>
-                    <CardDescription className="text-[#5B473A]">
-                      Use these links to move through the contributor process.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button asChild className="w-full justify-between">
-                      <Link to="/contributor-login">
-                        Create Contributor Account
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full justify-between">
-                      <Link to="/contributor-login">
-                        Sign In
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="w-full justify-between">
-                      <Link to="/portal/resources">
-                        Open Resource Management
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="ghost" className="w-full justify-between text-[#334233] hover:text-[#B36A4C]">
-                      <Link to="/directory">
-                        Browse Public Directory
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-
-              <ScrollReveal delay={0.15}>
-                <Card className="border-[#E7D9C3] bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-[#334233]">What to Prepare</CardTitle>
-                    <CardDescription className="text-[#5B473A]">
-                      Bring these details so your contributor account and future submissions can move quickly.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3" aria-label="Contributor preparation checklist">
-                      {preparationItems.map((item) => (
-                        <li key={item} className="flex items-start gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-[#6F7553] mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-[#5B473A]">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </ScrollReveal>
-            </div>
-          </div>
-        </section>
-      )}
+        </div>
+      </section>
     </div>
   );
 }

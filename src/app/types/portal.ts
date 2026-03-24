@@ -106,3 +106,89 @@ export interface SignUpContributorInput {
   phone: string;
   password: string;
 }
+
+export type SubmissionStatus = "pending" | "approved" | "rejected";
+
+export interface ResourceSubmissionRecord {
+  id: string;
+  resource_name: string;
+  organization_name: string | null;
+  category: ResourceCategory;
+  description: string;
+  full_description: string | null;
+  website: string | null;
+  address: string | null;
+  hours: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  tags: string[];
+  image_url: string | null;
+  submitter_name: string;
+  submitter_email: string;
+  submitter_connection: string | null;
+  status: SubmissionStatus;
+  moderator_notes: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  approved_resource_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ResourceSubmissionPayload {
+  resource_name: string;
+  organization_name?: string | null;
+  category: ResourceCategory;
+  description: string;
+  full_description?: string | null;
+  website?: string | null;
+  address?: string | null;
+  hours?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  tags?: string[];
+  image_url?: string | null;
+  submitter_name: string;
+  submitter_email: string;
+  submitter_connection?: string | null;
+}
+
+export interface EventSubmissionRecord {
+  id: string;
+  title: string;
+  category: string | null;
+  description: string | null;
+  location: string;
+  starts_at: string;
+  ends_at: string | null;
+  image_url: string | null;
+  organizer_name: string | null;
+  organizer_email: string | null;
+  organizer_phone: string | null;
+  submitter_name: string;
+  submitter_email: string;
+  submitter_connection: string | null;
+  status: SubmissionStatus;
+  moderator_notes: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  approved_event_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventSubmissionPayload {
+  title: string;
+  category?: string | null;
+  description?: string | null;
+  location: string;
+  starts_at: string;
+  ends_at?: string | null;
+  image_url?: string | null;
+  organizer_name?: string | null;
+  organizer_email?: string | null;
+  organizer_phone?: string | null;
+  submitter_name: string;
+  submitter_email: string;
+  submitter_connection?: string | null;
+}

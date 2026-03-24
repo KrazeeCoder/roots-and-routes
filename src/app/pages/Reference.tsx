@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FileText, Link as LinkIcon, Code2, Globe, Sparkles } from "lucide-react";
+import { CheckCircle2, FileText, Link as LinkIcon, Code2, Globe, ShieldCheck, Sparkles } from "lucide-react";
 import {
   directoryEntries as seededDirectoryEntries,
   events as seededEvents,
@@ -41,6 +41,7 @@ const developmentSources = [
 
 const licenseSources = [
   { name: "Wikimedia Commons (CC BY-SA / GFDL / CC0)", url: "https://commons.wikimedia.org/wiki/Main_Page" },
+  { name: "Unsplash License", url: "https://unsplash.com/license" },
   { name: "shadcn/ui (MIT License)", url: "https://github.com/shadcn-ui/ui/blob/main/LICENSE.md" },
   { name: "Google Fonts (Cormorant Garamond + Public Sans)", url: "https://fonts.google.com/" },
 ];
@@ -55,6 +56,29 @@ const researchSources = [
   { name: "City of Bothell: City Services", url: "https://www.bothellwa.gov/101/City-Services" },
   { name: "City of Bothell: Parks & Recreation", url: "https://www.bothellwa.gov/249/Parks-Recreation" },
   { name: "City of Bothell: Maps & GIS", url: "https://www.bothellwa.gov/233/Maps-GIS" },
+];
+
+const judgeQuickCheckItems = [
+  {
+    title: "Interactive resource hub",
+    detail: "Search and filter community resources on the public directory.",
+    href: "/directory",
+  },
+  {
+    title: "Three-plus spotlighted resources",
+    detail: "Community highlights are collected on the spotlight pages.",
+    href: "/spotlights",
+  },
+  {
+    title: "Public submission form",
+    detail: "Anyone can submit a new resource or event proposal for moderator review.",
+    href: "/suggest",
+  },
+  {
+    title: "Reference Page PDFs",
+    detail: "The Student Copyright Checklist and Work Log are linked on this page.",
+    href: "/reference",
+  },
 ];
 
 interface ImageCitation {
@@ -242,6 +266,43 @@ export function Reference() {
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="space-y-16">
+          <ScrollReveal>
+            <section className="rounded-3xl border border-[#B36A4C]/35 bg-[#B36A4C]/8 p-6 sm:p-8">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="mt-1 h-6 w-6 text-[#B36A4C]" />
+                <div className="flex-1">
+                  <h2 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233]">
+                    TSA Judge Quick Check
+                  </h2>
+                  <p className="mt-2 text-sm text-[#5B473A] leading-relaxed">
+                    Core challenge components and compliance items are linked here for fast review.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {judgeQuickCheckItems.map((item) => (
+                  <a
+                    key={item.title}
+                    href={item.href}
+                    className="rounded-2xl border border-[#E7D9C3] bg-white p-4 transition-colors hover:border-[#B36A4C]"
+                  >
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 text-[#6F7553]" />
+                      <div>
+                        <h3 className="text-base font-semibold text-[#334233]">{item.title}</h3>
+                        <p className="mt-1 text-sm text-[#5B473A]">{item.detail}</p>
+                        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[#B36A4C]">
+                          {item.href}
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          </ScrollReveal>
+
           {/* TSA Documents */}
           <ScrollReveal>
             <div className="space-y-4">
@@ -345,8 +406,14 @@ export function Reference() {
                     backend infrastructure including database management and authentication.
                   </p>
                   <p>
-                    All components were built from scratch by our team to ensure a premium, customized experience that adheres to modern web standards.
-                    The site follows WCAG accessibility guidelines, prioritizing clear color contrast and responsive designs.
+                    Framework declaration for TSA: this website uses React, Vite, and Tailwind CSS, and all page layouts, styling, and interface structure were built by our team.
+                    No pre-built template or theme was used.
+                  </p>
+                  <p>
+                    Workflow declaration for TSA: approved contributor accounts can publish official resources and events directly, while public resource/event proposals remain in moderator queues until reviewed.
+                  </p>
+                  <p>
+                    The site follows WCAG accessibility guidelines, prioritizing clear color contrast, responsive layouts, and simple navigation for judges and community members.
                   </p>
                 </div>
 
@@ -380,7 +447,7 @@ export function Reference() {
                 </p>
                 <p className="text-sm text-[#5B473A]">
                   Community submission policy: contributors are responsible for only uploading media they created or
-                  are licensed/authorized to share. By submitting content, contributors affirm they have those rights.
+                  are licensed/authorized to share. Public proposals are reviewed by moderators before publication, and approved contributors affirm they have the rights to any media they upload directly.
                 </p>
                 <p className="text-sm text-[#5B473A] italic mb-4">
                   These are the exact image URLs currently used across home data, hero/fallback visuals, and published portal content.

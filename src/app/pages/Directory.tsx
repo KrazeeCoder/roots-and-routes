@@ -305,13 +305,13 @@ export function Directory() {
                   Need Guidance?
                 </h2>
                 <p className="text-sm text-[#5B473A] leading-relaxed mb-4">
-                  Still not seeing what you need? Share a suggestion and we'll give it a look.
+                  Still not seeing what you need? Submit a resource proposal for moderator review.
                 </p>
                 <a
-                  href="/suggest"
+                  href="/suggest?type=resource"
                   className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold hover:bg-[#334233] hover:text-white transition-colors"
                 >
-                  Plant a Resource
+                  Submit a Resource
                 </a>
               </div>
             </div>

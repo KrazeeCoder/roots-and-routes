@@ -577,6 +577,11 @@ export function Events() {
                     <Calendar className="w-4 h-4" /> Open Full Calendar
                   </Link>
                 </Button>
+                <Button asChild className="w-full sm:w-auto" variant="outline">
+                  <Link to="/suggest?type=event" className="inline-flex items-center gap-2">
+                    Submit an Event
+                  </Link>
+                </Button>
               </div>
             </ScrollReveal>
           </div>
@@ -1038,13 +1043,16 @@ export function Events() {
 
           <div className="mt-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="text-sm text-[#5B473A]">
-              <span className="font-semibold text-[#334233]">Want more?</span> Check the community calendar for all meeting dates.
+              <span className="font-semibold text-[#334233]">Want more?</span> Check the community calendar or submit a public event proposal for moderator review.
             </div>
             <div className="flex flex-wrap gap-3">
               <Button variant="default" asChild>
                 <Link to="/calendar" className="inline-flex items-center gap-2">
                   <Calendar className="w-4 h-4" /> Full Community Calendar
                 </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/suggest?type=event">Submit an Event</Link>
               </Button>
             </div>
           </div>

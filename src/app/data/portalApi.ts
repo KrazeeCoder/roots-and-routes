@@ -6,8 +6,12 @@ import type {
   ContributorRole,
   EventPayload,
   EventRecord,
+  EventSubmissionPayload,
+  EventSubmissionRecord,
   ResourcePayload,
   ResourceRecord,
+  ResourceSubmissionPayload,
+  ResourceSubmissionRecord,
   SignUpContributorInput,
 } from "../types/portal";
 
@@ -172,11 +176,7 @@ export async function listPortalResources(
   role: ContributorRole,
   userId: string,
 ): Promise<ResourceRecord[]> {
-  let query = supabase
-    .from("resources")
-    .select("*")
-    .neq("status", "archived")
-    .order("updated_at", { ascending: false });
+  let query = supabase.from("resources").select("*").order("updated_at", { ascending: false });
   if (role === "contributor") {
     query = query.eq("created_by", userId);
   }
@@ -206,7 +206,7 @@ export async function listModerationResources(): Promise<ResourceRecord[]> {
   const { data, error } = await supabase
     .from("resources")
     .select("*")
-    .in("status", ["draft", "pending", "published", "rejected"])
+    .in("status", ["draft", "pending", "published", "rejected", "archived"])
     .order("updated_at", { ascending: false });
 
   if (error) throw error;
@@ -280,6 +280,120 @@ export async function updateEvent(eventId: string, payload: EventPayload) {
 export async function deleteEvent(eventId: string) {
   const { error } = await supabase.from("events").delete().eq("id", eventId);
   if (error) throw error;
+}
+
+export async function createPublicResourceSubmission(payload: ResourceSubmissionPayload) {
+  const { error } = await supabase.from("resource_submissions").insert({
+    ...payload,
+    tags: payload.tags ?? [],
+  });
+
+  if (error) throw error;
+}
+
+export async function createPublicEventSubmission(payload: EventSubmissionPayload) {
+  const { error } = await supabase.from("event_submissions").insert({
+    ...payload,
+  });
+
+  if (error) throw error;
+}
+
+export async function listPendingResourceSubmissions(): Promise<ResourceSubmissionRecord[]> {
+  const { data, error } = await supabase
+    .from("resource_submissions")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as ResourceSubmissionRecord[];
+}
+
+export async function listPendingEventSubmissions(): Promise<EventSubmissionRecord[]> {
+  const { data, error } = await supabase
+    .from("event_submissions")
+    .select("*")
+    .eq("status", "pending")
+    .order("starts_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as EventSubmissionRecord[];
+}
+
+export async function approveResourceSubmission(submissionId: string) {
+  const { error } = await supabase.rpc("approve_resource_submission", {
+    submission_id: submissionId,
+  });
+
+  if (error) throw error;
+}
+
+export async function approveEventSubmission(submissionId: string) {
+  const { error } = await supabase.rpc("approve_event_submission", {
+    submission_id: submissionId,
+  });
+
+  if (error) throw error;
+}
+
+export async function rejectResourceSubmission(submissionId: string, moderatorNotes?: string) {
+  const { error } = await supabase
+    .from("resource_submissions")
+    .update({
+      status: "rejected",
+      moderator_notes: moderatorNotes?.trim() || null,
+    })
+    .eq("id", submissionId);
+
+  if (error) throw error;
+}
+
+export async function rejectEventSubmission(submissionId: string, moderatorNotes?: string) {
+  const { error } = await supabase
+    .from("event_submissions")
+    .update({
+      status: "rejected",
+      moderator_notes: moderatorNotes?.trim() || null,
+    })
+    .eq("id", submissionId);
+
+  if (error) throw error;
+}
+
+export function mapResourceRecordToPayload(resource: ResourceRecord): ResourcePayload {
+  return {
+    name: resource.name,
+    category: resource.category,
+    description: resource.description,
+    full_description: resource.full_description,
+    address: resource.address,
+    phone: resource.phone,
+    email: resource.email,
+    website: resource.website,
+    hours: resource.hours,
+    tags: resource.tags,
+    image_url: resource.image_url,
+    status: resource.status,
+    is_spotlight: resource.is_spotlight,
+    spotlight_subtitle: resource.spotlight_subtitle,
+  };
+}
+
+export function mapEventRecordToPayload(event: EventRecord): EventPayload {
+  return {
+    title: event.title,
+    category: event.category,
+    description: event.description,
+    location: event.location,
+    location_lat: event.location_lat,
+    location_lng: event.location_lng,
+    starts_at: event.starts_at,
+    ends_at: event.ends_at,
+    image_url: event.image_url,
+    status: event.status,
+    is_spotlight: event.is_spotlight,
+  };
 }
 
 export function isModerator(role: ContributorRole | null | undefined) {

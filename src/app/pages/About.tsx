@@ -171,7 +171,7 @@ export function About() {
               Community impact
             </h2>
             <p className="mb-6 text-sm text-[#6F7553]">
-              Quick note: those counters show how we imagine our impact growing and aren’t meant to be exact totals.
+              These counters reflect concrete site structure goals used throughout the hub.
             </p>
           </ScrollReveal>
           <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -181,9 +181,9 @@ export function About() {
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div className="text-5xl font-bold text-[#334233]">
-                  <CountUp end={40} suffix="+" />
+                  <CountUp end={6} />
                 </div>
-                <div className="mt-2 text-sm text-[#5B473A]">Verified community resources</div>
+                <div className="mt-2 text-sm text-[#5B473A]">Community resource categories covered</div>
               </div>
             </StaggerItem>
             <StaggerItem>
@@ -192,9 +192,9 @@ export function About() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div className="text-5xl font-bold text-[#334233]">
-                  <CountUp end={1200} suffix="+" />
+                  <CountUp end={3} />
                 </div>
-                <div className="mt-2 text-sm text-[#5B473A]">Community members reached</div>
+                <div className="mt-2 text-sm text-[#5B473A]">Minimum spotlighted resources highlighted</div>
               </div>
             </StaggerItem>
           </StaggerGroup>
@@ -217,7 +217,7 @@ export function About() {
               </div>
               <h3 className="text-lg font-semibold text-[#334233] mb-2">Gather insights</h3>
               <p className="text-sm text-[#5B473A]">
-                Neighbors and partners point us to reliable programs and events, and we fold those tips into this list.
+                Residents can submit public resource and event proposals, while organizations can apply for contributor access to maintain official listings.
               </p>
             </div>
           </StaggerItem>
@@ -228,7 +228,7 @@ export function About() {
               </div>
               <h3 className="text-lg font-semibold text-[#334233] mb-2">Review with care</h3>
               <p className="text-sm text-[#5B473A]">
-                Our small crew double-checks each listing so the info stays accurate and welcoming.
+                Moderators approve contributor accounts and review public proposals before those public submissions become official content.
               </p>
             </div>
           </StaggerItem>
@@ -239,7 +239,7 @@ export function About() {
               </div>
               <h3 className="text-lg font-semibold text-[#334233] mb-2">Share with the community</h3>
               <p className="text-sm text-[#5B473A]">
-                Once they pass review, we publish the listings so anyone in Bothell can find and share them.
+                Approved contributors can publish resources and events directly, and moderator-approved public proposals appear alongside them on the live site.
               </p>
             </div>
           </StaggerItem>
@@ -266,7 +266,7 @@ export function About() {
                   </Button>
                   <Button variant="outline" asChild>
                     <a href="/suggest" className="inline-flex items-center gap-2">
-                      Plant a Resource Suggestion
+                      Submit a Resource or Event
                     </a>
                   </Button>
                 </div>

@@ -32,7 +32,7 @@ export function SpotlightSection() {
   }, []);
 
   const featured = useMemo(() => items[0], [items]);
-  const supporting = useMemo(() => items.slice(1, 2), [items]);
+  const supporting = useMemo(() => items.slice(1, 3), [items]);
 
   return (
     <section className="bg-[#F6F1E7] py-20 relative" id="spotlights" ref={sectionRef}>

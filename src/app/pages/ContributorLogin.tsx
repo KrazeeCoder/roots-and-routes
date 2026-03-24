@@ -154,7 +154,7 @@ export function ContributorLogin() {
         return;
       }
 
-      setMessage("Account created. Your account is pending administrator approval. Check your email to verify your email address first.");
+      setMessage("Account created. Your account is pending administrator approval. After approval, you can publish official resources and events directly. Check your email to verify your address first.");
       setMode("signin");
       setEmail(signUp.email);
       setPassword("");
@@ -190,7 +190,7 @@ export function ContributorLogin() {
             Admin & Contributor Portal
           </h1>
           <p className="mt-3 text-[#5B473A] max-w-2xl mx-auto">
-            Administrators and contributors can manage local resources and events. Public browsing remains open for everyone.
+            Administrators and approved contributors manage official local resources and events. Public browsing and public proposal forms remain open for everyone.
           </p>
         </div>
 
@@ -211,7 +211,7 @@ export function ContributorLogin() {
                       <p className="font-bold text-[#334233] text-xs uppercase tracking-wider">Contributor</p>
                     </div>
                     <p className="text-[#5B473A] text-xs leading-relaxed">
-                      Organizations that can post events and volunteer opportunities for the community to discover and sign up for.
+                      Verified organizations and community partners that can create and edit official resources/events. Published contributor content goes live immediately.
                     </p>
                   </div>
 
@@ -221,7 +221,7 @@ export function ContributorLogin() {
                       <p className="font-bold text-[#334233] text-xs uppercase tracking-wider">Moderator</p>
                     </div>
                     <p className="text-[#5B473A] text-xs leading-relaxed">
-                      Approves new contributor accounts, moderates events and suggestions, and oversees all platform content.
+                      Approves new contributor accounts, reviews public resource/event proposals, and oversees all official platform content.
                     </p>
                   </div>
                 </div>
@@ -262,7 +262,7 @@ export function ContributorLogin() {
                 </CardTitle>
                 <CardDescription>
                   {mode === "signin" && "Use your contributor credentials."}
-                  {mode === "signup" && "New accounts default to contributor role."}
+                  {mode === "signup" && "New accounts default to contributor role and require approval before direct publishing is unlocked."}
                   {mode === "forgot" && "We'll send a secure reset link to your email."}
                 </CardDescription>
               </CardHeader>
@@ -502,7 +502,7 @@ export function ContributorLogin() {
             <Card className="border-[#E7D9C3] bg-white shadow-sm">
               <CardContent className="p-5">
                 <p className="text-xs text-[#6F7553] leading-relaxed">
-                  Looking for community resources only? <Link to="/directory" className="text-[#334233] underline hover:text-[#B36A4C]">Browse publicly here</Link>.
+                  Need to submit something without a contributor account? <Link to="/suggest" className="text-[#334233] underline hover:text-[#B36A4C]">Use the public resource/event proposal form</Link>.
                 </p>
               </CardContent>
             </Card>
