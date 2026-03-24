@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { ArrowRight, MapPin, Users, Star, Heart, Award, Eye } from "lucide-react";
+import { ArrowRight, MapPin, Users, Star, Award, Eye } from "lucide-react";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { TopoPattern } from "../components/TopoPattern";
@@ -392,12 +392,6 @@ export function Spotlights() {
                       </div>
                     </div>
                     
-                    {/* Hover actions */}
-                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg">
-                        <Heart className="w-4 h-4 text-[#B36A4C]" />
-                      </div>
-                    </div>
                   </div>
 
                   {/* Enhanced Content */}
