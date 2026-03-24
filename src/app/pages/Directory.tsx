@@ -48,6 +48,7 @@ export function Directory() {
   const [query, setQuery] = useState(queryParam);
   const [activeCategory, setActiveCategory] = useState<ResourceCategoryFilter>(categoryParam);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [resultsPulse, setResultsPulse] = useState(false);
 
   useEffect(() => {
     setQuery(queryParam);
@@ -131,6 +132,17 @@ export function Directory() {
       queryFiltered.filter((entry) => activeCategory === "All" || entry.category === activeCategory),
     [activeCategory, queryFiltered],
   );
+  const resourcesAnimationKey = `${query}-${activeCategory}`;
+  useEffect(() => {
+    if (loadingEntries) return;
+
+    setResultsPulse(true);
+    const pulseTimeout = setTimeout(() => {
+      setResultsPulse(false);
+    }, 450);
+
+    return () => clearTimeout(pulseTimeout);
+  }, [query, activeCategory, loadingEntries]);
 
   const allCategories: ResourceCategoryFilter[] = useMemo(
     () => ["All", ...RESOURCE_CATEGORIES],
@@ -200,8 +212,7 @@ export function Directory() {
               transition={{ duration: 1.0, delay: 0.4 }}
               className="text-[#A7AE8A] text-lg font-light max-w-xl leading-relaxed"
             >
-              Navigate all available community resources, programs, and pathways serving
-              the greater Bothell area.
+              Browse the programs, services, and neighbor-led help that people in the greater Bothell area rely on.
             </motion.p>
           </div>
 
@@ -294,7 +305,7 @@ export function Directory() {
                   Need Guidance?
                 </h2>
                 <p className="text-sm text-[#5B473A] leading-relaxed mb-4">
-                  Can't find your path? Suggest a resource and we'll help it grow.
+                  Still not seeing what you need? Share a suggestion and we'll give it a look.
                 </p>
                 <a
                   href="/suggest"
@@ -347,7 +358,22 @@ export function Directory() {
                 <p className="text-sm">Try adjusting your search or category filter.</p>
               </motion.div>
             ) : (
-              <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <motion.div
+                key={resourcesAnimationKey}
+                layout
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                initial={{ opacity: 0.15, y: 20, scale: 0.98 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: resultsPulse ? 1.015 : 1,
+                }}
+                transition={{
+                  duration: 0.35,
+                  ease: [0.4, 0, 0.2, 1],
+                  scale: { type: "spring", stiffness: 260, damping: 24 },
+                }}
+              >
                 <AnimatePresence mode="popLayout">
                   {filtered.map((entry, i) => (
                     <motion.div
