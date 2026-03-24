@@ -52,7 +52,7 @@ export function RatingComponent({
       } else {
         setError(result.error || "Failed to submit rating");
       }
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
@@ -72,7 +72,7 @@ export function RatingComponent({
       } else {
         setError(result.error || "Failed to remove rating");
       }
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
@@ -85,7 +85,6 @@ export function RatingComponent({
 
     for (let i = 1; i <= 5; i++) {
       const isFilled = i <= Math.floor(displayRating);
-      const isHalf = i === Math.ceil(displayRating) && displayRating % 1 !== 0 && !readonly;
       const isHovered = i <= hoveredRating && !readonly;
       const isCurrent = i === currentRating && !readonly;
 
@@ -107,13 +106,13 @@ export function RatingComponent({
           <Star
             className={`
               ${sizeClasses[size]}
-              ${isFilled || isHalf ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+              ${isFilled ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
               ${isHovered && !readonly ? "text-yellow-300 fill-yellow-300" : ""}
               ${isCurrent && !readonly ? "text-yellow-500 fill-yellow-500" : ""}
               ${readonly ? "drop-shadow-sm" : ""}
             `}
           />
-        </button>
+        </button>,
       );
     }
 
@@ -121,16 +120,16 @@ export function RatingComponent({
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-start">
       <div className={`flex items-center ${containerSizeClasses[size]}`}>
         {renderStars()}
-        
+
         {!readonly && currentRating && (
           <button
             type="button"
             onClick={handleRemoveRating}
             disabled={isSubmitting}
-            className="ml-2 text-xs text-gray-500 hover:text-red-500 transition-colors"
+            className="ml-2 text-xs text-[#6F7553] hover:text-red-600 transition-colors"
             title="Remove your rating"
           >
             Clear
@@ -139,28 +138,35 @@ export function RatingComponent({
       </div>
 
       {showCount && (
-        <div className="mt-1 text-center">
-          {readonly ? (
-            <span className="text-sm text-gray-600">
-              {averageRating.toFixed(1)} ({totalRatings} {totalRatings === 1 ? "rating" : "ratings"})
+        <div className="mt-2">
+          {totalRatings > 0 ? (
+            <span className="text-sm text-[#5B473A]">
+              Average rating:{" "}
+              <span className="font-semibold text-[#334233]">{averageRating.toFixed(1)} / 5</span>{" "}
+              ({totalRatings} {totalRatings === 1 ? "rating" : "ratings"})
             </span>
           ) : (
-            <span className="text-sm text-gray-600">
-              {currentRating ? `Your rating: ${currentRating}` : "Click to rate"}
-              {totalRatings > 0 && ` • ${averageRating.toFixed(1)} avg (${totalRatings} ${totalRatings === 1 ? "rating" : "ratings"})`}
+            <span className="text-sm text-[#5B473A]">
+              Average rating: <span className="font-semibold text-[#334233]">Not yet rated</span>
             </span>
           )}
         </div>
       )}
 
+      {!readonly && (
+        <p className="mt-1 text-xs text-[#6F7553]">
+          {currentRating ? `Selected score: ${currentRating} / 5` : "Select your rating"}
+        </p>
+      )}
+
       {error && (
-        <div className="mt-2 text-xs text-red-500 text-center">
+        <div className="mt-2 text-xs text-red-500">
           {error}
         </div>
       )}
 
       {isSubmitting && (
-        <div className="mt-2 text-xs text-gray-500 text-center">
+        <div className="mt-2 text-xs text-gray-500">
           Submitting...
         </div>
       )}

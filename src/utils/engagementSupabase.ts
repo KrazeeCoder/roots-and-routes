@@ -18,6 +18,38 @@ async function getCurrentUserId(): Promise<string | null> {
   return user?.id || null;
 }
 
+function parseStoredInt(value: string | null, fallback = 0): number {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function getRatingStorageKeys(spotlightId: string) {
+  return {
+    ratingKey: `spotlight_rating_${spotlightId}`,
+    countKey: `spotlight_rating_count_${spotlightId}`,
+    sumKey: `spotlight_rating_sum_${spotlightId}`,
+  };
+}
+
+function getRatingAggregate(spotlightId: string) {
+  const { ratingKey, countKey, sumKey } = getRatingStorageKeys(spotlightId);
+
+  const userRating = parseStoredInt(localStorage.getItem(ratingKey), 0);
+  let totalRatings = parseStoredInt(localStorage.getItem(countKey), 0);
+  let ratingSum = parseStoredInt(localStorage.getItem(sumKey), 0);
+
+  // Backfill older demo data that had count but no sum.
+  if (totalRatings > 0 && ratingSum === 0 && userRating > 0) {
+    ratingSum = userRating;
+    totalRatings = 1;
+    localStorage.setItem(countKey, totalRatings.toString());
+    localStorage.setItem(sumKey, ratingSum.toString());
+  }
+
+  const averageRating = totalRatings > 0 ? ratingSum / totalRatings : 0;
+  return { userRating: userRating > 0 ? userRating : null, totalRatings, ratingSum, averageRating };
+}
+
 // Ratings functionality
 export async function addRating(spotlightId: string, rating: number): Promise<{ success: boolean; error?: string }> {
   // Remove authentication requirement for demo
@@ -26,23 +58,19 @@ export async function addRating(spotlightId: string, rating: number): Promise<{ 
   }
 
   try {
-    // For demo, use localStorage to store ratings
-    const ratingKey = `spotlight_rating_${spotlightId}`;
-    const existingRating = localStorage.getItem(ratingKey);
-    
-    if (existingRating) {
-      // Update existing rating
-      localStorage.setItem(ratingKey, rating.toString());
-    } else {
-      // Add new rating
-      localStorage.setItem(ratingKey, rating.toString());
-    }
-    
-    // Update rating count
-    const countKey = `spotlight_rating_count_${spotlightId}`;
-    const currentCount = parseInt(localStorage.getItem(countKey) || '0');
-    const newCount = existingRating ? currentCount : currentCount + 1;
-    localStorage.setItem(countKey, newCount.toString());
+    const { ratingKey, countKey, sumKey } = getRatingStorageKeys(spotlightId);
+    const existing = getRatingAggregate(spotlightId);
+
+    const hadPreviousRating = existing.userRating !== null;
+    const previousRating = existing.userRating ?? 0;
+    const nextCount = hadPreviousRating ? existing.totalRatings : existing.totalRatings + 1;
+    const nextSum = hadPreviousRating
+      ? existing.ratingSum - previousRating + rating
+      : existing.ratingSum + rating;
+
+    localStorage.setItem(ratingKey, rating.toString());
+    localStorage.setItem(countKey, Math.max(0, nextCount).toString());
+    localStorage.setItem(sumKey, Math.max(0, nextSum).toString());
     
     return { success: true };
   } catch (error) {
@@ -54,19 +82,18 @@ export async function addRating(spotlightId: string, rating: number): Promise<{ 
 export async function removeRating(spotlightId: string): Promise<{ success: boolean; error?: string }> {
   // Remove authentication requirement for demo
   try {
-    // For demo, use localStorage to remove ratings
-    const ratingKey = `spotlight_rating_${spotlightId}`;
-    const existingRating = localStorage.getItem(ratingKey);
-    
-    if (existingRating) {
+    const { ratingKey, countKey, sumKey } = getRatingStorageKeys(spotlightId);
+    const existing = getRatingAggregate(spotlightId);
+
+    if (existing.userRating !== null) {
       localStorage.removeItem(ratingKey);
-      
-      // Update rating count
-      const countKey = `spotlight_rating_count_${spotlightId}`;
-      const currentCount = parseInt(localStorage.getItem(countKey) || '0');
-      const newCount = Math.max(0, currentCount - 1);
-      localStorage.setItem(countKey, newCount.toString());
-      
+
+      const nextCount = Math.max(0, existing.totalRatings - 1);
+      const nextSum = Math.max(0, existing.ratingSum - existing.userRating);
+
+      localStorage.setItem(countKey, nextCount.toString());
+      localStorage.setItem(sumKey, nextCount === 0 ? "0" : nextSum.toString());
+
       return { success: true };
     }
     
@@ -272,24 +299,19 @@ export async function getSpotlightEngagement(spotlightId: string): Promise<Spotl
     // Get user engagement from localStorage
     const likedKey = `spotlight_like_${spotlightId}`;
     const favoritedKey = `spotlight_favorite_${spotlightId}`;
-    const ratingKey = `spotlight_rating_${spotlightId}`;
+    const { userRating, totalRatings, averageRating } = getRatingAggregate(spotlightId);
     
     const isLiked = localStorage.getItem(likedKey) === 'true';
     const isFavorited = localStorage.getItem(favoritedKey) === 'true';
-    const userRating = localStorage.getItem(ratingKey) ? parseInt(localStorage.getItem(ratingKey)!) : null;
     
     // Get stats from localStorage
-    const likeCount = parseInt(localStorage.getItem(`spotlight_like_count_${spotlightId}`) || '0');
-    const favoriteCount = parseInt(localStorage.getItem(`spotlight_favorite_count_${spotlightId}`) || '0');
-    const ratingCount = parseInt(localStorage.getItem(`spotlight_rating_count_${spotlightId}`) || '0');
-    const viewCount = parseInt(localStorage.getItem(`spotlight_view_count_${spotlightId}`) || '0');
-    
-    // Calculate average rating (for demo, we'll use a simple approach)
-    const averageRating = ratingCount > 0 ? 4.5 : 0; // Placeholder average
+    const likeCount = parseStoredInt(localStorage.getItem(`spotlight_like_count_${spotlightId}`), 0);
+    const favoriteCount = parseStoredInt(localStorage.getItem(`spotlight_favorite_count_${spotlightId}`), 0);
+    const viewCount = parseStoredInt(localStorage.getItem(`spotlight_view_count_${spotlightId}`), 0);
     
     const stats: SpotlightEngagementStats = {
       averageRating,
-      totalRatings: ratingCount,
+      totalRatings,
       totalLikes: likeCount,
       totalComments: 0, // Comments not implemented in localStorage demo
       totalFavorites: favoriteCount,

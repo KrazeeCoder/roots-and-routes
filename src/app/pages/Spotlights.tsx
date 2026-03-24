@@ -9,7 +9,6 @@ import { listSpotlightItems } from "../data/portalApi";
 import { getSpotlightEngagement, incrementViewCount } from "../../utils/engagementSupabase";
 import { RatingComponent } from "../components/engagement/RatingComponent";
 import { EngagementButtons } from "../components/engagement/EngagementButtons";
-import { CommentComponent } from "../components/engagement/CommentComponent";
 import type { SpotlightItem } from "../types/home";
 import type { SpotlightEngagement } from "../types/engagement";
 
@@ -17,7 +16,6 @@ export function Spotlights() {
   const [spotlights, setSpotlights] = useState<SpotlightItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [engagementData, setEngagementData] = useState<Record<string, SpotlightEngagement>>({});
-  const [loadingEngagement, setLoadingEngagement] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -58,19 +56,17 @@ export function Spotlights() {
       
       for (const spotlight of allSpotlights) {
         if (!spotlight?.id || engagementData[spotlight.id]) continue;
-        
-        setLoadingEngagement(prev => ({ ...prev, [spotlight.id]: true }));
-        
+
         try {
           const engagement = await getSpotlightEngagement(spotlight.id);
           setEngagementData(prev => ({ ...prev, [spotlight.id]: engagement }));
           
           // Increment view count
           await incrementViewCount(spotlight.id);
+          const refreshed = await getSpotlightEngagement(spotlight.id);
+          setEngagementData(prev => ({ ...prev, [spotlight.id]: refreshed }));
         } catch (error) {
           console.error(`Failed to load engagement for ${spotlight.id}:`, error);
-        } finally {
-          setLoadingEngagement(prev => ({ ...prev, [spotlight.id]: false }));
         }
       }
     };
@@ -82,6 +78,15 @@ export function Spotlights() {
 
   const updateEngagement = (spotlightId: string, newEngagement: SpotlightEngagement) => {
     setEngagementData(prev => ({ ...prev, [spotlightId]: newEngagement }));
+  };
+
+  const refreshEngagement = async (spotlightId: string) => {
+    try {
+      const latest = await getSpotlightEngagement(spotlightId);
+      updateEngagement(spotlightId, latest);
+    } catch (error) {
+      console.error(`Failed to refresh engagement for ${spotlightId}:`, error);
+    }
   };
 
   return (
@@ -310,24 +315,8 @@ export function Spotlights() {
                           totalRatings={engagementData[featured.id]?.stats.totalRatings || 0}
                           size="sm"
                           showCount={true}
-                          onRatingChange={(newRating) => {
-                            if (engagementData[featured.id]) {
-                              const updatedEngagement = {
-                                ...engagementData[featured.id],
-                                userEngagement: {
-                                  ...engagementData[featured.id].userEngagement,
-                                  userRating: newRating,
-                                  hasRated: newRating !== null
-                                },
-                                stats: {
-                                  ...engagementData[featured.id].stats,
-                                  totalRatings: newRating ? 
-                                    (engagementData[featured.id].stats.totalRatings + 1) :
-                                    (engagementData[featured.id].stats.totalRatings - 1)
-                                }
-                              };
-                              updateEngagement(featured.id, updatedEngagement);
-                            }
+                          onRatingChange={() => {
+                            void refreshEngagement(featured.id);
                           }}
                         />
                       </div>
@@ -339,7 +328,6 @@ export function Spotlights() {
                           engagement={engagementData[featured.id]}
                           onUpdate={(newEngagement) => updateEngagement(featured.id, newEngagement)}
                           compact={true}
-                          showRating={false}
                         />
                       )}
                     </div>
@@ -462,24 +450,8 @@ export function Spotlights() {
                           size="sm"
                           showCount={true}
                           readonly={false}
-                          onRatingChange={(newRating) => {
-                            if (engagementData[item.id]) {
-                              const updatedEngagement = {
-                                ...engagementData[item.id],
-                                userEngagement: {
-                                  ...engagementData[item.id].userEngagement,
-                                  userRating: newRating,
-                                  hasRated: newRating !== null
-                                },
-                                stats: {
-                                  ...engagementData[item.id].stats,
-                                  totalRatings: newRating ? 
-                                    (engagementData[item.id].stats.totalRatings + 1) :
-                                    (engagementData[item.id].stats.totalRatings - 1)
-                                }
-                              };
-                              updateEngagement(item.id, updatedEngagement);
-                            }
+                          onRatingChange={() => {
+                            void refreshEngagement(item.id);
                           }}
                         />
                       </div>
@@ -491,9 +463,6 @@ export function Spotlights() {
                           engagement={engagementData[item.id]}
                           onUpdate={(newEngagement) => updateEngagement(item.id, newEngagement)}
                           compact={true}
-                          showRating={false}
-                          showComments={false}
-                          showViews={false}
                         />
                       )}
                     </div>
