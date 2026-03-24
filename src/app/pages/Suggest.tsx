@@ -19,6 +19,10 @@ import {
   isResourceCategory,
   type ResourceCategory,
 } from "../constants/resourceCategories";
+import { EVENT_CATEGORY_SUGGESTIONS } from "../constants/eventCategorySuggestions";
+import { AddressAutocompleteInput } from "../components/forms/AddressAutocompleteInput";
+import { CategoryPicker } from "../components/forms/CategoryPicker";
+import { TagChipInput, joinTagsForValidation } from "../components/forms/TagChipInput";
 import { validateProfanity } from "../../utils/profanityFilter";
 import { validateEmail, validatePhone, validateRequired, validateUrl, validateMaxLength } from "../../utils/validation";
 
@@ -35,7 +39,7 @@ interface ResourceFormState {
   website: string;
   contactEmail: string;
   contactPhone: string;
-  tags: string;
+  tags: string[];
   imageUrl: string;
   submitterName: string;
   submitterEmail: string;
@@ -69,7 +73,7 @@ const defaultResourceForm: ResourceFormState = {
   website: "",
   contactEmail: "",
   contactPhone: "",
-  tags: "",
+  tags: [],
   imageUrl: "",
   submitterName: "",
   submitterEmail: "",
@@ -162,7 +166,7 @@ export function Suggest() {
       || validateProfanity(resourceForm.fullDescription, "Full description")
       || validateProfanity(resourceForm.address, "Address")
       || validateProfanity(resourceForm.hours, "Hours")
-      || validateProfanity(resourceForm.tags, "Tags")
+      || validateProfanity(joinTagsForValidation(resourceForm.tags), "Tags")
       || validateProfanity(resourceForm.submitterName, "Your name")
       || validateProfanity(resourceForm.submitterConnection, "Connection")
       || validateEmail(resourceForm.submitterEmail)
@@ -176,7 +180,7 @@ export function Suggest() {
       || validateMaxLength(resourceForm.fullDescription, "Full description", 2000)
       || validateMaxLength(resourceForm.address, "Address", 500)
       || validateMaxLength(resourceForm.hours, "Hours", 200)
-      || validateMaxLength(resourceForm.tags, "Tags", 300);
+      || validateMaxLength(joinTagsForValidation(resourceForm.tags), "Tags", 300);
 
     if (firstError) {
       setError(firstError);
@@ -202,7 +206,7 @@ export function Suggest() {
         website: normalizeHttpUrl(resourceForm.website),
         contact_email: resourceForm.contactEmail.trim() || null,
         contact_phone: resourceForm.contactPhone.trim() || null,
-        tags: resourceForm.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+        tags: resourceForm.tags,
         image_url: normalizeHttpUrl(resourceForm.imageUrl),
         submitter_name: resourceForm.submitterName.trim(),
         submitter_email: resourceForm.submitterEmail.trim(),
@@ -362,11 +366,32 @@ export function Suggest() {
                     <div><Label htmlFor="resource-name">Resource name</Label><Input id="resource-name" value={resourceForm.resourceName} onChange={(event) => setResourceForm((prev) => ({ ...prev, resourceName: event.target.value }))} required /></div>
                     <div><Label htmlFor="resource-organization">Organization name</Label><Input id="resource-organization" value={resourceForm.organizationName} onChange={(event) => setResourceForm((prev) => ({ ...prev, organizationName: event.target.value }))} /></div>
                   </div>
-                  <div><Label htmlFor="resource-category">Category</Label><select id="resource-category" value={resourceForm.category} onChange={(event) => setResourceForm((prev) => ({ ...prev, category: event.target.value as ResourceCategory | "" }))} className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm" required><option value="" disabled>Select a category</option>{RESOURCE_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
+                  <div>
+                    <Label htmlFor="resource-category">Category</Label>
+                    <CategoryPicker
+                      id="resource-category"
+                      value={resourceForm.category}
+                      onChange={(next) =>
+                        setResourceForm((prev) => ({ ...prev, category: next as ResourceCategory | "" }))
+                      }
+                      options={RESOURCE_CATEGORIES}
+                      allowCustom={false}
+                      placeholder="Choose a category"
+                      label="Resource category"
+                    />
+                  </div>
                   <div><Label htmlFor="resource-description">Short description</Label><Textarea id="resource-description" value={resourceForm.description} onChange={(event) => setResourceForm((prev) => ({ ...prev, description: event.target.value }))} required /></div>
                   <div><Label htmlFor="resource-full-description">Full description</Label><Textarea id="resource-full-description" value={resourceForm.fullDescription} onChange={(event) => setResourceForm((prev) => ({ ...prev, fullDescription: event.target.value }))} /></div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div><Label htmlFor="resource-address">Address</Label><Input id="resource-address" value={resourceForm.address} onChange={(event) => setResourceForm((prev) => ({ ...prev, address: event.target.value }))} required /></div>
+                    <div>
+                      <Label htmlFor="resource-address">Address</Label>
+                      <AddressAutocompleteInput
+                        id="resource-address"
+                        value={resourceForm.address}
+                        onChange={(next) => setResourceForm((prev) => ({ ...prev, address: next }))}
+                        required
+                      />
+                    </div>
                     <div><Label htmlFor="resource-hours">Hours</Label><Input id="resource-hours" value={resourceForm.hours} onChange={(event) => setResourceForm((prev) => ({ ...prev, hours: event.target.value }))} /></div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -375,7 +400,16 @@ export function Suggest() {
                     <div><Label htmlFor="resource-contact-phone">Contact phone</Label><Input id="resource-contact-phone" value={resourceForm.contactPhone} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactPhone: event.target.value }))} /></div>
                     <div><Label htmlFor="resource-image-url">Image URL</Label><Input id="resource-image-url" value={resourceForm.imageUrl} onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))} /></div>
                   </div>
-                  <div><Label htmlFor="resource-tags">Tags (comma-separated)</Label><Input id="resource-tags" value={resourceForm.tags} onChange={(event) => setResourceForm((prev) => ({ ...prev, tags: event.target.value }))} /></div>
+                  <div>
+                    <Label htmlFor="resource-tags">Tags</Label>
+                    <TagChipInput
+                      id="resource-tags"
+                      values={resourceForm.tags}
+                      onChange={(next) => setResourceForm((prev) => ({ ...prev, tags: next }))}
+                      maxChars={300}
+                      placeholder="Type a tag, then press Enter"
+                    />
+                  </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div><Label htmlFor="resource-submitter-name">Your name</Label><Input id="resource-submitter-name" value={resourceForm.submitterName} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterName: event.target.value }))} required /></div>
                     <div><Label htmlFor="resource-submitter-email">Your email</Label><Input id="resource-submitter-email" type="email" value={resourceForm.submitterEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required /></div>
@@ -387,11 +421,30 @@ export function Suggest() {
                 <form className="space-y-4" onSubmit={handleEventSubmit}>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div><Label htmlFor="event-title">Event title</Label><Input id="event-title" value={eventForm.title} onChange={(event) => setEventForm((prev) => ({ ...prev, title: event.target.value }))} required /></div>
-                    <div><Label htmlFor="event-category">Category</Label><Input id="event-category" value={eventForm.category} onChange={(event) => setEventForm((prev) => ({ ...prev, category: event.target.value }))} /></div>
+                    <div>
+                      <Label htmlFor="event-category">Category</Label>
+                      <CategoryPicker
+                        id="event-category"
+                        value={eventForm.category}
+                        onChange={(next) => setEventForm((prev) => ({ ...prev, category: next }))}
+                        options={EVENT_CATEGORY_SUGGESTIONS}
+                        allowCustom
+                        placeholder="Choose or enter a category"
+                        label="Event category"
+                      />
+                    </div>
                   </div>
                   <div><Label htmlFor="event-description">Description</Label><Textarea id="event-description" value={eventForm.description} onChange={(event) => setEventForm((prev) => ({ ...prev, description: event.target.value }))} /></div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div><Label htmlFor="event-location">Location</Label><Input id="event-location" value={eventForm.location} onChange={(event) => setEventForm((prev) => ({ ...prev, location: event.target.value }))} required /></div>
+                    <div>
+                      <Label htmlFor="event-location">Location</Label>
+                      <AddressAutocompleteInput
+                        id="event-location"
+                        value={eventForm.location}
+                        onChange={(next) => setEventForm((prev) => ({ ...prev, location: next }))}
+                        required
+                      />
+                    </div>
                     <div><Label htmlFor="event-image-url">Image URL</Label><Input id="event-image-url" value={eventForm.imageUrl} onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))} /></div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">

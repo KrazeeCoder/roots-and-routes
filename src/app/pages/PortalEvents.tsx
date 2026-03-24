@@ -17,6 +17,9 @@ import {
 } from "../data/portalApi";
 import type { ContentStatus, EventRecord } from "../types/portal";
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/googleMaps";
+import { EVENT_CATEGORY_SUGGESTIONS } from "../constants/eventCategorySuggestions";
+import { AddressAutocompleteInput } from "../components/forms/AddressAutocompleteInput";
+import { CategoryPicker } from "../components/forms/CategoryPicker";
 import { validateProfanity } from "../../utils/profanityFilter";
 import { validateUrl, validateRequired, validateMaxLength } from "../../utils/validation";
 
@@ -206,7 +209,13 @@ export function PortalEvents() {
     let locationLat = form.locationLat;
     let locationLng = form.locationLng;
 
-    if (locationText && isMapsLoaded && window.google?.maps?.Geocoder) {
+    const shouldGeocodeFallback =
+      Boolean(locationText) &&
+      (locationLat == null || locationLng == null) &&
+      isMapsLoaded &&
+      Boolean(window.google?.maps?.Geocoder);
+
+    if (shouldGeocodeFallback) {
       try {
         const geocoder = new window.google.maps.Geocoder();
         const geocode = await geocoder.geocode({ address: locationText });
@@ -229,9 +238,9 @@ export function PortalEvents() {
         }
         setGeoNotice("Saved without map coordinates. Please double-check the location text if map placement looks off.");
       }
-    } else if (!GOOGLE_MAPS_API_KEY) {
+    } else if (!GOOGLE_MAPS_API_KEY && locationText && (locationLat == null || locationLng == null)) {
       setGeoNotice("Saved without map coordinates because the Google Maps API key is missing.");
-    } else if (locationText && !isMapsLoaded) {
+    } else if (locationText && !isMapsLoaded && (locationLat == null || locationLng == null)) {
       setGeoNotice("Saved without map coordinates because the map service is still loading. You can edit and resave shortly.");
     }
 
@@ -327,10 +336,14 @@ export function PortalEvents() {
                 </div>
                 <div>
                   <Label htmlFor="event-category">Category</Label>
-                  <Input
+                  <CategoryPicker
                     id="event-category"
                     value={form.category}
-                    onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}
+                    onChange={(next) => setForm((prev) => ({ ...prev, category: next }))}
+                    options={EVENT_CATEGORY_SUGGESTIONS}
+                    allowCustom
+                    placeholder="Choose or enter a category"
+                    label="Event category"
                   />
                 </div>
               </div>
@@ -347,10 +360,25 @@ export function PortalEvents() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="event-location">Location</Label>
-                  <Input
+                  <AddressAutocompleteInput
                     id="event-location"
                     value={form.location}
-                    onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
+                    onChange={(next) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        location: next,
+                        locationLat: null,
+                        locationLng: null,
+                      }))
+                    }
+                    onPlaceResolved={(detail) => {
+                      setForm((prev) => ({
+                        ...prev,
+                        location: detail.formattedAddress,
+                        locationLat: detail.lat,
+                        locationLng: detail.lng,
+                      }));
+                    }}
                     required
                   />
                 </div>

@@ -22,6 +22,9 @@ import {
   isResourceCategory,
   type ResourceCategory,
 } from "../constants/resourceCategories";
+import { AddressAutocompleteInput } from "../components/forms/AddressAutocompleteInput";
+import { CategoryPicker } from "../components/forms/CategoryPicker";
+import { TagChipInput, joinTagsForValidation } from "../components/forms/TagChipInput";
 
 interface ResourceFormState {
   name: string;
@@ -33,7 +36,7 @@ interface ResourceFormState {
   email: string;
   website: string;
   hours: string;
-  tags: string;
+  tags: string[];
   imageUrl: string;
   status: ContentStatus;
   isSpotlight: boolean;
@@ -50,7 +53,7 @@ const defaultForm: ResourceFormState = {
   email: "",
   website: "",
   hours: "",
-  tags: "",
+  tags: [],
   imageUrl: "",
   status: "published",
   isSpotlight: false,
@@ -135,7 +138,7 @@ export function PortalResources() {
       email: resource.email ?? "",
       website: resource.website ?? "",
       hours: resource.hours ?? "",
-      tags: resource.tags.join(", "),
+      tags: [...resource.tags],
       imageUrl: resource.image_url ?? "",
       status: canModerate || contributorStatuses.includes(resource.status)
         ? resource.status
@@ -169,7 +172,7 @@ export function PortalResources() {
     const profanityFullDescriptionError = validateProfanity(form.fullDescription, "Full description");
     const profanityAddressError = validateProfanity(form.address, "Address");
     const profanityHoursError = validateProfanity(form.hours, "Hours");
-    const profanityTagsError = validateProfanity(form.tags, "Tags");
+    const profanityTagsError = validateProfanity(joinTagsForValidation(form.tags), "Tags");
     const profanitySpotlightError = validateProfanity(form.spotlightSubtitle, "Spotlight subtitle");
 
     // Validate input formats
@@ -185,7 +188,7 @@ export function PortalResources() {
     const fullDescriptionLengthError = validateMaxLength(form.fullDescription, "Full description", 2000);
     const addressLengthError = validateMaxLength(form.address, "Address", 500);
     const hoursLengthError = validateMaxLength(form.hours, "Hours", 200);
-    const tagsLengthError = validateMaxLength(form.tags, "Tags", 300);
+    const tagsLengthError = validateMaxLength(joinTagsForValidation(form.tags), "Tags", 300);
     const spotlightLengthError = validateMaxLength(form.spotlightSubtitle, "Spotlight subtitle", 200);
 
     // Check for any validation errors
@@ -223,10 +226,7 @@ export function PortalResources() {
       email: form.email.trim() || null,
       website: normalizedWebsite,
       hours: form.hours.trim() || null,
-      tags: form.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: form.tags,
       image_url: normalizedImageUrl,
       status: canModerate ? form.status : form.status,
       is_spotlight: canModerate ? form.isSpotlight : false,
@@ -292,24 +292,17 @@ export function PortalResources() {
                 </div>
                 <div>
                   <Label htmlFor="resource-category">Category</Label>
-                  <select
+                  <CategoryPicker
                     id="resource-category"
                     value={form.category}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, category: event.target.value as ResourceCategory | "" }))
+                    onChange={(next) =>
+                      setForm((prev) => ({ ...prev, category: next as ResourceCategory | "" }))
                     }
-                    required
-                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                  >
-                    <option value="" disabled>
-                      Select a category
-                    </option>
-                    {RESOURCE_CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                    options={RESOURCE_CATEGORIES}
+                    allowCustom={false}
+                    placeholder="Choose a category"
+                    label="Resource category"
+                  />
                 </div>
               </div>
 
@@ -335,10 +328,10 @@ export function PortalResources() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="resource-address">Address</Label>
-                  <Input
+                  <AddressAutocompleteInput
                     id="resource-address"
                     value={form.address}
-                    onChange={(event) => setForm((prev) => ({ ...prev, address: event.target.value }))}
+                    onChange={(next) => setForm((prev) => ({ ...prev, address: next }))}
                     required
                   />
                 </div>
@@ -389,11 +382,13 @@ export function PortalResources() {
               </div>
 
               <div>
-                <Label htmlFor="resource-tags">Tags (comma-separated)</Label>
-                <Input
+                <Label htmlFor="resource-tags">Tags</Label>
+                <TagChipInput
                   id="resource-tags"
-                  value={form.tags}
-                  onChange={(event) => setForm((prev) => ({ ...prev, tags: event.target.value }))}
+                  values={form.tags}
+                  onChange={(next) => setForm((prev) => ({ ...prev, tags: next }))}
+                  maxChars={300}
+                  placeholder="Type a tag, then press Enter"
                 />
               </div>
 
