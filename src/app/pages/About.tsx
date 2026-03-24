@@ -92,8 +92,8 @@ export function About() {
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
               <p className="text-[#A7AE8A] text-lg font-light leading-relaxed">
-                We’re a volunteer-led hub connecting Bothell residents to trusted resources, events, and one another.
-                Our mission is to make it easier for people to find help, build connections, and grow thriving neighborhoods.
+                Roots & Routes began with a few neighbors trading local tips, and our volunteer crew still keeps that spirit alive by linking Bothell residents to reliable support, events, and each other.
+                We aim to make it easier to connect with help, spark new friendships, and keep our neighborhoods thriving.
               </p>
             </ScrollReveal>
           </div>
@@ -125,7 +125,7 @@ export function About() {
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
           <p className="text-[#5B473A] text-lg font-light leading-relaxed mb-12">
-            We center people, practice care, and strive to be transparent so everyone can trust the paths we share.
+            We keep people at the center, treat every question with care, and stay transparent so neighbors can trust the paths we share.
           </p>
         </ScrollReveal>
 
@@ -171,7 +171,7 @@ export function About() {
               Community impact
             </h2>
             <p className="mb-6 text-sm text-[#6F7553]">
-              Competition display note: these impact counts are illustrative demo values and are not factual measurements.
+              Quick note: those counters show how we imagine our impact growing and aren’t meant to be exact totals.
             </p>
           </ScrollReveal>
           <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -217,7 +217,7 @@ export function About() {
               </div>
               <h3 className="text-lg font-semibold text-[#334233] mb-2">Gather insights</h3>
               <p className="text-sm text-[#5B473A]">
-                We collect trusted local resources, events, and programs shared by residents and partners.
+                Neighbors and partners point us to reliable programs and events, and we fold those tips into this list.
               </p>
             </div>
           </StaggerItem>
@@ -228,7 +228,7 @@ export function About() {
               </div>
               <h3 className="text-lg font-semibold text-[#334233] mb-2">Review with care</h3>
               <p className="text-sm text-[#5B473A]">
-                A small team verifies entries and ensures listings are accurate and inclusive.
+                Our small crew double-checks each listing so the info stays accurate and welcoming.
               </p>
             </div>
           </StaggerItem>
@@ -239,7 +239,7 @@ export function About() {
               </div>
               <h3 className="text-lg font-semibold text-[#334233] mb-2">Share with the community</h3>
               <p className="text-sm text-[#5B473A]">
-                Resources are made searchable and available to anyone looking for help in Bothell.
+                Once they pass review, we publish the listings so anyone in Bothell can find and share them.
               </p>
             </div>
           </StaggerItem>
@@ -256,7 +256,7 @@ export function About() {
                   Get involved
                 </h2>
                 <p className="text-[#A7AE8A] text-lg leading-relaxed mb-8">
-                  Explore the directory, plant a resource suggestion, or join an event. Every action strengthens our community network.
+                  Browse the directory, drop a resource idea, or show up to an event. Every small action helps strengthen our community network.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button asChild>

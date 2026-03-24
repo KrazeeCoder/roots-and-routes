@@ -212,8 +212,7 @@ export function Directory() {
               transition={{ duration: 1.0, delay: 0.4 }}
               className="text-[#A7AE8A] text-lg font-light max-w-xl leading-relaxed"
             >
-              Navigate all available community resources, programs, and pathways serving
-              the greater Bothell area.
+              Browse the programs, services, and neighbor-led help that people in the greater Bothell area rely on.
             </motion.p>
           </div>
 
@@ -306,7 +305,7 @@ export function Directory() {
                   Need Guidance?
                 </h2>
                 <p className="text-sm text-[#5B473A] leading-relaxed mb-4">
-                  Can't find your path? Suggest a resource and we'll help it grow.
+                  Still not seeing what you need? Share a suggestion and we'll give it a look.
                 </p>
                 <a
                   href="/suggest"
