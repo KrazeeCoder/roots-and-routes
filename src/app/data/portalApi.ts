@@ -130,16 +130,31 @@ export async function getPublishedEventById(eventId: string): Promise<EventRecor
 }
 
 export async function listSpotlightItems(): Promise<SpotlightItem[]> {
-  const { data, error } = await supabase
+  const { data: spotlightData, error: spotlightError } = await supabase
     .from("resources")
     .select("*")
     .eq("status", "published")
     .eq("is_spotlight", true)
     .order("updated_at", { ascending: false });
 
-  if (error) throw error;
+  if (spotlightError) throw spotlightError;
 
-  return ((data ?? []) as ResourceRecord[]).map((resource, index) => ({
+  let resources = (spotlightData ?? []) as ResourceRecord[];
+
+  // Fallback: if no explicit spotlight rows are set, show the newest published resources.
+  if (resources.length === 0) {
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from("resources")
+      .select("*")
+      .eq("status", "published")
+      .order("updated_at", { ascending: false })
+      .limit(12);
+
+    if (fallbackError) throw fallbackError;
+    resources = (fallbackData ?? []) as ResourceRecord[];
+  }
+
+  return resources.map((resource, index) => ({
     id: resource.id,
     title: resource.name,
     subtitle: resource.spotlight_subtitle ?? "Community Spotlight",

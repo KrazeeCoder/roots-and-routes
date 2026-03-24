@@ -170,6 +170,9 @@ export function About() {
             <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
               Community impact
             </h2>
+            <p className="mb-6 text-sm text-[#6F7553]">
+              Competition display note: these impact counts are illustrative demo values and are not factual measurements.
+            </p>
           </ScrollReveal>
           <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <StaggerItem>
