@@ -153,7 +153,7 @@ export function HeroSection() {
           >
             {/* Layered Cards and Shapes */}
             <div className="absolute top-6 right-0 w-[90%] h-[88%] bg-[#E7D9C3] rounded-3xl rotate-2 shadow-sm border border-[#A7AE8A]/20"></div>
-            <div className="absolute top-0 right-3 w-[90%] h-[90%] bg-white rounded-3xl -rotate-1 shadow-lg overflow-hidden border border-[#E7D9C3]">
+            <div className="absolute top-0 right-3 w-[90%] h-[90%] bg-white rounded-3xl -rotate-2 shadow-lg overflow-hidden border border-[#E7D9C3]">
               <ImageWithFallback 
                 src="https://images.unsplash.com/photo-1630123738777-fdd4f8b7d16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWNpZmljJTIwbm9ydGh3ZXN0JTIwdHJhaWx8ZW58MXx8fHwxNzczNzM0OTMyfDA&ixlib=rb-4.1.0&q=80&w=1080"
                 alt="Pacific Northwest Trail" 
