@@ -43,6 +43,7 @@ export function Directory() {
   const [query, setQuery] = useState(queryParam);
   const [activeCategory, setActiveCategory] = useState<ResourceCategoryFilter>(categoryParam);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [resultsPulse, setResultsPulse] = useState(false);
 
   useEffect(() => {
     setQuery(queryParam);
@@ -87,6 +88,17 @@ export function Directory() {
       queryFiltered.filter((entry) => activeCategory === "All" || entry.category === activeCategory),
     [activeCategory, queryFiltered],
   );
+  const resourcesAnimationKey = `${query}-${activeCategory}`;
+  useEffect(() => {
+    if (loadingEntries) return;
+
+    setResultsPulse(true);
+    const pulseTimeout = setTimeout(() => {
+      setResultsPulse(false);
+    }, 450);
+
+    return () => clearTimeout(pulseTimeout);
+  }, [query, activeCategory, loadingEntries]);
 
   const allCategories: ResourceCategoryFilter[] = useMemo(
     () => ["All", ...RESOURCE_CATEGORIES],
@@ -303,7 +315,22 @@ export function Directory() {
                 <p className="text-sm">Try adjusting your search or category filter.</p>
               </motion.div>
             ) : (
-              <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <motion.div
+                key={resourcesAnimationKey}
+                layout
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                initial={{ opacity: 0.15, y: 20, scale: 0.98 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: resultsPulse ? 1.015 : 1,
+                }}
+                transition={{
+                  duration: 0.35,
+                  ease: [0.4, 0, 0.2, 1],
+                  scale: { type: "spring", stiffness: 260, damping: 24 },
+                }}
+              >
                 <AnimatePresence mode="popLayout">
                   {filtered.map((entry, i) => (
                     <motion.div
