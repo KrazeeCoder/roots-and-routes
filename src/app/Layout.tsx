@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
 import { Trees, Menu } from "lucide-react";
 
@@ -17,6 +17,27 @@ export function Layout() {
 
   const location = useLocation();
   const currentPath = location.pathname;
+
+  useEffect(() => {
+    if (!location.hash) return;
+
+    const id = decodeURIComponent(location.hash.slice(1));
+    const scrollToHash = () => {
+      const target = document.getElementById(id);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    const frame = window.requestAnimationFrame(scrollToHash);
+    const timeout = window.setTimeout(scrollToHash, 220);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timeout);
+    };
+  }, [location.hash, location.pathname]);
+
   const isNavActive = (href: string) => {
     if (href === "/events") return currentPath === "/events" || currentPath.startsWith("/events/");
     if (href === "/directory") return currentPath === "/directory" || currentPath.startsWith("/resources/");
@@ -215,7 +236,7 @@ export function Layout() {
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Connect</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="mailto:rootsandroutes.bothell@outlook.com" className="hover:text-white transition-colors">
                   Contact Us
                 </a>
               </li>
@@ -225,14 +246,9 @@ export function Layout() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Volunteer
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Newsletter
-                </a>
+                <Link to="/#mailing-list" className="hover:text-white transition-colors">
+                  Email List Signup
+                </Link>
               </li>
             </ul>
           </div>
@@ -240,15 +256,15 @@ export function Layout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-[#6F7553]/30 text-xs text-[#A7AE8A] flex flex-col md:flex-row justify-between items-center">
           <p>(c) 2026 Roots & Routes: Bothell. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Terms of Service
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
-              Accessibility
-            </a>
+            <Link to="/about" className="hover:text-white transition-colors">
+              About
+            </Link>
+            <Link to="/reference" className="hover:text-white transition-colors">
+              References
+            </Link>
+            <Link to="/calendar" className="hover:text-white transition-colors">
+              Community Calendar
+            </Link>
           </div>
         </div>
       </footer>

@@ -102,18 +102,18 @@ export function EventDetail() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/65 via-[#334233]/35 to-transparent" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-5">
+          <div className="flex flex-col items-start gap-6">
             <Link to="/events" className="inline-flex items-center gap-2 text-[#E7D9C3] hover:text-white text-sm">
               <ArrowLeft className="w-4 h-4" />
               Back to Events
             </Link>
 
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
               {event.category ?? "Community Event"}
-            </div>
+            </span>
           </div>
 
-          <h1 className="mt-8 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
+          <h1 className="mt-3 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
             {event.title}
           </h1>
           <p className="mt-4 text-[#A7AE8A] text-lg leading-relaxed max-w-3xl">

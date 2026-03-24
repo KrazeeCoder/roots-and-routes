@@ -273,15 +273,18 @@ export function Suggest() {
               </div>
             </ScrollReveal>
             <ScrollReveal delay={0.25}>
-              <div className="mt-5 rounded-xl border border-[#E7D9C3]/40 bg-[#F6F1E7]/10 p-4 max-w-3xl">
-                <p className="text-sm text-[#E7D9C3]">
-                  <span className="font-semibold text-[#F6F1E7]">TSA Judges:</span> Contributor login information for
-                  submitting events is provided on the{" "}
-                  <Link to="/contributor-login" className="underline underline-offset-4 hover:text-white">
-                    Contributor Login page
-                  </Link>
-                  .
+              <div className="mt-6 max-w-3xl rounded-2xl border-2 border-[#B36A4C] bg-[#B36A4C]/25 p-5 shadow-lg shadow-black/10">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#F6F1E7]">Important for TSA Judges</p>
+                <p className="mt-2 text-base leading-relaxed text-[#F6F1E7]">
+                  Contributor login credentials for event submission are on the Contributor Login page.
                 </p>
+                <Link
+                  to="/contributor-login"
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-white underline underline-offset-4 hover:text-[#F6F1E7]"
+                >
+                  Open Contributor Login page
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
             </ScrollReveal>
           </div>

@@ -3,6 +3,7 @@ import { WaypointsSection } from "../components/home/WaypointsSection";
 import { SpotlightSection } from "../components/home/SpotlightSection";
 import { FindPathSection } from "../components/home/FindPathSection";
 import { EventsSection } from "../components/home/EventsSection";
+import { EmailSignupSection } from "../components/home/EmailSignupSection";
 import { SuggestResourceSection } from "../components/home/SuggestResourceSection";
 
 export function Home() {
@@ -13,6 +14,7 @@ export function Home() {
       <SpotlightSection />
       <FindPathSection />
       <EventsSection />
+      <EmailSignupSection />
       <SuggestResourceSection />
     </div>
   );
