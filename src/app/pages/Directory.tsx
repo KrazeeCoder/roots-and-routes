@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
+import { RatingComponent } from "../components/engagement/RatingComponent";
+import { EngagementButtons } from "../components/engagement/EngagementButtons";
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_CATEGORY_META,
@@ -13,6 +15,8 @@ import {
 } from "../constants/resourceCategories";
 import { listPublishedResources, mapResourceToDirectoryEntry } from "../data/portalApi";
 import type { DirectoryEntry } from "../types/home";
+import type { SpotlightEngagement } from "../types/engagement";
+import { getSpotlightEngagement } from "../../utils/engagementSupabase";
 
 function normalizeWebsite(url: string) {
   const trimmed = url.trim();
@@ -40,6 +44,7 @@ export function Directory() {
   const categoryParam = normalizeCategoryParam(searchParams.get("category"));
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(true);
+  const [engagementByEntry, setEngagementByEntry] = useState<Record<string, SpotlightEngagement>>({});
   const [query, setQuery] = useState(queryParam);
   const [activeCategory, setActiveCategory] = useState<ResourceCategoryFilter>(categoryParam);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -70,6 +75,45 @@ export function Directory() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadEntryEngagement() {
+      if (entries.length === 0) {
+        setEngagementByEntry({});
+        return;
+      }
+
+      try {
+        const engagementEntries = await Promise.all(
+          entries.map(async (entry) => {
+            const engagement = await getSpotlightEngagement(entry.id);
+            return [entry.id, engagement] as const;
+          }),
+        );
+
+        if (cancelled) return;
+        setEngagementByEntry(Object.fromEntries(engagementEntries));
+      } catch (error) {
+        console.error("Could not load resource engagement stats", error);
+      }
+    }
+
+    void loadEntryEngagement();
+    return () => {
+      cancelled = true;
+    };
+  }, [entries]);
+
+  const refreshEntryEngagement = async (entryId: string) => {
+    try {
+      const latest = await getSpotlightEngagement(entryId);
+      setEngagementByEntry((prev) => ({ ...prev, [entryId]: latest }));
+    } catch (error) {
+      console.error(`Could not refresh engagement for ${entryId}`, error);
+    }
+  };
 
   const queryFiltered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -374,6 +418,31 @@ export function Directory() {
                         <p className="text-[#5B473A] text-sm leading-relaxed mb-5 flex-grow">
                           {entry.description}
                         </p>
+                        <div className="mb-4 border-t border-[#E7D9C3] pt-3">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                            <RatingComponent
+                              spotlightId={entry.id}
+                              currentRating={engagementByEntry[entry.id]?.userEngagement.userRating ?? null}
+                              averageRating={engagementByEntry[entry.id]?.stats.averageRating ?? 0}
+                              totalRatings={engagementByEntry[entry.id]?.stats.totalRatings ?? 0}
+                              size="sm"
+                              showCount={false}
+                              onRatingChange={() => {
+                                void refreshEntryEngagement(entry.id);
+                              }}
+                            />
+                            {engagementByEntry[entry.id] ? (
+                              <EngagementButtons
+                                spotlightId={entry.id}
+                                engagement={engagementByEntry[entry.id]}
+                                onUpdate={(nextEngagement) =>
+                                  setEngagementByEntry((prev) => ({ ...prev, [entry.id]: nextEngagement }))
+                                }
+                                compact={true}
+                              />
+                            ) : null}
+                          </div>
+                        </div>
                         {entry.postedByName ? (
                           <p className="text-xs text-[#6F7553] mb-4">Posted by {entry.postedByName}</p>
                         ) : null}
