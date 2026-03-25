@@ -126,9 +126,12 @@ export function ResourceDetail() {
           <p className="text-[#5B473A] mb-8">
             {error ?? "This resource may be unpublished or unavailable."}
           </p>
-          <Button asChild variant="outline">
+          <Button
+            asChild
+            className="h-11 rounded-xl bg-[#334233] px-4 text-sm font-semibold text-[#F6F1E7] hover:bg-[#B36A4C]"
+          >
             <Link to="/directory" className="inline-flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" /> Back to Directory
+              <ArrowLeft className="w-4 h-4" /> Back to Resources
             </Link>
           </Button>
         </div>
@@ -138,6 +141,20 @@ export function ResourceDetail() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
+      <div className="sticky top-20 z-40 border-b border-[#E7D9C3] bg-[#F6F1E7]/95 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <Button
+            asChild
+            className="h-11 rounded-xl bg-[#334233] px-4 text-sm font-semibold text-[#F6F1E7] hover:bg-[#B36A4C]"
+          >
+            <Link to="/directory" className="inline-flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Resources
+            </Link>
+          </Button>
+        </div>
+      </div>
+
       <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-24 pb-24">
         <div className="absolute inset-0 pointer-events-none opacity-70">
           <TopoPattern opacity={0.12} />
@@ -145,16 +162,9 @@ export function ResourceDetail() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/65 via-[#334233]/35 to-transparent" />
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start gap-6">
-            <Link to="/directory" className="inline-flex items-center gap-2 text-[#E7D9C3] hover:text-white text-sm">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Directory
-            </Link>
-
-            <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
-              {resource.category}
-            </span>
-          </div>
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#B36A4C]/15 border border-[#B36A4C]/35 text-[#E7D9C3] text-xs font-semibold uppercase tracking-wide">
+            {resource.category}
+          </span>
 
           <h1 className="mt-3 font-['Cormorant_Garamond',serif] text-5xl font-bold leading-[1.1]">
             {resource.name}
