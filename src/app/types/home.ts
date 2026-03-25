@@ -34,6 +34,8 @@ export interface HomepageTestimonial {
   attribution: string;
   role: string;
   image: string;
+  imageSourceUrl: string;
+  imageLicense: string;
 }
 
 export interface Waypoint {

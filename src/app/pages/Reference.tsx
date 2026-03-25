@@ -4,6 +4,7 @@ import {
   directoryEntries as seededDirectoryEntries,
   events as seededEvents,
   spotlights as seededSpotlights,
+  homeTestimonials as seededHomeTestimonials,
 } from "../data/homeData";
 import { TopoPattern } from "../components/TopoPattern";
 import { ScrollReveal } from "../components/ScrollReveal";
@@ -85,6 +86,12 @@ interface ImageCitation {
   type: "Resource" | "Event";
   label: string;
   url: string;
+}
+
+interface TestimonialImageCitation {
+  label: string;
+  sourceUrl: string;
+  license: string;
 }
 
 function ensureAbsoluteUrl(url: string) {
@@ -200,6 +207,7 @@ export function Reference() {
           ...seededEvents.map((event) => event.image).filter((image): image is string => Boolean(image)),
           ...seededDirectoryEntries.map((entry) => entry.image).filter((image): image is string => Boolean(image)),
           ...seededSpotlights.map((item) => item.image).filter((image): image is string => Boolean(image)),
+          ...seededHomeTestimonials.map((item) => item.image).filter((image): image is string => Boolean(image)),
           ...resourceImages,
           ...eventImages,
         ]
@@ -224,6 +232,19 @@ export function Reference() {
         ).values(),
       ).sort((a, b) => a.label.localeCompare(b.label) || a.url.localeCompare(b.url)),
     [eventImageCitations, resourceImageCitations],
+  );
+
+  const testimonialImageCitations = useMemo<TestimonialImageCitation[]>(
+    () =>
+      seededHomeTestimonials
+        .map((testimonial) => ({
+          label: testimonial.attribution,
+          sourceUrl: ensureAbsoluteUrl(testimonial.imageSourceUrl),
+          license: testimonial.imageLicense,
+        }))
+        .filter((citation) => !isPlaceholderDomain(citation.sourceUrl))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [],
   );
 
   return (
@@ -503,6 +524,32 @@ export function Reference() {
                       ))}
                     </div>
                   )}
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-sm font-semibold text-[#334233] mb-3">Homepage Testimonial Image Citations</h3>
+                  <p className="text-xs text-[#5B473A] mb-4">
+                    These citations document the testimonial portrait source pages and licenses used on the homepage.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {testimonialImageCitations.map((citation) => (
+                      <div key={`${citation.label}-${citation.sourceUrl}`} className="rounded-lg border border-[#E7D9C3] bg-white p-3">
+                        <p className="text-xs font-semibold text-[#334233]">
+                          Testimonial: {citation.label}
+                        </p>
+                        <p className="mt-1 text-xs text-[#6F7553]">{citation.license}</p>
+                        <a
+                          href={citation.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1 text-xs font-mono text-[#B36A4C] break-all hover:underline"
+                        >
+                          <LinkIcon className="w-3 h-3" />
+                          {citation.sourceUrl}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </ScrollReveal>

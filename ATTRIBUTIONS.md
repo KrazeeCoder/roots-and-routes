@@ -26,6 +26,13 @@ All photos used in seeded Bothell content are sourced from **Wikimedia Commons**
 - Bothell Landing Park (Alternate View): https://commons.wikimedia.org/wiki/File:Bothell_Landing_05.jpg (Joe Mabel, CC BY-SA 4.0)
 - UW Bothell Campus Farm (Event): https://commons.wikimedia.org/wiki/File:University_of_Washington_Bothell_-_Campus_Farm_01.jpg (Joe Mabel, CC BY-SA 4.0 / GFDL)
 
+### Testimonial Portraits (Wikimedia Commons)
+- Alex R. portrait: https://commons.wikimedia.org/wiki/File:Black_bearded_man_smiling,_2442565.jpg (CC0 1.0 Universal / Public Domain Dedication)
+- Maya T. portrait: https://commons.wikimedia.org/wiki/File:Seated_woman_with_blonde_hair-3177506.jpg (CC0 1.0 Universal / Public Domain Dedication)
+- Jordan L. portrait: https://commons.wikimedia.org/wiki/File:Bearded_man_with_long_hair-3052641.jpg (CC0 1.0 Universal / Public Domain Dedication)
+- Chris N. portrait: https://commons.wikimedia.org/wiki/File:Woman%27s_close_portrait,_3096664.jpg (CC0 1.0 Universal / Public Domain Dedication)
+- Sam P. portrait: https://commons.wikimedia.org/wiki/File:Portrait_of_woman.jpg (CC0 1.0 Universal / Public Domain Dedication)
+
 ## Font
 Google Fonts - Inter typeface used under [SIL Open Font License](https://fonts.google.com/specimen/Inter).
 
