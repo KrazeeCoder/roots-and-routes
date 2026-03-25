@@ -338,6 +338,7 @@ export function Suggest() {
           <div className="mb-8 rounded-2xl border border-green-200 bg-green-50 p-5 text-green-900">
             <p className="font-semibold">You already have direct publishing access.</p>
             <p className="mt-1 text-sm">Approved contributors and moderators can create official resources/events in the portal without waiting for public-submission approval.</p>
+            <p className="mt-1 text-sm">Approved contributors can also review rating feedback for their own resources in the portal.</p>
             <Button asChild className="mt-4"><Link to="/portal">Open Portal</Link></Button>
           </div>
         ) : null}
@@ -504,6 +505,7 @@ export function Suggest() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm text-[#5B473A]">
                 <p>Contributors can save drafts, publish official listings immediately, and manage their resources/events over time.</p>
+                <p>Approved contributors can also view rating feedback for resources they own.</p>
                 <Button asChild variant="outline" className="w-full justify-between">
                   <Link to="/contributor-login">
                     Apply for Contributor Access

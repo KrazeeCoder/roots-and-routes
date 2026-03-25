@@ -135,6 +135,13 @@ export interface ResourceSubmissionRecord {
   updated_at: string;
 }
 
+export interface ResourceRatingFeedback {
+  rating: number;
+  reason: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ResourceSubmissionPayload {
   resource_name: string;
   organization_name?: string | null;

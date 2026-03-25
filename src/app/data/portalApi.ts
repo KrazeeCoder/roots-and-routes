@@ -9,6 +9,7 @@ import type {
   EventSubmissionPayload,
   EventSubmissionRecord,
   ResourcePayload,
+  ResourceRatingFeedback,
   ResourceRecord,
   ResourceSubmissionPayload,
   ResourceSubmissionRecord,
@@ -185,6 +186,15 @@ export async function listPortalResources(
   if (error) throw error;
 
   return (data ?? []) as ResourceRecord[];
+}
+
+export async function listResourceRatingFeedback(resourceId: string): Promise<ResourceRatingFeedback[]> {
+  const { data, error } = await supabase.rpc("list_resource_rating_feedback", {
+    p_resource_id: resourceId,
+  });
+
+  if (error) throw error;
+  return (data ?? []) as ResourceRatingFeedback[];
 }
 
 export async function listPortalEvents(

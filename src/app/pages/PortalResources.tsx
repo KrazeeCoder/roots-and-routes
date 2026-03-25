@@ -18,10 +18,16 @@ import {
   createResource,
   deleteResource,
   isModerator,
+  listResourceRatingFeedback,
   listPortalResources,
   updateResource,
 } from "../data/portalApi";
-import type { ContentStatus, ResourcePayload, ResourceRecord } from "../types/portal";
+import type {
+  ContentStatus,
+  ResourcePayload,
+  ResourceRatingFeedback,
+  ResourceRecord,
+} from "../types/portal";
 import { validateProfanity } from "../../utils/profanityFilter";
 import { validateEmail, validatePhone, validateUrl, validateRequired, validateMaxLength } from "../../utils/validation";
 import {
@@ -163,6 +169,12 @@ function toResourcePayload(form: ResourceFormState, canModerate: boolean): Resou
     is_spotlight: canModerate ? form.isSpotlight : false,
     spotlight_subtitle: canModerate ? form.spotlightSubtitle.trim() || null : null,
   };
+}
+
+function formatDateTime(iso: string) {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleString();
 }
 
 interface ResourceFormFieldsProps {
@@ -374,6 +386,11 @@ export function PortalResources() {
   const [editForm, setEditForm] = useState<ResourceFormState>(defaultForm);
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const [feedbackItems, setFeedbackItems] = useState<ResourceRatingFeedback[]>([]);
+  const [feedbackResourceName, setFeedbackResourceName] = useState("");
 
   const canModerate = isModerator(role);
   const statuses = canModerate ? moderatorStatuses : contributorStatuses;
@@ -418,6 +435,32 @@ export function PortalResources() {
     setEditForm(mapResourceToForm(resource, canModerate));
     setEditError(null);
     setEditOpen(true);
+  };
+
+  const closeFeedbackDialog = () => {
+    setFeedbackOpen(false);
+    setFeedbackLoading(false);
+    setFeedbackError(null);
+    setFeedbackItems([]);
+    setFeedbackResourceName("");
+  };
+
+  const openFeedbackDialog = async (resource: ResourceRecord) => {
+    setFeedbackOpen(true);
+    setFeedbackLoading(true);
+    setFeedbackError(null);
+    setFeedbackItems([]);
+    setFeedbackResourceName(resource.name);
+
+    try {
+      const data = await listResourceRatingFeedback(resource.id);
+      setFeedbackItems(data);
+    } catch (error) {
+      console.error(error);
+      setFeedbackError("Could not load rating feedback right now.");
+    } finally {
+      setFeedbackLoading(false);
+    }
   };
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
@@ -547,6 +590,16 @@ export function PortalResources() {
                       type="button"
                       size="sm"
                       variant="outline"
+                      onClick={() => {
+                        void openFeedbackDialog(resource);
+                      }}
+                    >
+                      Feedback
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
                       onClick={() => startEdit(resource)}
                     >
                       <Pencil className="w-4 h-4" />
@@ -611,6 +664,58 @@ export function PortalResources() {
               </div>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={feedbackOpen}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            closeFeedbackDialog();
+            return;
+          }
+          setFeedbackOpen(true);
+        }}
+      >
+        <DialogContent className="border-[#E7D9C3] sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Rating feedback</DialogTitle>
+            <DialogDescription>
+              {feedbackResourceName
+                ? `Feedback for "${feedbackResourceName}".`
+                : "Feedback for this resource."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
+            {feedbackLoading ? (
+              <p className="text-sm text-[#6F7553]">Loading feedback...</p>
+            ) : null}
+            {!feedbackLoading && feedbackError ? (
+              <p className="text-sm text-red-600">{feedbackError}</p>
+            ) : null}
+            {!feedbackLoading && !feedbackError && feedbackItems.length === 0 ? (
+              <p className="text-sm text-[#6F7553]">No rating feedback yet.</p>
+            ) : null}
+            {!feedbackLoading && !feedbackError
+              ? feedbackItems.map((item, index) => (
+                <div
+                  key={`${item.updated_at}-${index}`}
+                  className="rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-3"
+                >
+                  <p className="text-sm font-semibold text-[#334233]">{item.rating}/5</p>
+                  <p className="text-sm text-[#5B473A] mt-1">{item.reason}</p>
+                  <p className="text-xs text-[#6F7553] mt-2">
+                    Updated {formatDateTime(item.updated_at)}
+                  </p>
+                </div>
+              ))
+              : null}
+          </div>
+          <div className="pt-2">
+            <Button type="button" variant="outline" onClick={closeFeedbackDialog}>
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </PortalShell>
