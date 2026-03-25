@@ -166,7 +166,7 @@ export async function listSpotlightItems(): Promise<SpotlightItem[]> {
     category: resource.category,
     description: resource.description,
     fullDescription: resource.full_description ?? resource.description,
-    audience: "Bothell Residents",
+    audience: resource.posted_by_name?.trim() || "Community Contributor",
     location: resource.address,
     image: resource.image_url,
     featured: index === 0,

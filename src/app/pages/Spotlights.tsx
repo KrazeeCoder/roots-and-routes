@@ -16,6 +16,7 @@ export function Spotlights() {
   const [spotlights, setSpotlights] = useState<SpotlightItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [engagementData, setEngagementData] = useState<Record<string, SpotlightEngagement>>({});
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,6 +28,10 @@ export function Spotlights() {
         setSpotlights(data);
       } catch (error) {
         console.error("Could not load spotlight items", error);
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -351,12 +356,23 @@ export function Spotlights() {
               {selectedCategory === "all" ? "All Spotlights" : `${selectedCategory} Spotlights`}
             </h2>
             <span className="text-sm text-[#A7AE8A] font-medium">
-              ({filteredSpotlights.length} {filteredSpotlights.length === 1 ? 'item' : 'items'})
+              {isLoading
+                ? "Loading..."
+                : `(${filteredSpotlights.length} ${filteredSpotlights.length === 1 ? "item" : "items"})`}
             </span>
           </div>
         </ScrollReveal>
 
-        {filteredSpotlights.length > 0 ? (
+        {isLoading ? (
+          <ScrollReveal>
+            <div className="py-16 flex items-center justify-center">
+              <div className="flex items-center gap-3 text-[#6F7553]">
+                <div className="h-5 w-5 rounded-full border-2 border-[#A7AE8A] border-t-transparent animate-spin" />
+                <span className="text-lg">Loading spotlights...</span>
+              </div>
+            </div>
+          </ScrollReveal>
+        ) : filteredSpotlights.length > 0 ? (
           <StaggerGroup fast className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredSpotlights.map((item) => (
               <StaggerItem key={item.id}>
