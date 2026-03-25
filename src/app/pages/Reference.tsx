@@ -287,47 +287,10 @@ export function Reference() {
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="space-y-16">
-          <ScrollReveal>
-            <section className="rounded-3xl border border-[#B36A4C]/35 bg-[#B36A4C]/8 p-6 sm:p-8">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="mt-1 h-6 w-6 text-[#B36A4C]" />
-                <div className="flex-1">
-                  <h2 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233]">
-                    TSA Judge Quick Check
-                  </h2>
-                  <p className="mt-2 text-sm text-[#5B473A] leading-relaxed">
-                    Core challenge components and compliance items are linked here for fast review.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {judgeQuickCheckItems.map((item) => (
-                  <a
-                    key={item.title}
-                    href={item.href}
-                    className="rounded-2xl border border-[#E7D9C3] bg-white p-4 transition-colors hover:border-[#B36A4C]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 text-[#6F7553]" />
-                      <div>
-                        <h3 className="text-base font-semibold text-[#334233]">{item.title}</h3>
-                        <p className="mt-1 text-sm text-[#5B473A]">{item.detail}</p>
-                        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-[#B36A4C]">
-                          {item.href}
-                        </p>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </section>
-          </ScrollReveal>
-
           {/* TSA Documents */}
           <ScrollReveal>
             <div className="space-y-4">
-              <h2 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] flex items-center gap-3">
+              <h2 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] flex items-center gap-2">
                 <FileText className="w-6 h-6 text-[#B36A4C]" />
                 TSA Documents
               </h2>
@@ -337,7 +300,7 @@ export function Reference() {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <ScrollReveal>
               <article className="h-full p-4 sm:p-5 rounded-2xl bg-white border border-[#E7D9C3] shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
