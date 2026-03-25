@@ -4,7 +4,7 @@ import { ArrowRight, MapPin, Users, Star, Award, Eye } from "lucide-react";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { TopoPattern } from "../components/TopoPattern";
-import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
+import { ScrollReveal } from "../components/ScrollReveal";
 import { listSpotlightItems } from "../data/portalApi";
 import { getSpotlightEngagement, incrementViewCount } from "../../utils/engagementSupabase";
 import { RatingComponent } from "../components/engagement/RatingComponent";
@@ -373,9 +373,9 @@ export function Spotlights() {
             </div>
           </ScrollReveal>
         ) : filteredSpotlights.length > 0 ? (
-          <StaggerGroup fast className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredSpotlights.map((item) => (
-              <StaggerItem key={item.id}>
+              <div key={item.id}>
                 <motion.div 
                   whileHover={{ y: -4 }}
                   transition={{ duration: 0.2 }}
@@ -478,9 +478,9 @@ export function Spotlights() {
                     </div>
                   </div>
                 </motion.div>
-              </StaggerItem>
+              </div>
             ))}
-          </StaggerGroup>
+          </div>
         ) : (
           <ScrollReveal>
             <div className="text-center py-16">
