@@ -69,7 +69,7 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-base sm:text-lg text-[#5B473A] max-w-lg leading-relaxed font-light"
             >
-              Roots & Routes helps Bothell residents discover essential resources, connect with local events, and forge meaningful pathways within our community.
+              Roots & Routes helps Bothell residents discover essential resources, connect with local events, and create meaningful pathways to success in our community.
             </motion.p>
 
             {/* Directory Search */}

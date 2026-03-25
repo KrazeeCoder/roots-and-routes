@@ -11,9 +11,9 @@ export const resourceRoutes: ResourceRoute[] = [
 ];
 
 export const findPathSteps: Step[] = [
-  { icon: Search, title: "Explore Your Options", desc: "Discover resources and opportunities tailored to your community needs." },
+  { icon: Search, title: "Explore Your Options", desc: "Discover resources and opportunities designed for your community needs." },
   { icon: Filter, title: "Find Your Way", desc: "Navigate through options that match your location and circumstances." },
-  { icon: HandHeart, title: "Connect & Grow", desc: "Take the next step toward community connection and personal growth." },
+  { icon: HandHeart, title: "Connect & Grow", desc: "Take the next step toward community connection and growth." },
 ];
 
 export const events: EventItem[] = [

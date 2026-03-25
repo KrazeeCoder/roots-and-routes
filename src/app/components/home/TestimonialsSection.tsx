@@ -57,7 +57,7 @@ export function TestimonialsSection() {
               Stories from neighbors and volunteers who use the platform to find support and share opportunities.
             </p>
             <p className="mt-3 text-xs uppercase tracking-wider text-[#6F7553] font-semibold">
-              Sample community quotes for display.
+              Sample community quotes for TSA display purposes.
             </p>
           </div>
         </ScrollReveal>
