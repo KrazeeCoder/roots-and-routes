@@ -288,21 +288,22 @@ export function Reference() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="space-y-16">
           {/* TSA Documents */}
-          <ScrollReveal>
-            <div className="space-y-4">
-              <h2 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] flex items-center gap-2">
-                <FileText className="w-6 h-6 text-[#B36A4C]" />
-                TSA Documents
-              </h2>
-              <p className="text-sm text-[#5B473A]">
-                Embedded PDF references for judging and documentation review.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="space-y-6">
             <ScrollReveal>
-              <article className="h-full p-4 sm:p-5 rounded-2xl bg-white border border-[#E7D9C3] shadow-sm">
+              <div className="space-y-3">
+                <h2 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] flex items-center gap-2">
+                  <FileText className="w-6 h-6 text-[#B36A4C]" />
+                  TSA Documents
+                </h2>
+                <p className="text-sm text-[#5B473A]">
+                  Embedded PDF references for judging and documentation review.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <ScrollReveal>
+                <article className="h-full p-4 sm:p-5 rounded-2xl bg-white border border-[#E7D9C3] shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
                   <div>
                     <h3 className="text-xl font-semibold text-[#334233]">Copyright Checklist</h3>
@@ -334,11 +335,11 @@ export function Reference() {
                     loading="lazy"
                   />
                 </div>
-              </article>
-            </ScrollReveal>
+                </article>
+              </ScrollReveal>
 
-            <ScrollReveal delay={0.05}>
-              <article className="h-full p-4 sm:p-5 rounded-2xl bg-white border border-[#E7D9C3] shadow-sm">
+              <ScrollReveal delay={0.05}>
+                <article className="h-full p-4 sm:p-5 rounded-2xl bg-white border border-[#E7D9C3] shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
                   <div>
                     <h3 className="text-xl font-semibold text-[#334233]">Work Log</h3>
@@ -370,8 +371,9 @@ export function Reference() {
                     loading="lazy"
                   />
                 </div>
-              </article>
-            </ScrollReveal>
+                </article>
+              </ScrollReveal>
+            </div>
           </div>
 
           {/* References & Links */}

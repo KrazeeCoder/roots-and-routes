@@ -121,7 +121,9 @@ export function Directory() {
       const matchesQuery =
         !q ||
         entry.name.toLowerCase().includes(q) ||
+        entry.category.toLowerCase().includes(q) ||
         entry.description.toLowerCase().includes(q) ||
+        entry.address.toLowerCase().includes(q) ||
         entry.tags.some((t) => t.toLowerCase().includes(q));
       return matchesQuery;
     });
