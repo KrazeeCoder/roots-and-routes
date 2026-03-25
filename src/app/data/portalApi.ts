@@ -32,6 +32,26 @@ function displayDateRange(startsAt: string, endsAt: string | null) {
   };
 }
 
+const RESOURCE_WEBSITE_OVERRIDES: Record<string, string> = {
+  "Bothell Community Farmers Market": "https://beginatbothell.com/events/making-local-markets/",
+  "Northshore Housing Stability Fund": "https://www.bothellwa.gov/2375/Housing-Choices",
+  "Bothell Landing Park": "https://www.bothellwa.gov/1007/Park-at-Bothell-Landing",
+};
+
+const RESOURCE_NAMES_TO_EXCLUDE = new Set<string>([
+  "Nutritional Program Free Trial",
+]);
+
+function applyPublicResourceOverrides(resources: ResourceRecord[]): ResourceRecord[] {
+  return resources
+    .filter((resource) => !RESOURCE_NAMES_TO_EXCLUDE.has(resource.name))
+    .map((resource) => {
+      const nextWebsite = RESOURCE_WEBSITE_OVERRIDES[resource.name];
+      if (!nextWebsite) return resource;
+      return { ...resource, website: nextWebsite };
+    });
+}
+
 export async function signInContributor(email: string, password: string) {
   const result = await supabase.auth.signInWithPassword({ email, password });
   if (result.error) throw result.error;
@@ -96,7 +116,7 @@ export async function listPublishedResources(): Promise<ResourceRecord[]> {
     .order("updated_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []) as ResourceRecord[];
+  return applyPublicResourceOverrides((data ?? []) as ResourceRecord[]);
 }
 
 export async function getPublishedResourceById(resourceId: string): Promise<ResourceRecord | null> {
@@ -108,7 +128,10 @@ export async function getPublishedResourceById(resourceId: string): Promise<Reso
     .maybeSingle();
 
   if (error && error.code !== "PGRST116") throw error;
-  return (data as ResourceRecord | null) ?? null;
+  const resource = (data as ResourceRecord | null) ?? null;
+  if (!resource) return null;
+  const next = applyPublicResourceOverrides([resource]);
+  return next[0] ?? null;
 }
 
 export async function listPublishedEvents(): Promise<EventRecord[]> {
@@ -144,7 +167,7 @@ export async function listSpotlightItems(): Promise<SpotlightItem[]> {
 
   if (spotlightError) throw spotlightError;
 
-  let resources = (spotlightData ?? []) as ResourceRecord[];
+  let resources = applyPublicResourceOverrides((spotlightData ?? []) as ResourceRecord[]);
 
   // Fallback: if no explicit spotlight rows are set, show the newest published resources.
   if (resources.length === 0) {
@@ -156,7 +179,7 @@ export async function listSpotlightItems(): Promise<SpotlightItem[]> {
       .limit(12);
 
     if (fallbackError) throw fallbackError;
-    resources = (fallbackData ?? []) as ResourceRecord[];
+    resources = applyPublicResourceOverrides((fallbackData ?? []) as ResourceRecord[]);
   }
 
   return resources.map((resource, index) => ({
