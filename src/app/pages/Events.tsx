@@ -1000,30 +1000,32 @@ export function Events() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="mt-12 flex items-center justify-center gap-4">
+              <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-2"
+                  className="flex w-full max-w-[180px] items-center justify-center gap-2 sm:w-auto"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
                 </Button>
 
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 p-0 ${currentPage === page ? "bg-[#B36A4C] hover:bg-[#8A6F5A]" : ""}`}
-                    >
-                      {page}
-                    </Button>
-                  ))}
+                <div className="w-full max-w-full overflow-x-auto px-1 sm:w-auto">
+                  <div className="flex min-w-max items-center justify-center gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-8 w-8 shrink-0 p-0 ${currentPage === page ? "bg-[#B36A4C] hover:bg-[#8A6F5A]" : ""}`}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
 
                 <Button
@@ -1031,7 +1033,7 @@ export function Events() {
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="flex items-center gap-2"
+                  className="flex w-full max-w-[180px] items-center justify-center gap-2 sm:w-auto"
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />

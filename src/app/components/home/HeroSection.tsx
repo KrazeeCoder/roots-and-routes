@@ -81,17 +81,19 @@ export function HeroSection() {
             >
               <form className="group" onSubmit={handleSearchSubmit}>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                    <Search className="h-6 w-6 text-[#6F7553] group-focus-within:text-[#B36A4C] transition-colors" />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                      <Search className="h-6 w-6 text-[#6F7553] group-focus-within:text-[#B36A4C] transition-colors" />
+                    </div>
+                    <input
+                      type="text"
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      className="block w-full pl-12 pr-4 sm:pr-40 py-4 sm:text-lg border-2 border-[#E7D9C3] rounded-2xl bg-white shadow-sm focus:ring-0 focus:border-[#A7AE8A] transition-all text-[#334233] placeholder-[#A7AE8A]"
+                      placeholder={searchTarget === "events" ? "Search events..." : "Search resources..."}
+                      aria-label={`Search ${searchTarget}`}
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    className="block w-full pl-12 pr-4 sm:pr-40 py-4 sm:text-lg border-2 border-[#E7D9C3] rounded-2xl bg-white shadow-sm focus:ring-0 focus:border-[#A7AE8A] transition-all text-[#334233] placeholder-[#A7AE8A]"
-                    placeholder={searchTarget === "events" ? "Search events..." : "Search resources..."}
-                    aria-label={`Search ${searchTarget}`}
-                  />
                   <div className="mt-3 flex items-center justify-end sm:mt-0 sm:absolute sm:inset-y-2 sm:right-2">
                     <button
                       type="button"
