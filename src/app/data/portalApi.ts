@@ -42,6 +42,26 @@ const RESOURCE_NAMES_TO_EXCLUDE = new Set<string>([
   "Nutritional Program Free Trial",
 ]);
 
+interface DirectoryResourcesPageRpcRow extends ResourceRecord {
+  total_count: number | string;
+}
+
+export interface DirectoryResourcesPageParams {
+  page: number;
+  pageSize: number;
+  query?: string;
+  category?: string | null;
+  minRating?: number;
+}
+
+export interface DirectoryResourcesPage {
+  resources: ResourceRecord[];
+  totalCount: number;
+  totalPages: number;
+  page: number;
+  pageSize: number;
+}
+
 function applyPublicResourceOverrides(resources: ResourceRecord[]): ResourceRecord[] {
   return resources
     .filter((resource) => !RESOURCE_NAMES_TO_EXCLUDE.has(resource.name))
@@ -117,6 +137,47 @@ export async function listPublishedResources(): Promise<ResourceRecord[]> {
 
   if (error) throw error;
   return applyPublicResourceOverrides((data ?? []) as ResourceRecord[]);
+}
+
+export async function listDirectoryResourcesPage(
+  params: DirectoryResourcesPageParams,
+): Promise<DirectoryResourcesPage> {
+  const page = Number.isFinite(params.page) ? Math.max(1, Math.trunc(params.page)) : 1;
+  const pageSize = Number.isFinite(params.pageSize)
+    ? Math.min(100, Math.max(1, Math.trunc(params.pageSize)))
+    : 8;
+  const query = params.query?.trim() ?? "";
+  const category = params.category?.trim() ?? "";
+  const minRating = Number.isFinite(params.minRating ?? 0)
+    ? Math.max(0, params.minRating ?? 0)
+    : 0;
+
+  const { data, error } = await supabase.rpc("list_directory_resources_page", {
+    p_page: page,
+    p_page_size: pageSize,
+    p_query: query,
+    p_category: category.length > 0 && category !== "All" ? category : null,
+    p_min_rating: minRating,
+  });
+
+  if (error) throw error;
+
+  const rows = ((data ?? []) as DirectoryResourcesPageRpcRow[]).map((row) => {
+    const { total_count, ...resource } = row;
+    return { totalCount: Number(total_count) || 0, resource: resource as ResourceRecord };
+  });
+
+  const totalCount = rows[0]?.totalCount ?? 0;
+  const resources = applyPublicResourceOverrides(rows.map((row) => row.resource));
+  const totalPages = totalCount > 0 ? Math.ceil(totalCount / pageSize) : 0;
+
+  return {
+    resources,
+    totalCount,
+    totalPages,
+    page,
+    pageSize,
+  };
 }
 
 export async function getPublishedResourceById(resourceId: string): Promise<ResourceRecord | null> {
