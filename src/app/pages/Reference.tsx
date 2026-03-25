@@ -413,7 +413,9 @@ export function Reference() {
                       className="flex flex-col p-4 rounded-xl bg-[#E7D9C3]/20 border border-[#E7D9C3]/30 hover:border-[#B36A4C] hover:bg-[#E7D9C3]/35 transition-colors"
                     >
                       <span className="font-semibold text-[#334233]">{source.name}</span>
-                      <span className="text-xs text-[#5B473A] mt-1">{shortenUrl(source.url)}</span>
+                      <span className="text-xs text-[#5B473A] mt-1 break-all leading-relaxed">
+                        {shortenUrl(source.url)}
+                      </span>
                     </a>
                   ))}
                 </div>
