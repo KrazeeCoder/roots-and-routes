@@ -381,6 +381,12 @@ export function Reference() {
             {/* Code Stack */}
             <ScrollReveal>
               <div className="space-y-6">
+                <div className="rounded-2xl border border-[#B36A4C]/35 bg-[#B36A4C]/10 p-4">
+                  <p className="text-sm text-[#5B473A] leading-relaxed">
+                    External link notice: outbound organization and media links are included for display and
+                    purposes and may not be factual.
+                  </p>
+                </div>
                 <h2 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] flex items-center gap-3">
                   <Code2 className="w-6 h-6 text-[#B36A4C]" />
                   Code Stack & Docs
