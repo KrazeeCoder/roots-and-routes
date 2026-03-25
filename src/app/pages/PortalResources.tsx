@@ -1,10 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { Pencil, PlusCircle, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Button } from "../components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 import { PortalShell } from "../components/portal/PortalShell";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -14,7 +21,7 @@ import {
   listPortalResources,
   updateResource,
 } from "../data/portalApi";
-import type { ContentStatus, ResourceRecord } from "../types/portal";
+import type { ContentStatus, ResourcePayload, ResourceRecord } from "../types/portal";
 import { validateProfanity } from "../../utils/profanityFilter";
 import { validateEmail, validatePhone, validateUrl, validateRequired, validateMaxLength } from "../../utils/validation";
 import {
@@ -81,14 +88,292 @@ function normalizeHttpUrl(raw: string) {
   return parsed.toString();
 }
 
+function mapResourceToForm(resource: ResourceRecord, canModerate: boolean): ResourceFormState {
+  return {
+    name: resource.name,
+    category: resource.category,
+    description: resource.description,
+    fullDescription: resource.full_description ?? "",
+    address: resource.address,
+    phone: resource.phone ?? "",
+    email: resource.email ?? "",
+    website: resource.website ?? "",
+    hours: resource.hours ?? "",
+    tags: [...resource.tags],
+    imageUrl: resource.image_url ?? "",
+    status: canModerate || contributorStatuses.includes(resource.status)
+      ? resource.status
+      : "draft",
+    isSpotlight: resource.is_spotlight,
+    spotlightSubtitle: resource.spotlight_subtitle ?? "",
+  };
+}
+
+function validateResourceForm(form: ResourceFormState): string | null {
+  const categoryError = validateRequired(form.category, "Category");
+  const invalidCategoryError =
+    form.category && !isResourceCategory(form.category)
+      ? "Category must be one of the approved resource categories."
+      : null;
+
+  const firstError =
+    validateRequired(form.name, "Resource name")
+    || categoryError
+    || invalidCategoryError
+    || validateRequired(form.description, "Description")
+    || validateRequired(form.address, "Address")
+    || validateProfanity(form.name, "Resource name")
+    || validateProfanity(form.category, "Category")
+    || validateProfanity(form.description, "Description")
+    || validateProfanity(form.fullDescription, "Full description")
+    || validateProfanity(form.address, "Address")
+    || validateProfanity(form.hours, "Hours")
+    || validateProfanity(joinTagsForValidation(form.tags), "Tags")
+    || validateProfanity(form.spotlightSubtitle, "Spotlight subtitle")
+    || validateEmail(form.email)
+    || validatePhone(form.phone)
+    || validateUrl(form.website)
+    || validateUrl(form.imageUrl)
+    || validateMaxLength(form.name, "Resource name", 200)
+    || validateMaxLength(form.category, "Category", 100)
+    || validateMaxLength(form.description, "Description", 500)
+    || validateMaxLength(form.fullDescription, "Full description", 2000)
+    || validateMaxLength(form.address, "Address", 500)
+    || validateMaxLength(form.hours, "Hours", 200)
+    || validateMaxLength(joinTagsForValidation(form.tags), "Tags", 300)
+    || validateMaxLength(form.spotlightSubtitle, "Spotlight subtitle", 200);
+
+  return firstError;
+}
+
+function toResourcePayload(form: ResourceFormState, canModerate: boolean): ResourcePayload {
+  return {
+    name: form.name.trim(),
+    category: form.category,
+    description: form.description.trim(),
+    full_description: form.fullDescription.trim() || null,
+    address: form.address.trim(),
+    phone: form.phone.trim() || null,
+    email: form.email.trim() || null,
+    website: normalizeHttpUrl(form.website),
+    hours: form.hours.trim() || null,
+    tags: form.tags,
+    image_url: normalizeHttpUrl(form.imageUrl),
+    status: form.status,
+    is_spotlight: canModerate ? form.isSpotlight : false,
+    spotlight_subtitle: canModerate ? form.spotlightSubtitle.trim() || null : null,
+  };
+}
+
+interface ResourceFormFieldsProps {
+  form: ResourceFormState;
+  setForm: Dispatch<SetStateAction<ResourceFormState>>;
+  statuses: ContentStatus[];
+  canModerate: boolean;
+  idPrefix: string;
+}
+
+function ResourceFormFields({
+  form,
+  setForm,
+  statuses,
+  canModerate,
+  idPrefix,
+}: ResourceFormFieldsProps) {
+  const nameId = `${idPrefix}-name`;
+  const categoryId = `${idPrefix}-category`;
+  const descriptionId = `${idPrefix}-description`;
+  const fullDescriptionId = `${idPrefix}-full-description`;
+  const addressId = `${idPrefix}-address`;
+  const hoursId = `${idPrefix}-hours`;
+  const phoneId = `${idPrefix}-phone`;
+  const emailId = `${idPrefix}-email`;
+  const websiteId = `${idPrefix}-website`;
+  const imageId = `${idPrefix}-image`;
+  const tagsId = `${idPrefix}-tags`;
+  const statusId = `${idPrefix}-status`;
+  const spotlightId = `${idPrefix}-spotlight`;
+  const spotlightSubtitleId = `${idPrefix}-spotlight-subtitle`;
+
+  return (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={nameId}>Name</Label>
+          <Input
+            id={nameId}
+            value={form.name}
+            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor={categoryId}>Category</Label>
+          <CategoryPicker
+            id={categoryId}
+            value={form.category}
+            onChange={(next) =>
+              setForm((prev) => ({ ...prev, category: next as ResourceCategory | "" }))
+            }
+            options={RESOURCE_CATEGORIES}
+            allowCustom={false}
+            placeholder="Choose a category"
+            label="Resource category"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor={descriptionId}>Short description</Label>
+        <Textarea
+          id={descriptionId}
+          value={form.description}
+          onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor={fullDescriptionId}>Full description (optional)</Label>
+        <Textarea
+          id={fullDescriptionId}
+          value={form.fullDescription}
+          onChange={(event) => setForm((prev) => ({ ...prev, fullDescription: event.target.value }))}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={addressId}>Address</Label>
+          <AddressAutocompleteInput
+            id={addressId}
+            value={form.address}
+            onChange={(next) => setForm((prev) => ({ ...prev, address: next }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor={hoursId}>Hours</Label>
+          <ResourceHoursSelector
+            id={hoursId}
+            value={form.hours}
+            onChange={(next) => setForm((prev) => ({ ...prev, hours: next }))}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <Label htmlFor={phoneId}>Phone</Label>
+          <Input
+            id={phoneId}
+            value={form.phone}
+            onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
+          />
+        </div>
+        <div>
+          <Label htmlFor={emailId}>Email</Label>
+          <Input
+            id={emailId}
+            type="email"
+            value={form.email}
+            onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+          />
+        </div>
+        <div>
+          <Label htmlFor={websiteId}>Website</Label>
+          <Input
+            id={websiteId}
+            value={form.website}
+            onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))}
+          />
+        </div>
+        <div>
+          <Label htmlFor={imageId}>Image URL</Label>
+          <Input
+            id={imageId}
+            value={form.imageUrl}
+            onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor={tagsId}>Tags</Label>
+        <TagChipInput
+          id={tagsId}
+          values={form.tags}
+          onChange={(next) => setForm((prev) => ({ ...prev, tags: next }))}
+          maxChars={300}
+          placeholder="Type a tag, then press Enter"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={statusId}>Status</Label>
+          <select
+            id={statusId}
+            value={form.status}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
+            }
+            className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+          >
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </div>
+        {canModerate ? (
+          <div className="flex items-center gap-2 pt-7">
+            <input
+              id={spotlightId}
+              type="checkbox"
+              checked={form.isSpotlight}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, isSpotlight: event.target.checked }))
+              }
+            />
+            <Label htmlFor={spotlightId} className="font-normal mb-0">
+              Include in spotlight
+            </Label>
+          </div>
+        ) : null}
+      </div>
+
+      {canModerate && form.isSpotlight ? (
+        <div>
+          <Label htmlFor={spotlightSubtitleId}>Spotlight subtitle</Label>
+          <Input
+            id={spotlightSubtitleId}
+            value={form.spotlightSubtitle}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, spotlightSubtitle: event.target.value }))
+            }
+          />
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 export function PortalResources() {
   const { user, role } = useAuth();
   const [resources, setResources] = useState<ResourceRecord[]>([]);
-  const [form, setForm] = useState<ResourceFormState>(defaultForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [createForm, setCreateForm] = useState<ResourceFormState>(defaultForm);
+  const [createSaving, setCreateSaving] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<ResourceFormState>(defaultForm);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const canModerate = isModerator(role);
   const statuses = canModerate ? moderatorStatuses : contributorStatuses;
@@ -96,14 +381,14 @@ export function PortalResources() {
   const loadResources = async () => {
     if (!user || !role) return;
     setLoading(true);
-    setError(null);
+    setListError(null);
 
     try {
       const data = await listPortalResources(role, user.id);
       setResources(data);
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not load resources right now.");
+      setListError("Could not load resources right now.");
     } finally {
       setLoading(false);
     }
@@ -115,138 +400,75 @@ export function PortalResources() {
 
   const sortedResources = useMemo(
     () =>
-      [...resources]
-        .sort(
-          (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-        ),
+      [...resources].sort(
+        (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+      ),
     [resources],
   );
 
-  const resetForm = () => {
-    setEditingId(null);
-    setForm(defaultForm);
+  const closeEditDialog = () => {
+    setEditOpen(false);
+    setEditId(null);
+    setEditForm(defaultForm);
+    setEditError(null);
   };
 
   const startEdit = (resource: ResourceRecord) => {
-    setEditingId(resource.id);
-    setForm({
-      name: resource.name,
-      category: resource.category,
-      description: resource.description,
-      fullDescription: resource.full_description ?? "",
-      address: resource.address,
-      phone: resource.phone ?? "",
-      email: resource.email ?? "",
-      website: resource.website ?? "",
-      hours: resource.hours ?? "",
-      tags: [...resource.tags],
-      imageUrl: resource.image_url ?? "",
-      status: canModerate || contributorStatuses.includes(resource.status)
-        ? resource.status
-        : "draft",
-      isSpotlight: resource.is_spotlight,
-      spotlightSubtitle: resource.spotlight_subtitle ?? "",
-    });
+    setEditId(resource.id);
+    setEditForm(mapResourceToForm(resource, canModerate));
+    setEditError(null);
+    setEditOpen(true);
   };
 
-  const handleSave = async (event: React.FormEvent) => {
+  const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!user) return;
 
-    setSaving(true);
-    setError(null);
+    setCreateSaving(true);
+    setCreateError(null);
 
-    // Validate required fields
-    const nameError = validateRequired(form.name, "Resource name");
-    const categoryError = validateRequired(form.category, "Category");
-    const invalidCategoryError =
-      form.category && !isResourceCategory(form.category)
-        ? "Category must be one of the approved resource categories."
-        : null;
-    const descriptionError = validateRequired(form.description, "Description");
-    const addressError = validateRequired(form.address, "Address");
-
-    // Validate profanity in text fields
-    const profanityNameError = validateProfanity(form.name, "Resource name");
-    const profanityCategoryError = validateProfanity(form.category, "Category");
-    const profanityDescriptionError = validateProfanity(form.description, "Description");
-    const profanityFullDescriptionError = validateProfanity(form.fullDescription, "Full description");
-    const profanityAddressError = validateProfanity(form.address, "Address");
-    const profanityHoursError = validateProfanity(form.hours, "Hours");
-    const profanityTagsError = validateProfanity(joinTagsForValidation(form.tags), "Tags");
-    const profanitySpotlightError = validateProfanity(form.spotlightSubtitle, "Spotlight subtitle");
-
-    // Validate input formats
-    const emailError = validateEmail(form.email);
-    const phoneError = validatePhone(form.phone);
-    const websiteError = validateUrl(form.website);
-    const imageError = validateUrl(form.imageUrl);
-
-    // Validate length constraints
-    const nameLengthError = validateMaxLength(form.name, "Resource name", 200);
-    const categoryLengthError = validateMaxLength(form.category, "Category", 100);
-    const descriptionLengthError = validateMaxLength(form.description, "Description", 500);
-    const fullDescriptionLengthError = validateMaxLength(form.fullDescription, "Full description", 2000);
-    const addressLengthError = validateMaxLength(form.address, "Address", 500);
-    const hoursLengthError = validateMaxLength(form.hours, "Hours", 200);
-    const tagsLengthError = validateMaxLength(joinTagsForValidation(form.tags), "Tags", 300);
-    const spotlightLengthError = validateMaxLength(form.spotlightSubtitle, "Spotlight subtitle", 200);
-
-    // Check for any validation errors
-    const firstError = nameError || categoryError || invalidCategoryError || descriptionError || addressError ||
-                       profanityNameError || profanityCategoryError || profanityDescriptionError || 
-                       profanityFullDescriptionError || profanityAddressError || profanityHoursError || 
-                       profanityTagsError || profanitySpotlightError ||
-                       emailError || phoneError || websiteError || imageError ||
-                       nameLengthError || categoryLengthError || descriptionLengthError || 
-                       fullDescriptionLengthError || addressLengthError || hoursLengthError || 
-                       tagsLengthError || spotlightLengthError;
-
-    if (firstError) {
-      setError(firstError);
-      setSaving(false);
+    const validationError = validateResourceForm(createForm);
+    if (validationError) {
+      setCreateError(validationError);
+      setCreateSaving(false);
       return;
     }
-
-    if (!form.category || !isResourceCategory(form.category)) {
-      setError("Category must be one of the approved resource categories.");
-      setSaving(false);
-      return;
-    }
-
-    const normalizedWebsite = normalizeHttpUrl(form.website);
-    const normalizedImageUrl = normalizeHttpUrl(form.imageUrl);
-
-    const payload = {
-      name: form.name.trim(),
-      category: form.category,
-      description: form.description.trim(),
-      full_description: form.fullDescription.trim() || null,
-      address: form.address.trim(),
-      phone: form.phone.trim() || null,
-      email: form.email.trim() || null,
-      website: normalizedWebsite,
-      hours: form.hours.trim() || null,
-      tags: form.tags,
-      image_url: normalizedImageUrl,
-      status: canModerate ? form.status : form.status,
-      is_spotlight: canModerate ? form.isSpotlight : false,
-      spotlight_subtitle: canModerate ? form.spotlightSubtitle.trim() || null : null,
-    };
 
     try {
-      if (editingId) {
-        await updateResource(editingId, payload);
-      } else {
-        await createResource(payload);
-      }
-      resetForm();
+      await createResource(toResourcePayload(createForm, canModerate));
+      setCreateForm(defaultForm);
       await loadResources();
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not save this resource. Please check required fields and try again.");
+      setCreateError("Could not create this resource. Please check required fields and try again.");
     } finally {
-      setSaving(false);
+      setCreateSaving(false);
+    }
+  };
+
+  const handleEditSave = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editId) return;
+
+    setEditSaving(true);
+    setEditError(null);
+
+    const validationError = validateResourceForm(editForm);
+    if (validationError) {
+      setEditError(validationError);
+      setEditSaving(false);
+      return;
+    }
+
+    try {
+      await updateResource(editId, toResourcePayload(editForm, canModerate));
+      closeEditDialog();
+      await loadResources();
+    } catch (nextError) {
+      console.error(nextError);
+      setEditError("Could not save this resource. Please check required fields and try again.");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -259,7 +481,7 @@ export function PortalResources() {
       await loadResources();
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not delete this resource.");
+      setListError("Could not delete this resource.");
     }
   };
 
@@ -271,185 +493,26 @@ export function PortalResources() {
       <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1fr] gap-8">
         <Card className="border-[#E7D9C3]">
           <CardHeader>
-            <CardTitle>{editingId ? "Edit resource" : "Create resource"}</CardTitle>
+            <CardTitle>Create resource</CardTitle>
             <CardDescription>
               Keep listing details clear and current so residents can find help quickly.
               {!canModerate ? " Draft stays private, published goes live immediately, and archived hides the listing from public pages." : ""}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4" onSubmit={handleSave}>
-              {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="resource-name">Name</Label>
-                  <Input
-                    id="resource-name"
-                    value={form.name}
-                    onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="resource-category">Category</Label>
-                  <CategoryPicker
-                    id="resource-category"
-                    value={form.category}
-                    onChange={(next) =>
-                      setForm((prev) => ({ ...prev, category: next as ResourceCategory | "" }))
-                    }
-                    options={RESOURCE_CATEGORIES}
-                    allowCustom={false}
-                    placeholder="Choose a category"
-                    label="Resource category"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="resource-description">Short description</Label>
-                <Textarea
-                  id="resource-description"
-                  value={form.description}
-                  onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="resource-full-description">Full description (optional)</Label>
-                <Textarea
-                  id="resource-full-description"
-                  value={form.fullDescription}
-                  onChange={(event) => setForm((prev) => ({ ...prev, fullDescription: event.target.value }))}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="resource-address">Address</Label>
-                  <AddressAutocompleteInput
-                    id="resource-address"
-                    value={form.address}
-                    onChange={(next) => setForm((prev) => ({ ...prev, address: next }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="resource-hours">Hours</Label>
-                  <ResourceHoursSelector
-                    id="resource-hours"
-                    value={form.hours}
-                    onChange={(next) => setForm((prev) => ({ ...prev, hours: next }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <Label htmlFor="resource-phone">Phone</Label>
-                  <Input
-                    id="resource-phone"
-                    value={form.phone}
-                    onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="resource-email">Email</Label>
-                  <Input
-                    id="resource-email"
-                    type="email"
-                    value={form.email}
-                    onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="resource-website">Website</Label>
-                  <Input
-                    id="resource-website"
-                    value={form.website}
-                    onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="resource-image">Image URL</Label>
-                  <Input
-                    id="resource-image"
-                    value={form.imageUrl}
-                    onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="resource-tags">Tags</Label>
-                <TagChipInput
-                  id="resource-tags"
-                  values={form.tags}
-                  onChange={(next) => setForm((prev) => ({ ...prev, tags: next }))}
-                  maxChars={300}
-                  placeholder="Type a tag, then press Enter"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="resource-status">Status</Label>
-                  <select
-                    id="resource-status"
-                    value={form.status}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
-                    }
-                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                  >
-                    {statuses.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {canModerate ? (
-                  <div className="flex items-center gap-2 pt-7">
-                    <input
-                      id="resource-spotlight"
-                      type="checkbox"
-                      checked={form.isSpotlight}
-                      onChange={(event) =>
-                        setForm((prev) => ({ ...prev, isSpotlight: event.target.checked }))
-                      }
-                    />
-                    <Label htmlFor="resource-spotlight" className="font-normal mb-0">
-                      Include in spotlight
-                    </Label>
-                  </div>
-                ) : null}
-              </div>
-
-              {canModerate && form.isSpotlight ? (
-                <div>
-                  <Label htmlFor="resource-spotlight-subtitle">Spotlight subtitle</Label>
-                  <Input
-                    id="resource-spotlight-subtitle"
-                    value={form.spotlightSubtitle}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, spotlightSubtitle: event.target.value }))
-                    }
-                  />
-                </div>
-              ) : null}
-
+            <form className="space-y-4" onSubmit={handleCreate}>
+              {createError ? <p className="text-sm text-red-600">{createError}</p> : null}
+              <ResourceFormFields
+                form={createForm}
+                setForm={setCreateForm}
+                statuses={statuses}
+                canModerate={canModerate}
+                idPrefix="resource-create"
+              />
               <div className="flex flex-wrap gap-3">
-                <Button type="submit" disabled={saving}>
-                  <PlusCircle className="w-4 h-4" /> {saving ? "Saving..." : editingId ? "Update Resource" : "Create Resource"}
+                <Button type="submit" disabled={createSaving}>
+                  <PlusCircle className="w-4 h-4" /> {createSaving ? "Creating..." : "Create Resource"}
                 </Button>
-                {editingId ? (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel Edit
-                  </Button>
-                ) : null}
               </div>
             </form>
           </CardContent>
@@ -462,6 +525,7 @@ export function PortalResources() {
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <p className="text-sm text-[#6F7553]">Loading resources...</p> : null}
+            {!loading && listError ? <p className="text-sm text-red-600">{listError}</p> : null}
             {!loading && sortedResources.length === 0 ? (
               <p className="text-sm text-[#6F7553]">No resources yet. Create your first listing.</p>
             ) : null}
@@ -504,6 +568,51 @@ export function PortalResources() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog
+        open={editOpen}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            closeEditDialog();
+            return;
+          }
+          setEditOpen(true);
+        }}
+      >
+        <DialogContent
+          className="max-h-[85vh] overflow-hidden border-[#E7D9C3] p-0 sm:max-w-4xl"
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
+          <DialogHeader className="border-b border-[#E7D9C3] px-6 pt-6 pb-4 pr-16">
+            <DialogTitle>Edit resource</DialogTitle>
+            <DialogDescription>
+              Update this listing and click save to confirm your edits.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="flex max-h-[calc(85vh-96px)] min-h-0 flex-col" onSubmit={handleEditSave}>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+              {editError ? <p className="text-sm text-red-600">{editError}</p> : null}
+              <ResourceFormFields
+                form={editForm}
+                setForm={setEditForm}
+                statuses={statuses}
+                canModerate={canModerate}
+                idPrefix="resource-edit"
+              />
+            </div>
+            <div className="border-t border-[#E7D9C3] bg-[#F6F1E7] px-6 py-3">
+              <div className="flex flex-wrap gap-3">
+                <Button type="submit" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button type="button" variant="outline" onClick={closeEditDialog}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </PortalShell>
   );
 }

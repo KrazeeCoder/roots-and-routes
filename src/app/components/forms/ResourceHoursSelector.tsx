@@ -34,8 +34,6 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, index) => {
   return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
 });
 
-const OPEN_TIME_OPTIONS = TIME_OPTIONS.slice(0, TIME_OPTIONS.length - 1);
-
 type HoursMode = "not_listed" | "specific";
 
 const DEFAULT_DAYS: DayKey[] = [...WEEKDAYS];
@@ -59,14 +57,6 @@ function sameDaySet(a: DayKey[], b: DayKey[]) {
 function orderDays(days: DayKey[]) {
   const picked = new Set<DayKey>(days);
   return DAY_META.map((day) => day.key).filter((day) => picked.has(day));
-}
-
-function normalizeCloseTime(open: string, preferredClose: string) {
-  const openIdx = TIME_OPTIONS.indexOf(open);
-  const preferredCloseIdx = TIME_OPTIONS.indexOf(preferredClose);
-  if (openIdx < 0) return DEFAULT_CLOSE;
-  if (preferredCloseIdx > openIdx) return preferredClose;
-  return TIME_OPTIONS[Math.min(openIdx + 1, TIME_OPTIONS.length - 1)];
 }
 
 function parseDaysSegment(segmentRaw: string): DayKey[] | null {
@@ -129,7 +119,7 @@ function parseHoursValue(raw: string): ParsedHoursValue {
     const openIdx = TIME_OPTIONS.indexOf(open);
     const closeIdx = TIME_OPTIONS.indexOf(close);
 
-    if (parsedDays && parsedDays.length > 0 && openIdx >= 0 && closeIdx > openIdx) {
+    if (parsedDays && parsedDays.length > 0 && openIdx >= 0 && closeIdx >= 0) {
       return {
         mode: "specific",
         days: parsedDays,
@@ -183,12 +173,6 @@ export function ResourceHoursSelector({
     setLegacyValue(parsed.legacyValue);
   }, [parsed]);
 
-  const closeOptions = useMemo(() => {
-    const openIdx = TIME_OPTIONS.indexOf(open);
-    if (openIdx < 0) return TIME_OPTIONS;
-    return TIME_OPTIONS.slice(openIdx + 1);
-  }, [open]);
-
   const handleModeChange = (nextMode: HoursMode) => {
     setMode(nextMode);
     if (nextMode === "not_listed") {
@@ -198,11 +182,9 @@ export function ResourceHoursSelector({
     }
 
     const nextDays = days.length > 0 ? days : [...DEFAULT_DAYS];
-    const normalizedClose = normalizeCloseTime(open, close);
     setDays(nextDays);
-    setClose(normalizedClose);
     setIsLegacySpecific(false);
-    onChange(formatSpecificHours(nextDays, open, normalizedClose));
+    onChange(formatSpecificHours(nextDays, open, close));
   };
 
   const toggleDay = (day: DayKey) => {
@@ -222,12 +204,10 @@ export function ResourceHoursSelector({
   };
 
   const handleOpenChange = (nextOpen: string) => {
-    const normalizedClose = normalizeCloseTime(nextOpen, close);
     setOpen(nextOpen);
-    setClose(normalizedClose);
     setMode("specific");
     setIsLegacySpecific(false);
-    onChange(formatSpecificHours(days, nextOpen, normalizedClose));
+    onChange(formatSpecificHours(days, nextOpen, close));
   };
 
   const handleCloseChange = (nextClose: string) => {
@@ -285,7 +265,7 @@ export function ResourceHoursSelector({
                 disabled={disabled}
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
               >
-                {OPEN_TIME_OPTIONS.map((option) => (
+                {TIME_OPTIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -301,7 +281,7 @@ export function ResourceHoursSelector({
                 disabled={disabled}
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
               >
-                {closeOptions.map((option) => (
+                {TIME_OPTIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>

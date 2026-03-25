@@ -1,11 +1,18 @@
 // Import profanity-filter with type assertion
 import * as profanityFilter from 'profanity-filter';
 
-// Add additional commonly used profanity words that might not be in the default list
+// Keep custom additions narrow to avoid substring false positives (e.g., "Bothell" matching "hell").
 const additionalWords = [
-  'damn', 'hell', 'crap', 'suck', 'sucks', 'stupid', 'idiot', 'dumb', 'moron',
-  'jerk', 'bastard', 'bitch', 'whore', 'slut', 'asshole', 'fuck', 'shit',
-  'piss', 'pissed', 'pissing', 'cock', 'dick', 'pussy', 'cunt', 'twat'
+  'bastard',
+  'bitch',
+  'whore',
+  'slut',
+  'asshole',
+  'fuck',
+  'shit',
+  'pussy',
+  'cunt',
+  'twat',
 ];
 
 // Initialize the profanity filter with additional words

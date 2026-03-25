@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { Pencil, PlusCircle, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
@@ -6,6 +6,13 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Button } from "../components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 import { PortalShell } from "../components/portal/PortalShell";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -15,7 +22,7 @@ import {
   listPortalEvents,
   updateEvent,
 } from "../data/portalApi";
-import type { ContentStatus, EventRecord } from "../types/portal";
+import type { ContentStatus, EventPayload, EventRecord } from "../types/portal";
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/googleMaps";
 import { EVENT_CATEGORY_SUGGESTIONS } from "../constants/eventCategorySuggestions";
 import { AddressAutocompleteInput } from "../components/forms/AddressAutocompleteInput";
@@ -100,17 +107,219 @@ function plusOneHour(iso: string) {
   return new Date(new Date(iso).getTime() + 60 * 60 * 1000).toISOString();
 }
 
+function mapEventToForm(event: EventRecord, canModerate: boolean): EventFormState {
+  return {
+    title: event.title,
+    category: event.category ?? "",
+    description: event.description ?? "",
+    location: event.location,
+    locationLat: event.location_lat,
+    locationLng: event.location_lng,
+    startsAt: toInputDate(event.starts_at),
+    endsAt: event.ends_at ? toInputDate(event.ends_at) : "",
+    imageUrl: event.image_url ?? "",
+    status: canModerate || contributorStatuses.includes(event.status)
+      ? event.status
+      : "draft",
+    isSpotlight: event.is_spotlight,
+  };
+}
+
+function validateEventForm(form: EventFormState): string | null {
+  return validateRequired(form.title, "Event title")
+    || validateRequired(form.location, "Location")
+    || validateProfanity(form.title, "Event title")
+    || validateProfanity(form.category, "Category")
+    || validateProfanity(form.description, "Description")
+    || validateProfanity(form.location, "Location")
+    || validateUrl(form.imageUrl)
+    || validateMaxLength(form.title, "Event title", 200)
+    || validateMaxLength(form.category, "Category", 100)
+    || validateMaxLength(form.description, "Description", 1000)
+    || validateMaxLength(form.location, "Location", 500);
+}
+
+interface EventFormFieldsProps {
+  form: EventFormState;
+  setForm: Dispatch<SetStateAction<EventFormState>>;
+  statuses: ContentStatus[];
+  canModerate: boolean;
+  idPrefix: string;
+}
+
+function EventFormFields({
+  form,
+  setForm,
+  statuses,
+  canModerate,
+  idPrefix,
+}: EventFormFieldsProps) {
+  const titleId = `${idPrefix}-title`;
+  const categoryId = `${idPrefix}-category`;
+  const descriptionId = `${idPrefix}-description`;
+  const locationId = `${idPrefix}-location`;
+  const imageId = `${idPrefix}-image`;
+  const startsAtId = `${idPrefix}-starts`;
+  const endsAtId = `${idPrefix}-ends`;
+  const statusId = `${idPrefix}-status`;
+  const spotlightId = `${idPrefix}-spotlight`;
+
+  return (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={titleId}>Title</Label>
+          <Input
+            id={titleId}
+            value={form.title}
+            onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor={categoryId}>Category</Label>
+          <CategoryPicker
+            id={categoryId}
+            value={form.category}
+            onChange={(next) => setForm((prev) => ({ ...prev, category: next }))}
+            options={EVENT_CATEGORY_SUGGESTIONS}
+            allowCustom
+            placeholder="Choose or enter a category"
+            label="Event category"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor={descriptionId}>Description</Label>
+        <Textarea
+          id={descriptionId}
+          value={form.description}
+          onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={locationId}>Location</Label>
+          <AddressAutocompleteInput
+            id={locationId}
+            value={form.location}
+            onChange={(next) =>
+              setForm((prev) => ({
+                ...prev,
+                location: next,
+                locationLat: null,
+                locationLng: null,
+              }))
+            }
+            onPlaceResolved={(detail) => {
+              setForm((prev) => ({
+                ...prev,
+                location: detail.formattedAddress,
+                locationLat: detail.lat,
+                locationLng: detail.lng,
+              }));
+            }}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor={imageId}>Image URL</Label>
+          <Input
+            id={imageId}
+            value={form.imageUrl}
+            onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={startsAtId}>Starts at</Label>
+          <Input
+            id={startsAtId}
+            type="datetime-local"
+            value={form.startsAt}
+            onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor={endsAtId}>Ends at (optional)</Label>
+          <Input
+            id={endsAtId}
+            type="datetime-local"
+            value={form.endsAt}
+            onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={statusId}>Status</Label>
+          <select
+            id={statusId}
+            value={form.status}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
+            }
+            className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+          >
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </div>
+        {canModerate ? (
+          <div className="flex items-center gap-2 pt-7">
+            <input
+              id={spotlightId}
+              type="checkbox"
+              checked={form.isSpotlight}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, isSpotlight: event.target.checked }))
+              }
+            />
+            <Label htmlFor={spotlightId} className="font-normal mb-0">
+              Include in spotlight
+            </Label>
+          </div>
+        ) : null}
+      </div>
+    </>
+  );
+}
+
+interface ResolvedEventLocation {
+  lat: number | null;
+  lng: number | null;
+  geoNotice: string | null;
+}
+
 export function PortalEvents() {
   const { user, role } = useAuth();
   const { isLoaded: isMapsLoaded } = useJsApiLoader(GOOGLE_MAPS_LOADER_OPTIONS);
+
   const [events, setEvents] = useState<EventRecord[]>([]);
-  const [form, setForm] = useState<EventFormState>(defaultForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [originalLocation, setOriginalLocation] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [geoNotice, setGeoNotice] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+
+  const [createForm, setCreateForm] = useState<EventFormState>(defaultForm);
+  const [createSaving, setCreateSaving] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createGeoNotice, setCreateGeoNotice] = useState<string | null>(null);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EventFormState>(defaultForm);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editGeoNotice, setEditGeoNotice] = useState<string | null>(null);
+  const [editOriginalLocation, setEditOriginalLocation] = useState<string | null>(null);
 
   const canModerate = isModerator(role);
   const statuses = canModerate ? moderatorStatuses : contributorStatuses;
@@ -119,13 +328,13 @@ export function PortalEvents() {
     if (!user || !role) return;
 
     setLoading(true);
-    setError(null);
+    setListError(null);
     try {
       const data = await listPortalEvents(role, user.id);
       setEvents(data);
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not load events right now.");
+      setListError("Could not load events right now.");
     } finally {
       setLoading(false);
     }
@@ -140,80 +349,39 @@ export function PortalEvents() {
     [events],
   );
 
-  const resetForm = () => {
-    setEditingId(null);
-    setOriginalLocation(null);
-    setForm(defaultForm);
+  const closeEditDialog = () => {
+    setEditOpen(false);
+    setEditId(null);
+    setEditForm(defaultForm);
+    setEditError(null);
+    setEditGeoNotice(null);
+    setEditOriginalLocation(null);
   };
 
   const startEdit = (event: EventRecord) => {
-    setEditingId(event.id);
-    setOriginalLocation(event.location);
-    setForm({
-      title: event.title,
-      category: event.category ?? "",
-      description: event.description ?? "",
-      location: event.location,
-      locationLat: event.location_lat,
-      locationLng: event.location_lng,
-      startsAt: toInputDate(event.starts_at),
-      endsAt: event.ends_at ? toInputDate(event.ends_at) : "",
-      imageUrl: event.image_url ?? "",
-      status: canModerate || contributorStatuses.includes(event.status)
-        ? event.status
-        : "draft",
-      isSpotlight: event.is_spotlight,
-    });
+    setEditId(event.id);
+    setEditForm(mapEventToForm(event, canModerate));
+    setEditOriginalLocation(event.location);
+    setEditError(null);
+    setEditGeoNotice(null);
+    setEditOpen(true);
   };
 
-  const handleSave = async (submitEvent: FormEvent<HTMLFormElement>) => {
-    submitEvent.preventDefault();
-    if (!user) return;
-
-    setSaving(true);
-    setError(null);
-    setGeoNotice(null);
-
-    // Validate required fields
-    const titleError = validateRequired(form.title, "Event title");
-    const locationError = validateRequired(form.location, "Location");
-
-    // Validate profanity in text fields
-    const profanityTitleError = validateProfanity(form.title, "Event title");
-    const profanityCategoryError = validateProfanity(form.category, "Category");
-    const profanityDescriptionError = validateProfanity(form.description, "Description");
-    const profanityLocationError = validateProfanity(form.location, "Location");
-
-    // Validate input formats
-    const imageError = validateUrl(form.imageUrl);
-
-    // Validate length constraints
-    const titleLengthError = validateMaxLength(form.title, "Event title", 200);
-    const categoryLengthError = validateMaxLength(form.category, "Category", 100);
-    const descriptionLengthError = validateMaxLength(form.description, "Description", 1000);
-    const locationLengthError = validateMaxLength(form.location, "Location", 500);
-
-    // Check for any validation errors
-    const firstError = titleError || locationError ||
-                       profanityTitleError || profanityCategoryError || profanityDescriptionError || profanityLocationError ||
-                       imageError ||
-                       titleLengthError || categoryLengthError || descriptionLengthError || locationLengthError;
-
-    if (firstError) {
-      setError(firstError);
-      setSaving(false);
-      return;
-    }
-
+  const resolveLocationForSave = async (
+    form: EventFormState,
+    isEdit: boolean,
+    originalLocation: string | null,
+  ): Promise<ResolvedEventLocation> => {
     const locationText = form.location.trim();
-    let locationLat = form.locationLat;
-    let locationLng = form.locationLng;
+    let lat = form.locationLat;
+    let lng = form.locationLng;
+    let geoNotice: string | null = null;
 
     const shouldGeocodeFallback =
-      Boolean(locationText) &&
-      (locationLat == null || locationLng == null) &&
-      isMapsLoaded &&
-      Boolean(window.google?.maps?.Geocoder);
+      Boolean(locationText)
+      && (lat == null || lng == null)
+      && isMapsLoaded
+      && Boolean(window.google?.maps?.Geocoder);
 
     if (shouldGeocodeFallback) {
       try {
@@ -221,39 +389,43 @@ export function PortalEvents() {
         const geocode = await geocoder.geocode({ address: locationText });
         const location = geocode.results[0]?.geometry?.location;
         if (location) {
-          locationLat = location.lat();
-          locationLng = location.lng();
+          lat = location.lat();
+          lng = location.lng();
         } else {
-          if (!editingId || locationText !== (originalLocation ?? "")) {
-            locationLat = null;
-            locationLng = null;
+          if (!isEdit || locationText !== (originalLocation ?? "")) {
+            lat = null;
+            lng = null;
           }
-          setGeoNotice("Saved without map coordinates. Please double-check the location text if map placement looks off.");
+          geoNotice = "Saved without map coordinates. Please double-check the location text if map placement looks off.";
         }
       } catch (geoError) {
         console.error("Could not geocode event location", geoError);
-        if (!editingId || locationText !== (originalLocation ?? "")) {
-          locationLat = null;
-          locationLng = null;
+        if (!isEdit || locationText !== (originalLocation ?? "")) {
+          lat = null;
+          lng = null;
         }
-        setGeoNotice("Saved without map coordinates. Please double-check the location text if map placement looks off.");
+        geoNotice = "Saved without map coordinates. Please double-check the location text if map placement looks off.";
       }
-    } else if (!GOOGLE_MAPS_API_KEY && locationText && (locationLat == null || locationLng == null)) {
-      setGeoNotice("Saved without map coordinates because the Google Maps API key is missing.");
-    } else if (locationText && !isMapsLoaded && (locationLat == null || locationLng == null)) {
-      setGeoNotice("Saved without map coordinates because the map service is still loading. You can edit and resave shortly.");
+    } else if (!GOOGLE_MAPS_API_KEY && locationText && (lat == null || lng == null)) {
+      geoNotice = "Saved without map coordinates because the Google Maps API key is missing.";
+    } else if (locationText && !isMapsLoaded && (lat == null || lng == null)) {
+      geoNotice = "Saved without map coordinates because the map service is still loading. You can edit and resave shortly.";
     }
 
+    return { lat, lng, geoNotice };
+  };
+
+  const buildPayload = (
+    form: EventFormState,
+    locationLat: number | null,
+    locationLng: number | null,
+  ): EventPayload | null => {
     const normalizedImageUrl = normalizeHttpUrl(form.imageUrl);
     if (form.imageUrl.trim() && !normalizedImageUrl) {
-      setSaving(false);
-      setError("Image URL must be a valid URL (for example: https://images.unsplash.com/...).");
-      return;
+      return null;
     }
     if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
-      setSaving(false);
-      setError("Image URL cannot use placeholder domains like example.com or localhost.");
-      return;
+      return null;
     }
 
     const startsAtIso = toIso(form.startsAt) || new Date().toISOString();
@@ -262,46 +434,129 @@ export function PortalEvents() {
       ? endsAtCandidate
       : plusOneHour(startsAtIso);
 
-    const payload = {
+    return {
       title: form.title.trim(),
       category: form.category.trim() || null,
       description: form.description.trim() || null,
-      location: locationText,
+      location: form.location.trim(),
       location_lat: locationLat,
       location_lng: locationLng,
       starts_at: startsAtIso,
       ends_at: endsAtIso,
       image_url: normalizedImageUrl,
-      status: canModerate ? form.status : form.status,
+      status: form.status,
       is_spotlight: canModerate ? form.isSpotlight : false,
     };
+  };
+
+  const handleCreate = async (submitEvent: FormEvent<HTMLFormElement>) => {
+    submitEvent.preventDefault();
+    if (!user) return;
+
+    setCreateSaving(true);
+    setCreateError(null);
+    setCreateGeoNotice(null);
+
+    const validationError = validateEventForm(createForm);
+    if (validationError) {
+      setCreateError(validationError);
+      setCreateSaving(false);
+      return;
+    }
+
+    const resolvedLocation = await resolveLocationForSave(createForm, false, null);
+    setCreateGeoNotice(resolvedLocation.geoNotice);
+
+    const normalizedImageUrl = normalizeHttpUrl(createForm.imageUrl);
+    if (createForm.imageUrl.trim() && !normalizedImageUrl) {
+      setCreateSaving(false);
+      setCreateError("Image URL must be a valid URL (for example: https://images.unsplash.com/...).");
+      return;
+    }
+    if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
+      setCreateSaving(false);
+      setCreateError("Image URL cannot use placeholder domains like example.com or localhost.");
+      return;
+    }
+
+    const payload = buildPayload(createForm, resolvedLocation.lat, resolvedLocation.lng);
+    if (!payload) {
+      setCreateSaving(false);
+      setCreateError("Image URL must be a valid URL.");
+      return;
+    }
 
     try {
-      if (editingId) {
-        await updateEvent(editingId, payload);
-      } else {
-        await createEvent(payload);
-      }
-
-      resetForm();
+      await createEvent(payload);
+      setCreateForm(defaultForm);
       await loadEvents();
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not save this event. Check the required fields and try again.");
+      setCreateError("Could not create this event. Check the required fields and try again.");
     } finally {
-      setSaving(false);
+      setCreateSaving(false);
+    }
+  };
+
+  const handleEditSave = async (submitEvent: FormEvent<HTMLFormElement>) => {
+    submitEvent.preventDefault();
+    if (!editId) return;
+
+    setEditSaving(true);
+    setEditError(null);
+    setEditGeoNotice(null);
+
+    const validationError = validateEventForm(editForm);
+    if (validationError) {
+      setEditError(validationError);
+      setEditSaving(false);
+      return;
+    }
+
+    const resolvedLocation = await resolveLocationForSave(editForm, true, editOriginalLocation);
+    setEditGeoNotice(resolvedLocation.geoNotice);
+
+    const normalizedImageUrl = normalizeHttpUrl(editForm.imageUrl);
+    if (editForm.imageUrl.trim() && !normalizedImageUrl) {
+      setEditSaving(false);
+      setEditError("Image URL must be a valid URL (for example: https://images.unsplash.com/...).");
+      return;
+    }
+    if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
+      setEditSaving(false);
+      setEditError("Image URL cannot use placeholder domains like example.com or localhost.");
+      return;
+    }
+
+    const payload = buildPayload(editForm, resolvedLocation.lat, resolvedLocation.lng);
+    if (!payload) {
+      setEditSaving(false);
+      setEditError("Image URL must be a valid URL.");
+      return;
+    }
+
+    try {
+      await updateEvent(editId, payload);
+      closeEditDialog();
+      await loadEvents();
+    } catch (nextError) {
+      console.error(nextError);
+      setEditError("Could not save this event. Check the required fields and try again.");
+    } finally {
+      setEditSaving(false);
     }
   };
 
   const handleDelete = async (eventId: string) => {
     const confirmed = window.confirm("Delete this event?");
     if (!confirmed) return;
+
     try {
       await deleteEvent(eventId);
       await loadEvents();
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not delete this event.");
+      setListError("Could not delete this event.");
     }
   };
 
@@ -313,151 +568,27 @@ export function PortalEvents() {
       <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1fr] gap-8">
         <Card className="border-[#E7D9C3]">
           <CardHeader>
-            <CardTitle>{editingId ? "Edit event" : "Create event"}</CardTitle>
+            <CardTitle>Create event</CardTitle>
             <CardDescription>
               Use clear location/time details so attendees can plan confidently.
               {!canModerate ? " Draft stays private, published goes live immediately, and archived removes the event from public pages." : ""}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4" onSubmit={handleSave}>
-              {error ? <p className="text-sm text-red-600">{error}</p> : null}
-              {geoNotice ? <p className="text-sm text-amber-700">{geoNotice}</p> : null}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="event-title">Title</Label>
-                  <Input
-                    id="event-title"
-                    value={form.title}
-                    onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="event-category">Category</Label>
-                  <CategoryPicker
-                    id="event-category"
-                    value={form.category}
-                    onChange={(next) => setForm((prev) => ({ ...prev, category: next }))}
-                    options={EVENT_CATEGORY_SUGGESTIONS}
-                    allowCustom
-                    placeholder="Choose or enter a category"
-                    label="Event category"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="event-description">Description</Label>
-                <Textarea
-                  id="event-description"
-                  value={form.description}
-                  onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="event-location">Location</Label>
-                  <AddressAutocompleteInput
-                    id="event-location"
-                    value={form.location}
-                    onChange={(next) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        location: next,
-                        locationLat: null,
-                        locationLng: null,
-                      }))
-                    }
-                    onPlaceResolved={(detail) => {
-                      setForm((prev) => ({
-                        ...prev,
-                        location: detail.formattedAddress,
-                        locationLat: detail.lat,
-                        locationLng: detail.lng,
-                      }));
-                    }}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="event-image">Image URL</Label>
-                  <Input
-                    id="event-image"
-                    value={form.imageUrl}
-                    onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="event-starts">Starts at</Label>
-                  <Input
-                    id="event-starts"
-                    type="datetime-local"
-                    value={form.startsAt}
-                    onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="event-ends">Ends at (optional)</Label>
-                  <Input
-                    id="event-ends"
-                    type="datetime-local"
-                    value={form.endsAt}
-                    onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="event-status">Status</Label>
-                  <select
-                    id="event-status"
-                    value={form.status}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
-                    }
-                    className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                  >
-                    {statuses.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {canModerate ? (
-                  <div className="flex items-center gap-2 pt-7">
-                    <input
-                      id="event-spotlight"
-                      type="checkbox"
-                      checked={form.isSpotlight}
-                      onChange={(event) =>
-                        setForm((prev) => ({ ...prev, isSpotlight: event.target.checked }))
-                      }
-                    />
-                    <Label htmlFor="event-spotlight" className="font-normal mb-0">
-                      Include in spotlight
-                    </Label>
-                  </div>
-                ) : null}
-              </div>
-
+            <form className="space-y-4" onSubmit={handleCreate}>
+              {createError ? <p className="text-sm text-red-600">{createError}</p> : null}
+              {createGeoNotice ? <p className="text-sm text-amber-700">{createGeoNotice}</p> : null}
+              <EventFormFields
+                form={createForm}
+                setForm={setCreateForm}
+                statuses={statuses}
+                canModerate={canModerate}
+                idPrefix="event-create"
+              />
               <div className="flex flex-wrap gap-3">
-                <Button type="submit" disabled={saving}>
-                  <PlusCircle className="w-4 h-4" /> {saving ? "Saving..." : editingId ? "Update Event" : "Create Event"}
+                <Button type="submit" disabled={createSaving}>
+                  <PlusCircle className="w-4 h-4" /> {createSaving ? "Creating..." : "Create Event"}
                 </Button>
-                {editingId ? (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel Edit
-                  </Button>
-                ) : null}
               </div>
             </form>
           </CardContent>
@@ -470,6 +601,7 @@ export function PortalEvents() {
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <p className="text-sm text-[#6F7553]">Loading events...</p> : null}
+            {!loading && listError ? <p className="text-sm text-red-600">{listError}</p> : null}
             {!loading && sortedEvents.length === 0 ? (
               <p className="text-sm text-[#6F7553]">No events yet. Create one to get started.</p>
             ) : null}
@@ -519,6 +651,52 @@ export function PortalEvents() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog
+        open={editOpen}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            closeEditDialog();
+            return;
+          }
+          setEditOpen(true);
+        }}
+      >
+        <DialogContent
+          className="max-h-[85vh] overflow-hidden border-[#E7D9C3] p-0 sm:max-w-4xl"
+          onOpenAutoFocus={(event) => event.preventDefault()}
+        >
+          <DialogHeader className="border-b border-[#E7D9C3] px-6 pt-6 pb-4 pr-16">
+            <DialogTitle>Edit event</DialogTitle>
+            <DialogDescription>
+              Update this event and click save to confirm your edits.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="flex max-h-[calc(85vh-96px)] min-h-0 flex-col" onSubmit={handleEditSave}>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+              {editError ? <p className="text-sm text-red-600">{editError}</p> : null}
+              {editGeoNotice ? <p className="text-sm text-amber-700">{editGeoNotice}</p> : null}
+              <EventFormFields
+                form={editForm}
+                setForm={setEditForm}
+                statuses={statuses}
+                canModerate={canModerate}
+                idPrefix="event-edit"
+              />
+            </div>
+            <div className="border-t border-[#E7D9C3] bg-[#F6F1E7] px-6 py-3">
+              <div className="flex flex-wrap gap-3">
+                <Button type="submit" disabled={editSaving}>
+                  {editSaving ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button type="button" variant="outline" onClick={closeEditDialog}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </PortalShell>
   );
 }
