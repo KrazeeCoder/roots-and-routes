@@ -20,6 +20,11 @@ export function Layout() {
   const currentPath = location.pathname;
 
   useEffect(() => {
+    if (location.hash) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.hash]);
+
+  useEffect(() => {
     if (!location.hash) return;
 
     const id = decodeURIComponent(location.hash.slice(1));
