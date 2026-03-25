@@ -5,11 +5,11 @@ import {
   RESOURCE_CATEGORY_META,
 } from "../../constants/resourceCategories";
 
-export function WaypointsSection() {
-  const waypoints = RESOURCE_CATEGORIES.map((category) => ({
+export function ResourcesSection() {
+  const resourceHighlights = RESOURCE_CATEGORIES.map((category) => ({
     category,
     icon: RESOURCE_CATEGORY_META[category].icon,
-    desc: RESOURCE_CATEGORY_META[category].waypointDescription,
+    desc: RESOURCE_CATEGORY_META[category].resourceDescription,
   })).slice(0, 4);
 
   return (
@@ -31,15 +31,15 @@ export function WaypointsSection() {
       <div className="relative max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <ScrollReveal className="text-center max-w-3xl mx-auto mb-10">
           <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-semibold text-[#334233] mb-4">
-            Community Waypoints
+            Community Resources
           </h2>
           <p className="text-[#5B473A] text-lg font-light leading-relaxed">
-            Discover support along your journey. These waypoints mark important stops on your path to community connection.
+            Discover support in one place. These community resources help people connect with the services they need.
           </p>
         </ScrollReveal>
 
         <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" fast>
-          {waypoints.map((point, index) => (
+          {resourceHighlights.map((point, index) => (
             <StaggerItem key={`${point.category}-${index}`}>
               <Link
                 to={`/directory?category=${encodeURIComponent(point.category)}`}
@@ -74,7 +74,7 @@ export function WaypointsSection() {
             to="/directory"
             className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-[#334233] text-[#334233] font-semibold text-sm hover:bg-[#334233] hover:text-[#F6F1E7] transition-colors"
           >
-            Explore All Categories
+            Explore All Resources
           </Link>
         </ScrollReveal>
       </div>

@@ -181,9 +181,9 @@ export function About() {
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div className="text-5xl font-bold text-[#334233]">
-                  <CountUp end={6} />
+                  <CountUp end={27} />
                 </div>
-                <div className="mt-2 text-sm text-[#5B473A]">Community resource categories covered</div>
+                <div className="mt-2 text-sm text-[#5B473A]">Resources listed in the hub</div>
               </div>
             </StaggerItem>
             <StaggerItem>
@@ -192,9 +192,9 @@ export function About() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div className="text-5xl font-bold text-[#334233]">
-                  <CountUp end={3} />
+                  <CountUp end={150} />
                 </div>
-                <div className="mt-2 text-sm text-[#5B473A]">Minimum spotlighted resources highlighted</div>
+                <div className="mt-2 text-sm text-[#5B473A]">Community members reached</div>
               </div>
             </StaggerItem>
           </StaggerGroup>

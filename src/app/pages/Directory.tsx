@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useDeferredValue } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Search, MapPin, Phone, Globe, Clock, Filter, X, ChevronRight, Mail } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
@@ -46,9 +46,9 @@ export function Directory() {
   const [loadingEntries, setLoadingEntries] = useState(true);
   const [engagementByEntry, setEngagementByEntry] = useState<Record<string, SpotlightEngagement>>({});
   const [query, setQuery] = useState(queryParam);
+  const deferredQuery = useDeferredValue(query);
   const [activeCategory, setActiveCategory] = useState<ResourceCategoryFilter>(categoryParam);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [resultsPulse, setResultsPulse] = useState(false);
 
   useEffect(() => {
     setQuery(queryParam);
@@ -116,7 +116,7 @@ export function Directory() {
   };
 
   const queryFiltered = useMemo(() => {
-    const q = query.toLowerCase().trim();
+    const q = deferredQuery.toLowerCase().trim();
     return entries.filter((entry) => {
       const matchesQuery =
         !q ||
@@ -125,24 +125,13 @@ export function Directory() {
         entry.tags.some((t) => t.toLowerCase().includes(q));
       return matchesQuery;
     });
-  }, [query, entries]);
+  }, [deferredQuery, entries]);
 
   const filtered = useMemo(
     () =>
       queryFiltered.filter((entry) => activeCategory === "All" || entry.category === activeCategory),
     [activeCategory, queryFiltered],
   );
-  const resourcesAnimationKey = `${query}-${activeCategory}`;
-  useEffect(() => {
-    if (loadingEntries) return;
-
-    setResultsPulse(true);
-    const pulseTimeout = setTimeout(() => {
-      setResultsPulse(false);
-    }, 450);
-
-    return () => clearTimeout(pulseTimeout);
-  }, [query, activeCategory, loadingEntries]);
 
   const allCategories: ResourceCategoryFilter[] = useMemo(
     () => ["All", ...RESOURCE_CATEGORIES],
@@ -195,7 +184,7 @@ export function Directory() {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#B36A4C]/20 border border-[#B36A4C]/30 text-[#E7D9C3] text-sm font-medium mb-6"
             >
               <MapPin className="w-3.5 h-3.5 text-[#B36A4C]" />
-              Community Pathways
+              Community Resources
             </motion.div>
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -231,7 +220,7 @@ export function Directory() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by name, category, or keyword…"
+                placeholder="Search by name, category, or keyword..."
                 className="block w-full pl-11 pr-12 py-4 text-base border-2 border-[#5B473A]/40 rounded-xl bg-white/10 backdrop-blur-sm text-white placeholder-[#A7AE8A] focus:outline-none focus:border-[#B36A4C] transition-all"
               />
               {query && (
@@ -359,36 +348,18 @@ export function Directory() {
               </motion.div>
             ) : (
               <motion.div
-                key={resourcesAnimationKey}
                 layout
                 className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                initial={{ opacity: 0.15, y: 20, scale: 0.98 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                  scale: resultsPulse ? 1.015 : 1,
-                }}
-                transition={{
-                  duration: 0.35,
-                  ease: [0.4, 0, 0.2, 1],
-                  scale: { type: "spring", stiffness: 260, damping: 24 },
-                }}
+                transition={{ layout: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } }}
               >
-                <AnimatePresence mode="popLayout">
-                  {filtered.map((entry, i) => (
-                    <motion.div
-                      layout
-                      key={entry.id}
-                      initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                      transition={{ 
-                        duration: 0.5, 
-                        delay: Math.min(i * 0.05, 0.4), 
-                        ease: [0.22, 1, 0.36, 1] 
-                      }}
-                      className="group flex flex-col bg-white rounded-3xl border border-[#E7D9C3] shadow-sm hover:border-[#A7AE8A] hover:shadow-md transition-all overflow-hidden"
-                    >
+                {filtered.map((entry) => (
+                  <motion.div
+                    layout="position"
+                    key={entry.id}
+                    initial={false}
+                    transition={{ layout: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } }}
+                    className="group flex flex-col bg-white rounded-3xl border border-[#E7D9C3] shadow-sm hover:border-[#A7AE8A] hover:shadow-md transition-all overflow-hidden"
+                  >
                       {/* Image */}
                       {entry.image && (
                         <Link to={`/resources/${entry.id}`} className="h-40 overflow-hidden flex-shrink-0 relative block">
@@ -511,9 +482,8 @@ export function Directory() {
                           )}
                         </div>
                       </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                  </motion.div>
+                ))}
               </motion.div>
             )}
           </div>
@@ -522,4 +492,5 @@ export function Directory() {
     </div>
   );
 }
+
 

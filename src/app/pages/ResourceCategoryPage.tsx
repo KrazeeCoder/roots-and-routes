@@ -8,7 +8,7 @@ import {
   type ResourceCategory,
 } from '../constants/resourceCategories';
 
-interface WaypointResource {
+interface CategoryResource {
   id: string;
   name: string;
   category: string;
@@ -35,10 +35,10 @@ function getCategoryColors(category: string) {
   };
 }
 
-export function WaypointCategory() {
+export function ResourceCategoryPage() {
   const [searchParams] = useSearchParams();
   const category = searchParams.get('category') || '';
-  const [resources, setResources] = useState<WaypointResource[]>([]);
+  const [resources, setResources] = useState<CategoryResource[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -111,7 +111,7 @@ export function WaypointCategory() {
               Back to Home
             </Link>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-[#6F7553] font-medium">Essential Waypoints</span>
+              <span className="text-sm text-[#6F7553] font-medium">Essential Resources</span>
               <span className="text-[#C2B99E]">/</span>
               <span className={`text-sm font-bold ${colors.text}`}>{category}</span>
             </div>

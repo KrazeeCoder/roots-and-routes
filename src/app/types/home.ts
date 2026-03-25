@@ -38,7 +38,7 @@ export interface HomepageTestimonial {
   imageLicense: string;
 }
 
-export interface Waypoint {
+export interface ResourceRoute {
   name: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   desc: string;
