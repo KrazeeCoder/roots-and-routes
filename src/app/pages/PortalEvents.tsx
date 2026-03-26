@@ -58,8 +58,8 @@ const defaultForm: EventFormState = {
   isSpotlight: false,
 };
 
-const contributorStatuses: ContentStatus[] = ["draft", "published", "archived"];
-const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
+const contributorStatuses: ContentStatus[] = ["draft", "published"];
+const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected"];
 
 function normalizeHttpUrl(raw: string) {
   const trimmed = raw.trim();
@@ -108,6 +108,7 @@ function plusOneHour(iso: string) {
 }
 
 function mapEventToForm(event: EventRecord, canModerate: boolean): EventFormState {
+  const allowedStatuses = canModerate ? moderatorStatuses : contributorStatuses;
   return {
     title: event.title,
     category: event.category ?? "",
@@ -118,7 +119,7 @@ function mapEventToForm(event: EventRecord, canModerate: boolean): EventFormStat
     startsAt: toInputDate(event.starts_at),
     endsAt: event.ends_at ? toInputDate(event.ends_at) : "",
     imageUrl: event.image_url ?? "",
-    status: canModerate || contributorStatuses.includes(event.status)
+    status: allowedStatuses.includes(event.status)
       ? event.status
       : "draft",
     isSpotlight: event.is_spotlight,
@@ -563,7 +564,7 @@ export function PortalEvents() {
   return (
     <PortalShell
       title="Manage Events"
-      description="Create and update upcoming events. Approved contributors can publish events immediately, save drafts, or archive old listings."
+      description="Create and update upcoming events. Approved contributors can publish events immediately or save drafts."
     >
       <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_1fr] gap-8">
         <Card className="border-[#E7D9C3]">
@@ -571,7 +572,7 @@ export function PortalEvents() {
             <CardTitle>Create event</CardTitle>
             <CardDescription>
               Use clear location/time details so attendees can plan confidently.
-              {!canModerate ? " Draft stays private, published goes live immediately, and archived removes the event from public pages." : ""}
+              {!canModerate ? " Draft stays private and published goes live immediately." : ""}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -597,7 +598,7 @@ export function PortalEvents() {
         <Card className="border-[#E7D9C3]">
           <CardHeader>
             <CardTitle>Your event listings</CardTitle>
-            <CardDescription>Published events go live immediately for approved contributors. Archived events remain available here for maintenance.</CardDescription>
+            <CardDescription>Published events go live immediately for approved contributors.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <p className="text-sm text-[#6F7553]">Loading events...</p> : null}

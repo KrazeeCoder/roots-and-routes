@@ -154,7 +154,7 @@ export function ContributorLogin() {
         return;
       }
 
-      setMessage("Account created. Your account is pending administrator approval. After approval, you can publish official resources and events directly. Check your email to verify your address first.");
+      setMessage("Account created. Your account is pending moderator approval. After approval, you can publish official resources and events directly. Check your email to verify your address first.");
       setMode("signin");
       setEmail(signUp.email);
       setPassword("");
@@ -187,10 +187,13 @@ export function ContributorLogin() {
         <div className="text-center mb-12">
           <p className="text-sm font-semibold uppercase tracking-wider text-[#6F7553]">Roots & Routes</p>
           <h1 className="font-['Cormorant_Garamond',serif] text-5xl font-bold text-[#334233]">
-            Admin & Contributor Portal
+            Moderator & Contributor Portal
           </h1>
           <p className="mt-3 text-[#5B473A] max-w-2xl mx-auto">
-            Administrators and approved contributors manage official local resources and events. Public browsing and public proposal forms remain open for everyone.
+            Moderators and approved contributors manage official local resources and events. Public browsing and public proposal forms remain open for everyone.
+          </p>
+          <p className="mt-3 text-[#000000] max-w-2xl mx-auto">
+            Note for TSA Judges: Please use the "Demo Credentials" on the right to access a pre-approved contributor account or moderator account for evaluation. 
           </p>
         </div>
 
@@ -470,7 +473,7 @@ export function ContributorLogin() {
                   </div>
 
                   <div className="p-3 rounded-xl bg-white border border-[#E7D9C3] text-sm shadow-sm hover:border-[#B36A4C]/50 transition-colors">
-                    <p className="font-bold text-[#334233] text-[10px] uppercase tracking-wider mb-2 text-[#B36A4C]">Admin Access</p>
+                    <p className="font-bold text-[#334233] text-[10px] uppercase tracking-wider mb-2 text-[#B36A4C]">Moderator Access</p>
                     <div className="space-y-2 mb-3">
                       <div>
                         <p className="text-[10px] font-semibold text-[#5B473A] mb-1">Username:</p>
@@ -492,7 +495,7 @@ export function ContributorLogin() {
                         setPassword("judges!!");
                       }}
                     >
-                      Autofill Admin
+                      Autofill Moderator
                     </Button>
                   </div>
                 </div>

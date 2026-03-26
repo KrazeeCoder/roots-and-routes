@@ -74,8 +74,8 @@ const defaultForm: ResourceFormState = {
   spotlightSubtitle: "",
 };
 
-const contributorStatuses: ContentStatus[] = ["draft", "published", "archived"];
-const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected", "archived"];
+const contributorStatuses: ContentStatus[] = ["draft", "published"];
+const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected"];
 
 function normalizeHttpUrl(raw: string) {
   const trimmed = raw.trim();
@@ -95,6 +95,7 @@ function normalizeHttpUrl(raw: string) {
 }
 
 function mapResourceToForm(resource: ResourceRecord, canModerate: boolean): ResourceFormState {
+  const allowedStatuses = canModerate ? moderatorStatuses : contributorStatuses;
   return {
     name: resource.name,
     category: resource.category,
@@ -107,7 +108,7 @@ function mapResourceToForm(resource: ResourceRecord, canModerate: boolean): Reso
     hours: resource.hours ?? "",
     tags: [...resource.tags],
     imageUrl: resource.image_url ?? "",
-    status: canModerate || contributorStatuses.includes(resource.status)
+    status: allowedStatuses.includes(resource.status)
       ? resource.status
       : "draft",
     isSpotlight: resource.is_spotlight,
@@ -539,7 +540,7 @@ export function PortalResources() {
             <CardTitle>Create resource</CardTitle>
             <CardDescription>
               Keep listing details clear and current so residents can find help quickly.
-              {!canModerate ? " Draft stays private, published goes live immediately, and archived hides the listing from public pages." : ""}
+              {!canModerate ? " Draft stays private and published goes live immediately." : ""}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -564,7 +565,7 @@ export function PortalResources() {
         <Card className="border-[#E7D9C3]">
           <CardHeader>
             <CardTitle>Your resource listings</CardTitle>
-            <CardDescription>Published listings are live right away for approved contributors. Archived listings stay here for reference.</CardDescription>
+            <CardDescription>Published listings are live right away for approved contributors.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <p className="text-sm text-[#6F7553]">Loading resources...</p> : null}

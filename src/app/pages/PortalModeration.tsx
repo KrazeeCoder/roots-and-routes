@@ -33,10 +33,21 @@ import type {
 } from "../types/portal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 
-const resourceModerationStatuses: ContentStatus[] = ["draft", "published", "rejected", "archived", "pending"];
-const eventModerationStatuses: ContentStatus[] = ["draft", "published", "rejected", "archived", "pending"];
+const resourceModerationStatuses: ContentStatus[] = ["draft", "published", "rejected", "pending"];
+const eventModerationStatuses: ContentStatus[] = ["draft", "published", "rejected", "pending"];
 const CONTENT_PAGE_SIZE = 12;
 type StatusFilter = "all" | ContentStatus;
+
+function getErrorMessage(error: unknown) {
+  if (typeof error !== "object" || error === null) return "";
+  if (!("message" in error)) return "";
+  const maybeMessage = (error as { message?: unknown }).message;
+  return typeof maybeMessage === "string" ? maybeMessage : "";
+}
+
+function isAlreadyReviewedError(error: unknown) {
+  return getErrorMessage(error).toLowerCase().includes("already been reviewed");
+}
 
 export function PortalModeration() {
   const [resourceSubmissions, setResourceSubmissions] = useState<ResourceSubmissionRecord[]>([]);
@@ -52,6 +63,8 @@ export function PortalModeration() {
   const [eventStatusFilter, setEventStatusFilter] = useState<StatusFilter>("all");
   const [resourcePage, setResourcePage] = useState(1);
   const [eventPage, setEventPage] = useState(1);
+  const [resourceSubmissionBusy, setResourceSubmissionBusy] = useState<Record<string, boolean>>({});
+  const [eventSubmissionBusy, setEventSubmissionBusy] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -138,6 +151,16 @@ export function PortalModeration() {
       return matchesStatus && matchesQuery;
     });
   }, [events, eventSearch, eventStatusFilter]);
+
+  const pendingResourceContent = useMemo(
+    () => resources.filter((resource) => resource.status === "pending"),
+    [resources],
+  );
+
+  const pendingEventContent = useMemo(
+    () => events.filter((event) => event.status === "pending"),
+    [events],
+  );
 
   const resourceTotalPages = Math.max(1, Math.ceil(filteredResources.length / CONTENT_PAGE_SIZE));
   const eventTotalPages = Math.max(1, Math.ceil(filteredEvents.length / CONTENT_PAGE_SIZE));
@@ -226,42 +249,82 @@ export function PortalModeration() {
   };
 
   const handleApproveResourceSubmission = async (id: string) => {
+    if (resourceSubmissionBusy[id]) return;
+    setResourceSubmissionBusy((prev) => ({ ...prev, [id]: true }));
+
     try {
       await approveResourceSubmission(id);
       await loadQueue();
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not approve this resource submission.");
+      if (isAlreadyReviewedError(nextError)) {
+        setError("This resource submission was already reviewed. Refreshed moderation queues.");
+        await loadQueue();
+      } else {
+        setError("Could not approve this resource submission.");
+      }
+    } finally {
+      setResourceSubmissionBusy((prev) => ({ ...prev, [id]: false }));
     }
   };
 
   const handleRejectResourceSubmission = async (id: string) => {
+    if (resourceSubmissionBusy[id]) return;
+    setResourceSubmissionBusy((prev) => ({ ...prev, [id]: true }));
+
     try {
       await rejectResourceSubmission(id, resourceNotes[id]);
       await loadQueue();
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not reject this resource submission.");
+      if (isAlreadyReviewedError(nextError)) {
+        setError("This resource submission was already reviewed. Refreshed moderation queues.");
+        await loadQueue();
+      } else {
+        setError("Could not reject this resource submission.");
+      }
+    } finally {
+      setResourceSubmissionBusy((prev) => ({ ...prev, [id]: false }));
     }
   };
 
   const handleApproveEventSubmission = async (id: string) => {
+    if (eventSubmissionBusy[id]) return;
+    setEventSubmissionBusy((prev) => ({ ...prev, [id]: true }));
+
     try {
       await approveEventSubmission(id);
       await loadQueue();
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not approve this event submission.");
+      if (isAlreadyReviewedError(nextError)) {
+        setError("This event submission was already reviewed. Refreshed moderation queues.");
+        await loadQueue();
+      } else {
+        setError("Could not approve this event submission.");
+      }
+    } finally {
+      setEventSubmissionBusy((prev) => ({ ...prev, [id]: false }));
     }
   };
 
   const handleRejectEventSubmission = async (id: string) => {
+    if (eventSubmissionBusy[id]) return;
+    setEventSubmissionBusy((prev) => ({ ...prev, [id]: true }));
+
     try {
       await rejectEventSubmission(id, eventNotes[id]);
       await loadQueue();
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not reject this event submission.");
+      if (isAlreadyReviewedError(nextError)) {
+        setError("This event submission was already reviewed. Refreshed moderation queues.");
+        await loadQueue();
+      } else {
+        setError("Could not reject this event submission.");
+      }
+    } finally {
+      setEventSubmissionBusy((prev) => ({ ...prev, [id]: false }));
     }
   };
 
@@ -284,17 +347,17 @@ export function PortalModeration() {
           </TabsTrigger>
           <TabsTrigger value="resource-submissions" className="data-[state=active]:bg-white">
             Resource Proposals
-            {resourceSubmissions.length > 0 ? (
+            {resourceSubmissions.length + pendingResourceContent.length > 0 ? (
               <span className="ml-2 rounded-full bg-[#B36A4C] px-1.5 py-0.5 text-[10px] text-white">
-                {resourceSubmissions.length}
+                {resourceSubmissions.length + pendingResourceContent.length}
               </span>
             ) : null}
           </TabsTrigger>
           <TabsTrigger value="event-submissions" className="data-[state=active]:bg-white">
             Event Proposals
-            {eventSubmissions.length > 0 ? (
+            {eventSubmissions.length + pendingEventContent.length > 0 ? (
               <span className="ml-2 rounded-full bg-[#B36A4C] px-1.5 py-0.5 text-[10px] text-white">
-                {eventSubmissions.length}
+                {eventSubmissions.length + pendingEventContent.length}
               </span>
             ) : null}
           </TabsTrigger>
@@ -370,8 +433,8 @@ export function PortalModeration() {
             </CardHeader>
             <CardContent className="space-y-4">
               {loading ? <p className="text-sm text-[#6F7553]">Loading resource proposals...</p> : null}
-              {!loading && resourceSubmissions.length === 0 ? (
-                <p className="text-sm text-[#6F7553]">No pending resource proposals.</p>
+              {!loading && resourceSubmissions.length === 0 && pendingResourceContent.length === 0 ? (
+                <p className="text-sm text-[#6F7553]">No resources are pending moderation.</p>
               ) : null}
 
               {resourceSubmissions.map((submission) => (
@@ -430,10 +493,19 @@ export function PortalModeration() {
                         />
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <Button size="sm" onClick={() => void handleApproveResourceSubmission(submission.id)}>
-                          Approve & Publish
+                        <Button
+                          size="sm"
+                          disabled={Boolean(resourceSubmissionBusy[submission.id])}
+                          onClick={() => void handleApproveResourceSubmission(submission.id)}
+                        >
+                          {resourceSubmissionBusy[submission.id] ? "Working..." : "Approve & Publish"}
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => void handleRejectResourceSubmission(submission.id)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={Boolean(resourceSubmissionBusy[submission.id])}
+                          onClick={() => void handleRejectResourceSubmission(submission.id)}
+                        >
                           Reject
                         </Button>
                       </div>
@@ -441,6 +513,36 @@ export function PortalModeration() {
                   </div>
                 </div>
               ))}
+
+              {pendingResourceContent.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
+                    Existing Resources Returned To Review
+                  </p>
+                  {pendingResourceContent.map((resource) => (
+                    <div key={resource.id} className="rounded-2xl border border-[#E7D9C3] bg-[#F6F1E7] p-5">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-[#6F7553]">{resource.category}</p>
+                          <h3 className="text-xl font-semibold text-[#334233]">{resource.name}</h3>
+                          <p className="mt-1 text-sm text-[#5B473A]">{resource.address}</p>
+                          <p className="mt-2 text-xs text-[#6F7553]">
+                            Last updated {new Date(resource.updated_at).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" onClick={() => void handleResourceStatus(resource.id, "published")}>
+                            Approve & Publish
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => void handleResourceStatus(resource.id, "rejected")}>
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </TabsContent>
@@ -458,8 +560,8 @@ export function PortalModeration() {
             </CardHeader>
             <CardContent className="space-y-4">
               {loading ? <p className="text-sm text-[#6F7553]">Loading event proposals...</p> : null}
-              {!loading && eventSubmissions.length === 0 ? (
-                <p className="text-sm text-[#6F7553]">No pending event proposals.</p>
+              {!loading && eventSubmissions.length === 0 && pendingEventContent.length === 0 ? (
+                <p className="text-sm text-[#6F7553]">No events are pending moderation.</p>
               ) : null}
 
               {eventSubmissions.map((submission) => (
@@ -508,10 +610,19 @@ export function PortalModeration() {
                         />
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <Button size="sm" onClick={() => void handleApproveEventSubmission(submission.id)}>
-                          Approve & Publish
+                        <Button
+                          size="sm"
+                          disabled={Boolean(eventSubmissionBusy[submission.id])}
+                          onClick={() => void handleApproveEventSubmission(submission.id)}
+                        >
+                          {eventSubmissionBusy[submission.id] ? "Working..." : "Approve & Publish"}
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => void handleRejectEventSubmission(submission.id)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={Boolean(eventSubmissionBusy[submission.id])}
+                          onClick={() => void handleRejectEventSubmission(submission.id)}
+                        >
                           Reject
                         </Button>
                       </div>
@@ -519,18 +630,53 @@ export function PortalModeration() {
                   </div>
                 </div>
               ))}
+
+              {pendingEventContent.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
+                    Existing Events Returned To Review
+                  </p>
+                  {pendingEventContent.map((event) => (
+                    <div key={event.id} className="rounded-2xl border border-[#E7D9C3] bg-[#F6F1E7] p-5">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-[#6F7553]">{event.category || "Community Event"}</p>
+                          <h3 className="text-xl font-semibold text-[#334233]">{event.title}</h3>
+                          <p className="mt-1 text-sm text-[#5B473A]">
+                            {new Date(event.starts_at).toLocaleString()} | {event.location}
+                          </p>
+                          <p className="mt-2 text-xs text-[#6F7553]">
+                            Last updated {new Date(event.updated_at).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" onClick={() => void handleEventStatus(event.id, "published")}>
+                            Approve & Publish
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => void handleEventStatus(event.id, "rejected")}>
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="content-library" className="space-y-8">
-          <Tabs defaultValue="event-library" className="space-y-6">
+          <p className="text-sm text-[#6F7553]">
+            Setting an existing resource/event to pending returns it to the moderation review tabs for another approve/reject cycle.
+          </p>
+          <Tabs defaultValue="resource-library" className="space-y-6">
             <TabsList className="bg-[#E7D9C3]/30 p-1">
-              <TabsTrigger value="event-library" className="data-[state=active]:bg-white">
-                Event Library
-              </TabsTrigger>
               <TabsTrigger value="resource-library" className="data-[state=active]:bg-white">
                 Resource Library
+              </TabsTrigger>
+              <TabsTrigger value="event-library" className="data-[state=active]:bg-white">
+                Event Library
               </TabsTrigger>
             </TabsList>
 
@@ -542,7 +688,7 @@ export function PortalModeration() {
                     Event Library
                   </CardTitle>
                   <CardDescription>
-                    Search, filter, and page through published, draft, and archived events.
+                    Search, filter, and page through published, draft, pending, and rejected events.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -658,7 +804,7 @@ export function PortalModeration() {
                     Resource Library
                   </CardTitle>
                   <CardDescription>
-                    Search, filter, and page through published, draft, and archived resources.
+                    Search, filter, and page through published, draft, pending, and rejected resources.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

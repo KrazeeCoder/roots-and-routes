@@ -685,7 +685,7 @@ export function Events() {
                   <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:gap-4">
                     {featuredHref ? (
                       <Button variant="default" className="w-full sm:w-auto" asChild>
-                        <Link to={featuredHref}>RSVP & Details</Link>
+                        <Link to={featuredHref}>View Details</Link>
                       </Button>
                     ) : (
                       <Button variant="default" className="w-full sm:w-auto">

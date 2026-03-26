@@ -322,11 +322,16 @@ export function Suggest() {
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.2}>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button asChild><Link to="/contributor-login">Contributor Portal</Link></Button>
-                <Button asChild variant="outline" className="border-[#E7D9C3] bg-transparent text-[#F6F1E7] hover:bg-[#F6F1E7] hover:text-[#334233]">
-                  <Link to="/directory">Browse Resources</Link>
-                </Button>
+              <div className="mt-8">
+                <div className="flex flex-wrap gap-3">
+                  <Button asChild><Link to="/contributor-login">Contributor Portal</Link></Button>
+                  <Button asChild variant="outline" className="border-[#E7D9C3] bg-transparent text-[#F6F1E7] hover:bg-[#F6F1E7] hover:text-[#334233]">
+                    <Link to="/directory">Browse Resources</Link>
+                  </Button>
+                </div>
+                <h1 className="mt-6 text-base sm:text-lg text-[#FFFFFF]">
+                  TSA judges: contributor login information is on the Login page.
+                </h1>
               </div>
             </ScrollReveal>
           </div>

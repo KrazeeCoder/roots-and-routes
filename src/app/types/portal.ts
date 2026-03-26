@@ -6,8 +6,7 @@ export type ContentStatus =
   | "draft"
   | "pending"
   | "published"
-  | "rejected"
-  | "archived";
+  | "rejected";
 
 export interface ContributorProfile {
   id: string;

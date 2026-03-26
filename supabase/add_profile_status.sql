@@ -72,7 +72,7 @@ WITH CHECK (
   )
   AND (
     public.is_moderator()
-    OR status IN ('draft', 'pending', 'archived')
+    OR status IN ('draft', 'pending')
   )
 );
 
@@ -105,6 +105,6 @@ WITH CHECK (
   )
   AND (
     public.is_moderator()
-    OR status IN ('draft', 'pending', 'archived')
+    OR status IN ('draft', 'pending')
   )
 );

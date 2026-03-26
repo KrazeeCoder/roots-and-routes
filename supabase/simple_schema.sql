@@ -803,7 +803,7 @@ with check (
   )
   and (
     public.is_moderator()
-    or status in ('draft', 'published', 'archived')
+    or status in ('draft', 'published')
   )
 );
 
@@ -838,7 +838,7 @@ with check (
   )
   and (
     public.is_moderator()
-    or status in ('draft', 'published', 'archived')
+    or status in ('draft', 'published')
   )
 );
 
@@ -883,7 +883,7 @@ with check (
   )
   and (
     public.is_moderator()
-    or status in ('draft', 'published', 'archived')
+    or status in ('draft', 'published')
   )
 );
 
@@ -918,7 +918,7 @@ with check (
   )
   and (
     public.is_moderator()
-    or status in ('draft', 'published', 'archived')
+    or status in ('draft', 'published')
   )
 );
 

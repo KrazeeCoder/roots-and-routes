@@ -13,7 +13,7 @@ export interface DirectoryEntry {
   tags: string[];
   image?: string | null;
   postedByName?: string;
-  status?: "draft" | "pending" | "published" | "rejected" | "archived";
+  status?: "draft" | "pending" | "published" | "rejected";
 }
 
 export interface SpotlightItem {
@@ -63,5 +63,5 @@ export interface EventItem {
   postedByName?: string;
   locationLat?: number | null;
   locationLng?: number | null;
-  status?: "draft" | "pending" | "published" | "rejected" | "archived";
+  status?: "draft" | "pending" | "published" | "rejected";
 }
