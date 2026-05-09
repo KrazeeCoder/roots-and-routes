@@ -596,46 +596,46 @@ export function Events() {
 
       <section id="featured" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
         <ScrollReveal>
-          <div className="mb-12 rounded-3xl border-2 border-[#B36A4C]/45 bg-gradient-to-r from-[#FFF9EF] via-[#F6F1E7] to-[#EEDFC9] p-5 sm:p-6 shadow-lg ring-1 ring-[#B36A4C]/25">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-3xl">
+          <div className="mb-8 rounded-2xl border-2 border-[#B36A4C]/45 bg-gradient-to-r from-[#FFF9EF] via-[#F6F1E7] to-[#EEDFC9] p-4 sm:p-5 shadow-md ring-1 ring-[#B36A4C]/25">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-2xl">
                 <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#7E664F]">Event Calendar</p>
-                <h2 className="font-['Cormorant_Garamond',serif] text-2xl sm:text-3xl font-bold text-[#334233] mt-2">
+                <h2 className="font-['Cormorant_Garamond',serif] text-xl sm:text-2xl font-bold text-[#334233] mt-1">
                   Need the full month-at-a-glance?
                 </h2>
-                <p className="text-[#5B473A] text-sm sm:text-base mt-2 leading-relaxed">
+                <p className="text-[#5B473A] text-sm mt-1 leading-relaxed">
                   Open the community calendar to click dates and review day-specific events instantly.
                 </p>
               </div>
               <Button
                 variant="default"
                 asChild
-                className="w-full sm:w-auto sm:min-w-64 h-12 px-8 text-base font-semibold rounded-lg shadow-md"
+                className="w-full sm:w-auto sm:min-w-48 h-10 px-6 text-sm font-semibold rounded-md shadow-sm"
               >
-                <Link to="/calendar" className="inline-flex items-center justify-center gap-2.5">
-                  <Calendar className="size-5" /> Open Full Calendar
+                <Link to="/calendar" className="inline-flex items-center justify-center gap-2">
+                  <Calendar className="size-4" /> Open Full Calendar
                 </Link>
               </Button>
             </div>
           </div>
         </ScrollReveal>
 
-        <div className="flex flex-col lg:flex-row gap-10 lg:items-center">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-center">
           <div className="flex-1">
             <ScrollReveal>
-              <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-5">
+              <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233] mb-4">
                 Featured Gathering
               </h2>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
-              <p className="text-[#5B473A] text-lg font-light max-w-2xl leading-relaxed">
+              <p className="text-[#5B473A] text-base font-light max-w-2xl leading-relaxed">
                 Highlighting a community moment we think you'll want to save to your calendar. Tap into the energy,
                 meet local folks, and find support where it matters most.
               </p>
             </ScrollReveal>
 
             <ScrollReveal delay={0.2}>
-              <div className="mt-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-[#334233]/80">
                     <span className="px-3 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
@@ -657,32 +657,32 @@ export function Events() {
                       {featured?.title ?? "No published event yet"}
                     </h3>
                   )}
-                  <div className="mt-5 rounded-2xl border border-[#D9C6A8] bg-[#F8F5F0] divide-y divide-[#E7D9C3]">
-                    <div className="flex items-start gap-3 px-4 py-3">
+                  <div className="mt-4 rounded-xl border border-[#D9C6A8] bg-[#F8F5F0] divide-y divide-[#E7D9C3]">
+                    <div className="flex items-start gap-4 px-5 py-4">
                       <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
                         <Clock className="size-5" />
                       </span>
-                      <div className="min-w-0">
-                        <p className="text-[11px] uppercase tracking-wide font-semibold text-[#6F7553]">Time</p>
-                        <p className="mt-0.5 text-[#334233] font-semibold text-base leading-snug">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] uppercase tracking-wide font-semibold text-[#6F7553] mb-1">Time</p>
+                        <p className="text-[#334233] font-semibold text-base leading-snug">
                           {featured?.time ?? "Time TBD"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3 px-4 py-3">
+                    <div className="flex items-start gap-4 px-5 py-4">
                       <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
                         <MapPin className="size-5" />
                       </span>
-                      <div className="min-w-0">
-                        <p className="text-[11px] uppercase tracking-wide font-semibold text-[#6F7553]">Location</p>
-                        <p className="mt-0.5 text-[#334233] font-medium text-sm sm:text-base leading-snug break-words">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] uppercase tracking-wide font-semibold text-[#6F7553] mb-1">Location</p>
+                        <p className="text-[#334233] font-medium text-sm leading-snug break-words">
                           {featured?.location ?? "Location TBD"}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                  <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:gap-3">
                     {featuredHref ? (
                       <Button variant="default" className="w-full sm:w-auto" asChild>
                         <Link to={featuredHref}>View Details</Link>
@@ -696,14 +696,14 @@ export function Events() {
                   </div>
                 </div>
 
-                <div className="relative rounded-3xl overflow-hidden shadow-sm border border-[#E7D9C3]">
+                <div className="relative rounded-2xl overflow-hidden shadow-sm border border-[#E7D9C3]">
                   <ImageWithFallback
                     src={
                       featured?.image
                       ?? "https://images.unsplash.com/photo-1528605248644-14dd04022da1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
                     }
                     alt={featured?.title ?? "Featured event"}
-                    className="w-full h-64 object-cover sm:h-full"
+                    className="w-full h-52 object-cover sm:h-full"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/50 via-transparent" />
                 </div>
@@ -713,24 +713,24 @@ export function Events() {
 
           <div className="flex-1">
             <ScrollReveal delay={0.15}>
-              <div className="rounded-3xl border border-[#E7D9C3] bg-white shadow-sm p-8">
-                <h4 className="text-lg font-semibold text-[#334233] mb-4">Why join community events?</h4>
-                <ul className="space-y-3 text-[#5B473A] text-sm">
-                  <li className="flex items-start gap-3">
-                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                      <Check className="w-4 h-4" />
+              <div className="rounded-2xl border border-[#E7D9C3] bg-white shadow-sm p-6">
+                <h4 className="text-base font-semibold text-[#334233] mb-3">Why join community events?</h4>
+                <ul className="space-y-2 text-[#5B473A] text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                      <Check className="w-3 h-3" />
                     </span>
                     <span>Meet neighbors and local organizers in a welcoming setting.</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                      <Check className="w-4 h-4" />
+                  <li className="flex items-start gap-2">
+                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                      <Check className="w-3 h-3" />
                     </span>
                     <span>Find support, resources, and services that fit your needs.</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                      <Check className="w-4 h-4" />
+                  <li className="flex items-start gap-2">
+                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                      <Check className="w-3 h-3" />
                     </span>
                     <span>Build a stronger, more connected Bothell community.</span>
                   </li>
@@ -741,20 +741,20 @@ export function Events() {
         </div>
       </section>
 
-      <section id="upcoming" className="bg-[#E7D9C3]/30 py-16">
+      <section id="upcoming" className="bg-[#E7D9C3]/30 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <div className="max-w-3xl">
-              <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-4">
+              <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233] mb-3">
                 Upcoming Schedule
               </h2>
-              <p className="text-[#5B473A] text-lg font-light leading-relaxed">
+              <p className="text-[#5B473A] text-base font-light leading-relaxed">
                 Switch between list and map view, then find events near your location or a ZIP code.
               </p>
             </div>
           </ScrollReveal>
 
-          <div className="mt-6 rounded-3xl border border-[#E7D9C3] bg-white p-5 shadow-sm">
+          <div className="mt-4 rounded-2xl border border-[#E7D9C3] bg-white p-4 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
               <div className="inline-flex rounded-xl border border-[#E7D9C3] overflow-hidden">
                 <button
@@ -867,7 +867,7 @@ export function Events() {
                 <p className="p-6 text-sm text-[#5B473A]">No mappable events found for the current nearby filter.</p>
               ) : (
                 <GoogleMap
-                  mapContainerStyle={{ width: "100%", height: "460px" }}
+                  mapContainerStyle={{ width: "100%", height: "360px" }}
                   center={{ lat: mapCenter.lat, lng: mapCenter.lng }}
                   zoom={activeCenter ? 11 : 10}
                   options={{
@@ -931,7 +931,7 @@ export function Events() {
             </p>
           ) : (
             <>
-              <StaggerGroup className="mt-12 space-y-10">
+              <StaggerGroup className="mt-8 space-y-6">
                 {paginatedEvents.map((event, index) => {
                 const detailHref = event.id ? `/events/${event.id}` : null;
                 const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -939,37 +939,37 @@ export function Events() {
 
                 return (
                   <StaggerItem key={event.id ?? index} className="relative">
-                  <div className="relative border-l-2 border-[#A7AE8A]/50 pl-8 sm:pl-12">
-                    <div className="absolute -left-[34px] top-4 w-8 h-8 rounded-full bg-[#F6F1E7] border-4 border-[#A7AE8A] shadow-sm" />
-                    <div className="bg-white rounded-3xl border border-[#E7D9C3] shadow-sm p-8 hover:border-[#B36A4C] hover:shadow-md transition-all">
-                      <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+                  <div className="relative border-l-2 border-[#A7AE8A]/50 pl-6 sm:pl-8">
+                    <div className="absolute -left-[26px] top-3 w-6 h-6 rounded-full bg-[#F6F1E7] border-3 border-[#A7AE8A] shadow-sm" />
+                    <div className="bg-white rounded-2xl border border-[#E7D9C3] shadow-sm p-5 hover:border-[#B36A4C] hover:shadow-md transition-all">
+                      <div className="flex flex-col lg:flex-row lg:items-start gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 text-sm font-semibold text-[#334233]/80 mb-3">
-                            <span className="px-3 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">{event.date}</span>
-                            <span className="px-3 py-1 rounded-full bg-[#B36A4C]/10 text-[#B36A4C]">{event.category}</span>
+                          <div className="flex items-center gap-2 text-xs font-semibold text-[#334233]/80 mb-2">
+                            <span className="px-2 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A] text-xs">{event.date}</span>
+                            <span className="px-2 py-1 rounded-full bg-[#B36A4C]/10 text-[#B36A4C] text-xs">{event.category}</span>
                           </div>
                           {detailHref ? (
-                            <Link to={detailHref} className="text-2xl font-bold text-[#334233] mb-2 hover:text-[#B36A4C] transition-colors block">
+                            <Link to={detailHref} className="text-xl font-bold text-[#334233] mb-2 hover:text-[#B36A4C] transition-colors block">
                               {event.title}
                             </Link>
                           ) : (
-                            <h3 className="text-2xl font-bold text-[#334233] mb-2">{event.title}</h3>
+                            <h3 className="text-xl font-bold text-[#334233] mb-2">{event.title}</h3>
                           )}
-                          <div className="flex flex-wrap gap-6 text-[#5B473A] text-sm mb-4">
-                            <span className="inline-flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-[#A7AE8A]" /> {event.time}
+                          <div className="flex flex-wrap gap-4 text-[#5B473A] text-xs mb-3">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-[#A7AE8A]" /> {event.time}
                             </span>
-                            <span className="inline-flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-[#A7AE8A]" /> {event.location}
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-[#A7AE8A]" /> {event.location}
                             </span>
                             {event.distanceMiles !== null ? (
-                              <span className="inline-flex items-center gap-2">
-                                <Navigation className="w-4 h-4 text-[#A7AE8A]" /> {event.distanceMiles.toFixed(1)} miles away
+                              <span className="inline-flex items-center gap-1">
+                                <Navigation className="w-3 h-3 text-[#A7AE8A]" /> {event.distanceMiles.toFixed(1)} miles away
                               </span>
                             ) : null}
                           </div>
                           {event.postedByName ? (
-                            <p className="text-xs text-[#6F7553] mb-4">Posted by {event.postedByName}</p>
+                            <p className="text-xs text-[#6F7553] mb-3">Posted by {event.postedByName}</p>
                           ) : null}
                           <div className="flex flex-wrap gap-3">
                             {detailHref ? (
@@ -985,7 +985,7 @@ export function Events() {
                           </div>
                         </div>
                         {event.image ? (
-                          <div className="w-full sm:w-64 h-40 rounded-2xl overflow-hidden flex-shrink-0 relative">
+                          <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
                             <ImageWithFallback src={event.image} alt={event.title} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/60 via-transparent" />
                           </div>
