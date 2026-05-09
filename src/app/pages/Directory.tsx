@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useDeferredValue, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Search, MapPin, Filter, X, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
@@ -51,8 +51,9 @@ export function Directory() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [query, setQuery] = useState(queryParam);
-  const deferredQuery = useDeferredValue(query);
+  const [appliedQuery, setAppliedQuery] = useState(queryParam);
   const [activeCategory, setActiveCategory] = useState<ResourceCategoryFilter>(categoryParam);
+  const [minRatingDraft, setMinRatingDraft] = useState(0);
   const [minRating, setMinRating] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -64,12 +65,23 @@ export function Directory() {
 
   useEffect(() => {
     setQuery(queryParam);
+    setAppliedQuery(queryParam);
     setActiveCategory(categoryParam);
   }, [queryParam, categoryParam]);
 
   useEffect(() => {
+    const debounce = window.setTimeout(() => {
+      setAppliedQuery(query);
+    }, 350);
+
+    return () => {
+      window.clearTimeout(debounce);
+    };
+  }, [query]);
+
+  useEffect(() => {
     setCurrentPage(1);
-  }, [deferredQuery, activeCategory, minRating]);
+  }, [appliedQuery, activeCategory, minRating]);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,7 +94,7 @@ export function Directory() {
         const pageResult = await listDirectoryResourcesPage({
           page: currentPage,
           pageSize: PAGE_SIZE,
-          query: deferredQuery,
+          query: appliedQuery,
           category: activeCategory === "All" ? null : activeCategory,
           minRating,
         });
@@ -118,7 +130,7 @@ export function Directory() {
     return () => {
       cancelled = true;
     };
-  }, [currentPage, deferredQuery, activeCategory, minRating]);
+  }, [currentPage, appliedQuery, activeCategory, minRating]);
 
   const refreshEntryEngagement = async (entryId: string) => {
     try {
@@ -141,8 +153,11 @@ export function Directory() {
     [],
   );
 
-  const hasFilters = query.trim().length > 0 || activeCategory !== "All" || minRating > 0;
+  const hasFilters = query.trim().length > 0 || activeCategory !== "All" || minRatingDraft > 0 || minRating > 0;
   const showSpinnerOverlay = loadingEntries && entries.length > 0;
+  const commitMinRating = (rating: number) => {
+    setMinRating(rating);
+  };
 
   return (
     <div className="min-h-screen bg-[#F6F1E7]">
@@ -221,17 +236,18 @@ export function Directory() {
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                disabled={loadingEntries}
                 placeholder="Search by name, category, or keyword..."
-                className="block w-full pl-11 pr-12 py-4 text-base border-2 border-[#5B473A]/40 rounded-xl bg-white/10 backdrop-blur-sm text-white placeholder-[#A7AE8A] focus:outline-none focus:border-[#B36A4C] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="block w-full pl-11 pr-12 py-4 text-base border-2 border-[#5B473A]/40 rounded-xl bg-white/10 backdrop-blur-sm text-white placeholder-[#A7AE8A] focus:outline-none focus:border-[#B36A4C] transition-all"
               />
               {query && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  disabled={loadingEntries}
-                  onClick={() => setQuery("")}
+                  onClick={() => {
+                    setQuery("");
+                    setAppliedQuery("");
+                  }}
                   className="absolute right-2 top-1/2 -translate-y-1/2"
                   aria-label="Clear search"
                 >
@@ -295,14 +311,16 @@ export function Directory() {
                     min={0}
                     max={5}
                     step={0.5}
-                    value={minRating}
-                    disabled={loadingEntries}
-                    onChange={(event) => setMinRating(Number(event.target.value))}
-                    className="w-full accent-[#334233] disabled:opacity-70"
+                    value={minRatingDraft}
+                    onChange={(event) => setMinRatingDraft(Number(event.target.value))}
+                    onPointerUp={(event) => commitMinRating(Number(event.currentTarget.value))}
+                    onKeyUp={(event) => commitMinRating(Number(event.currentTarget.value))}
+                    onBlur={(event) => commitMinRating(Number(event.currentTarget.value))}
+                    className="w-full accent-[#334233]"
                     aria-label="Minimum average rating"
                   />
                   <p className="text-sm text-[#5B473A]">
-                    {minRating <= 0 ? "Any rating" : `${minRating.toFixed(1)} stars and up`}
+                    {minRatingDraft <= 0 ? "Any rating" : `${minRatingDraft.toFixed(1)} stars and up`}
                   </p>
                 </div>
               </div>
@@ -346,7 +364,9 @@ export function Directory() {
                   disabled={loadingEntries}
                   onClick={() => {
                     setQuery("");
+                    setAppliedQuery("");
                     setActiveCategory("All");
+                    setMinRatingDraft(0);
                     setMinRating(0);
                     setCurrentPage(1);
                     scrollToResultsTop();
