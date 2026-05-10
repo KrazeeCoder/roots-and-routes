@@ -6,3 +6,9 @@ export const GOOGLE_MAPS_LOADER_OPTIONS = {
   googleMapsApiKey: GOOGLE_MAPS_API_KEY,
   libraries: ["places"],
 };
+
+export const METERS_PER_MILE = 1609.344;
+
+export function milesToMeters(miles: number) {
+  return miles * METERS_PER_MILE;
+}
