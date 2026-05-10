@@ -12,6 +12,7 @@ export interface DirectoryEntry {
   hours?: string;
   tags: string[];
   image?: string | null;
+  imageAssetPath?: string | null;
   postedByName?: string;
   status?: "draft" | "pending" | "published" | "rejected";
 }
@@ -26,6 +27,7 @@ export interface SpotlightItem {
   audience: string;
   location: string;
   image?: string | null;
+  imageAssetPath?: string | null;
   featured?: boolean;
 }
 
@@ -60,6 +62,7 @@ export interface EventItem {
   endsAt?: string;
   category: string;
   image?: string | null;
+  imageAssetPath?: string | null;
   postedByName?: string;
   locationLat?: number | null;
   locationLng?: number | null;

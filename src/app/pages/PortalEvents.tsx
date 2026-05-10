@@ -107,6 +107,13 @@ function plusOneHour(iso: string) {
   return new Date(new Date(iso).getTime() + 60 * 60 * 1000).toISOString();
 }
 
+function toErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return fallback;
+}
+
 function mapEventToForm(event: EventRecord, canModerate: boolean): EventFormState {
   const allowedStatuses = canModerate ? moderatorStatuses : contributorStatuses;
   return {
@@ -493,7 +500,7 @@ export function PortalEvents() {
       await loadEvents();
     } catch (nextError) {
       console.error(nextError);
-      setCreateError("Could not create this event. Check the required fields and try again.");
+      setCreateError(toErrorMessage(nextError, "Could not create this event. Check the required fields and try again."));
     } finally {
       setCreateSaving(false);
     }
@@ -542,7 +549,7 @@ export function PortalEvents() {
       await loadEvents();
     } catch (nextError) {
       console.error(nextError);
-      setEditError("Could not save this event. Check the required fields and try again.");
+      setEditError(toErrorMessage(nextError, "Could not save this event. Check the required fields and try again."));
     } finally {
       setEditSaving(false);
     }

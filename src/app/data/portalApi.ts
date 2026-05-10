@@ -1,5 +1,11 @@
-import { AuthError } from "@supabase/supabase-js";
+import {
+  AuthError,
+  FunctionsFetchError,
+  FunctionsHttpError,
+  FunctionsRelayError,
+} from "@supabase/supabase-js";
 import { supabase } from "../../utils/supabase";
+import { getDisplayImageUrl } from "../../utils/imageProxy";
 import type { DirectoryEntry, EventItem, SpotlightItem } from "../types/home";
 import type {
   ContributorProfile,
@@ -46,6 +52,15 @@ interface DirectoryResourcesPageRpcRow extends ResourceRecord {
   total_count: number | string;
 }
 
+type ImageEntityType = "resource" | "event" | "resource_submission" | "event_submission";
+
+interface IngestExternalImageResponse {
+  assetPath: string;
+  sourceUrl: string;
+  contentType: string;
+  bytes: number;
+}
+
 export interface DirectoryResourcesPageParams {
   page: number;
   pageSize: number;
@@ -62,13 +77,98 @@ export interface DirectoryResourcesPage {
   pageSize: number;
 }
 
+function normalizeHttpUrl(raw: string | null | undefined) {
+  const trimmed = raw?.trim() ?? "";
+  if (!trimmed) return null;
+
+  const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+function withResolvedResourceImage(resource: ResourceRecord): ResourceRecord {
+  return {
+    ...resource,
+    image_url: getDisplayImageUrl(resource.image_asset_path, resource.image_url),
+  };
+}
+
+function withResolvedEventImage(event: EventRecord): EventRecord {
+  return {
+    ...event,
+    image_url: getDisplayImageUrl(event.image_asset_path, event.image_url),
+  };
+}
+
+async function extractFunctionErrorMessage(error: FunctionsHttpError) {
+  try {
+    const payload = await error.context.json();
+    if (payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string") {
+      return payload.error;
+    }
+    if (payload && typeof payload === "object" && "message" in payload && typeof payload.message === "string") {
+      return payload.message;
+    }
+  } catch {
+    // no-op
+  }
+
+  return "Image optimization failed due to a remote image error.";
+}
+
+async function ingestExternalImage(
+  sourceUrl: string | null | undefined,
+  entityType: ImageEntityType,
+) {
+  const normalized = normalizeHttpUrl(sourceUrl);
+  if (!normalized) {
+    return { image_url: null, image_asset_path: null };
+  }
+
+  const { data, error } = await supabase.functions.invoke("ingest-external-image", {
+    body: {
+      sourceUrl: normalized,
+      entityType,
+    },
+  });
+
+  if (error) {
+    if (error instanceof FunctionsHttpError) {
+      throw new Error(await extractFunctionErrorMessage(error));
+    }
+
+    if (error instanceof FunctionsFetchError || error instanceof FunctionsRelayError) {
+      throw new Error("Image optimization service is currently unavailable. Please try again.");
+    }
+
+    throw new Error("Image optimization failed. Please try a different image URL.");
+  }
+
+  const payload = data as IngestExternalImageResponse | null;
+  if (!payload?.assetPath || typeof payload.assetPath !== "string") {
+    throw new Error("Image optimization failed. Please try a different image URL.");
+  }
+
+  return {
+    image_url: normalized,
+    image_asset_path: payload.assetPath,
+  };
+}
+
 function applyPublicResourceOverrides(resources: ResourceRecord[]): ResourceRecord[] {
   return resources
     .filter((resource) => !RESOURCE_NAMES_TO_EXCLUDE.has(resource.name))
     .map((resource) => {
+      const withResolvedImage = withResolvedResourceImage(resource);
       const nextWebsite = RESOURCE_WEBSITE_OVERRIDES[resource.name];
-      if (!nextWebsite) return resource;
-      return { ...resource, website: nextWebsite };
+      if (!nextWebsite) return withResolvedImage;
+      return { ...withResolvedImage, website: nextWebsite };
     });
 }
 
@@ -203,7 +303,7 @@ export async function listPublishedEvents(): Promise<EventRecord[]> {
     .order("starts_at", { ascending: true });
 
   if (error) throw error;
-  return (data ?? []) as EventRecord[];
+  return ((data ?? []) as EventRecord[]).map(withResolvedEventImage);
 }
 
 export async function getPublishedEventById(eventId: string): Promise<EventRecord | null> {
@@ -215,7 +315,8 @@ export async function getPublishedEventById(eventId: string): Promise<EventRecor
     .maybeSingle();
 
   if (error && error.code !== "PGRST116") throw error;
-  return (data as EventRecord | null) ?? null;
+  const event = (data as EventRecord | null) ?? null;
+  return event ? withResolvedEventImage(event) : null;
 }
 
 export async function listSpotlightItems(): Promise<SpotlightItem[]> {
@@ -252,7 +353,8 @@ export async function listSpotlightItems(): Promise<SpotlightItem[]> {
     fullDescription: resource.full_description ?? resource.description,
     audience: resource.posted_by_name?.trim() || "Community Contributor",
     location: resource.address,
-    image: resource.image_url,
+    image: getDisplayImageUrl(resource.image_asset_path, resource.image_url),
+    imageAssetPath: resource.image_asset_path,
     featured: index === 0,
   }));
 }
@@ -348,8 +450,10 @@ export async function updateProfileStatus(userId: string, status: "approved" | "
 }
 
 export async function createResource(payload: ResourcePayload) {
+  const ingestedImage = await ingestExternalImage(payload.image_url, "resource");
   const { error } = await supabase.from("resources").insert({
     ...payload,
+    ...ingestedImage,
     tags: payload.tags ?? [],
   });
 
@@ -357,7 +461,14 @@ export async function createResource(payload: ResourcePayload) {
 }
 
 export async function updateResource(resourceId: string, payload: ResourcePayload) {
-  const { error } = await supabase.from("resources").update(payload).eq("id", resourceId);
+  const ingestedImage = await ingestExternalImage(payload.image_url, "resource");
+  const { error } = await supabase
+    .from("resources")
+    .update({
+      ...payload,
+      ...ingestedImage,
+    })
+    .eq("id", resourceId);
   if (error) throw error;
 }
 
@@ -367,15 +478,24 @@ export async function deleteResource(resourceId: string) {
 }
 
 export async function createEvent(payload: EventPayload) {
+  const ingestedImage = await ingestExternalImage(payload.image_url, "event");
   const { error } = await supabase.from("events").insert({
     ...payload,
+    ...ingestedImage,
   });
 
   if (error) throw error;
 }
 
 export async function updateEvent(eventId: string, payload: EventPayload) {
-  const { error } = await supabase.from("events").update(payload).eq("id", eventId);
+  const ingestedImage = await ingestExternalImage(payload.image_url, "event");
+  const { error } = await supabase
+    .from("events")
+    .update({
+      ...payload,
+      ...ingestedImage,
+    })
+    .eq("id", eventId);
   if (error) throw error;
 }
 
@@ -385,8 +505,10 @@ export async function deleteEvent(eventId: string) {
 }
 
 export async function createPublicResourceSubmission(payload: ResourceSubmissionPayload) {
+  const ingestedImage = await ingestExternalImage(payload.image_url, "resource_submission");
   const { error } = await supabase.from("resource_submissions").insert({
     ...payload,
+    ...ingestedImage,
     tags: payload.tags ?? [],
   });
 
@@ -394,8 +516,10 @@ export async function createPublicResourceSubmission(payload: ResourceSubmission
 }
 
 export async function createPublicEventSubmission(payload: EventSubmissionPayload) {
+  const ingestedImage = await ingestExternalImage(payload.image_url, "event_submission");
   const { error } = await supabase.from("event_submissions").insert({
     ...payload,
+    ...ingestedImage,
   });
 
   if (error) throw error;
@@ -476,6 +600,7 @@ export function mapResourceRecordToPayload(resource: ResourceRecord): ResourcePa
     hours: resource.hours,
     tags: resource.tags,
     image_url: resource.image_url,
+    image_asset_path: resource.image_asset_path,
     status: resource.status,
     is_spotlight: resource.is_spotlight,
     spotlight_subtitle: resource.spotlight_subtitle,
@@ -493,6 +618,7 @@ export function mapEventRecordToPayload(event: EventRecord): EventPayload {
     starts_at: event.starts_at,
     ends_at: event.ends_at,
     image_url: event.image_url,
+    image_asset_path: event.image_asset_path,
     status: event.status,
     is_spotlight: event.is_spotlight,
   };
@@ -514,7 +640,8 @@ export function mapResourceToDirectoryEntry(resource: ResourceRecord): Directory
     website: resource.website ?? undefined,
     hours: resource.hours ?? undefined,
     tags: resource.tags ?? [],
-    image: resource.image_url,
+    image: getDisplayImageUrl(resource.image_asset_path, resource.image_url),
+    imageAssetPath: resource.image_asset_path,
     postedByName: resource.posted_by_name ?? "Community Contributor",
     status: resource.status,
   };
@@ -532,7 +659,8 @@ export function mapEventToEventItem(event: EventRecord): EventItem {
     startsAt: event.starts_at,
     endsAt: event.ends_at ?? undefined,
     category: event.category ?? "Community Event",
-    image: event.image_url,
+    image: getDisplayImageUrl(event.image_asset_path, event.image_url),
+    imageAssetPath: event.image_asset_path,
     postedByName: event.posted_by_name ?? "Community Contributor",
     locationLat: event.location_lat,
     locationLng: event.location_lng,

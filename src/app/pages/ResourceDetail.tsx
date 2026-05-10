@@ -181,6 +181,7 @@ export function ResourceDetail() {
             <div className="h-64 sm:h-80">
               <ImageWithFallback
                 src={resource.image_url}
+                assetPath={resource.image_asset_path}
                 alt={resource.name}
                 className="w-full h-full object-cover"
               />

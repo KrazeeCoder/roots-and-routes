@@ -110,6 +110,7 @@ export function EventsSection() {
                       <div className="w-full lg:w-1/3 h-48 lg:h-auto rounded-2xl overflow-hidden flex-shrink-0 relative hidden sm:block">
                         <ImageWithFallback
                           src={event.image}
+                          assetPath={event.imageAssetPath}
                           alt={event.title}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />

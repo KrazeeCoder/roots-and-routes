@@ -235,6 +235,7 @@ export function Spotlights() {
                   {featured.image ? (
                     <ImageWithFallback
                       src={featured.image}
+                      assetPath={featured.imageAssetPath}
                       alt={featured.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -386,6 +387,7 @@ export function Spotlights() {
                     {item.image ? (
                       <ImageWithFallback
                         src={item.image}
+                        assetPath={item.imageAssetPath}
                         alt={item.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />

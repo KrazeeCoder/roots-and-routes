@@ -178,6 +178,13 @@ function formatDateTime(iso: string) {
   return parsed.toLocaleString();
 }
 
+function toErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return fallback;
+}
+
 interface ResourceFormFieldsProps {
   form: ResourceFormState;
   setForm: Dispatch<SetStateAction<ResourceFormState>>;
@@ -484,7 +491,7 @@ export function PortalResources() {
       await loadResources();
     } catch (nextError) {
       console.error(nextError);
-      setCreateError("Could not create this resource. Please check required fields and try again.");
+      setCreateError(toErrorMessage(nextError, "Could not create this resource. Please check required fields and try again."));
     } finally {
       setCreateSaving(false);
     }
@@ -510,7 +517,7 @@ export function PortalResources() {
       await loadResources();
     } catch (nextError) {
       console.error(nextError);
-      setEditError("Could not save this resource. Please check required fields and try again.");
+      setEditError(toErrorMessage(nextError, "Could not save this resource. Please check required fields and try again."));
     } finally {
       setEditSaving(false);
     }

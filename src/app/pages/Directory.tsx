@@ -422,6 +422,7 @@ export function Directory() {
                         <Link to={`/resources/${entry.id}`} className="h-40 overflow-hidden flex-shrink-0 relative block">
                           <ImageWithFallback
                             src={entry.image}
+                            assetPath={entry.imageAssetPath}
                             alt={entry.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />

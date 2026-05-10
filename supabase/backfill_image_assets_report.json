@@ -1,0 +1,37 @@
+{
+  "startedAt": "2026-05-10T23:12:54.953Z",
+  "finishedAt": "2026-05-10T23:12:55.788Z",
+  "batchSize": 100,
+  "totals": {
+    "attempted": 0,
+    "succeeded": 0,
+    "failed": 0
+  },
+  "tables": [
+    {
+      "table": "resources",
+      "attempted": 0,
+      "succeeded": 0,
+      "failed": 0
+    },
+    {
+      "table": "events",
+      "attempted": 0,
+      "succeeded": 0,
+      "failed": 0
+    },
+    {
+      "table": "resource_submissions",
+      "attempted": 0,
+      "succeeded": 0,
+      "failed": 0
+    },
+    {
+      "table": "event_submissions",
+      "attempted": 0,
+      "succeeded": 0,
+      "failed": 0
+    }
+  ],
+  "failures": []
+}

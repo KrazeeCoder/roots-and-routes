@@ -52,6 +52,7 @@ create table if not exists public.resources (
   hours text,
   tags text[] not null default '{}'::text[],
   image_url text,
+  image_asset_path text,
   created_by uuid references auth.users(id) on delete set null default auth.uid(),
   posted_by_name text,
   status public.content_status not null default 'draft',
@@ -72,6 +73,7 @@ create table if not exists public.events (
   starts_at timestamptz not null default now(),
   ends_at timestamptz,
   image_url text,
+  image_asset_path text,
   created_by uuid references auth.users(id) on delete set null default auth.uid(),
   posted_by_name text,
   status public.content_status not null default 'draft',
@@ -95,6 +97,7 @@ create table if not exists public.resource_submissions (
   contact_phone text,
   tags text[] not null default '{}'::text[],
   image_url text,
+  image_asset_path text,
   submitter_name text not null,
   submitter_email text not null,
   submitter_connection text,
@@ -116,6 +119,7 @@ create table if not exists public.event_submissions (
   starts_at timestamptz not null default now(),
   ends_at timestamptz,
   image_url text,
+  image_asset_path text,
   organizer_name text,
   organizer_email text,
   organizer_phone text,
@@ -154,6 +158,7 @@ alter table if exists public.resources add column if not exists website text;
 alter table if exists public.resources add column if not exists hours text;
 alter table if exists public.resources add column if not exists tags text[] not null default '{}'::text[];
 alter table if exists public.resources add column if not exists image_url text;
+alter table if exists public.resources add column if not exists image_asset_path text;
 alter table if exists public.resources add column if not exists created_by uuid references auth.users(id) on delete set null;
 alter table if exists public.resources add column if not exists posted_by_name text;
 alter table if exists public.resources add column if not exists status public.content_status not null default 'draft';
@@ -171,6 +176,7 @@ alter table if exists public.events add column if not exists location_lng double
 alter table if exists public.events add column if not exists starts_at timestamptz not null default now();
 alter table if exists public.events add column if not exists ends_at timestamptz;
 alter table if exists public.events add column if not exists image_url text;
+alter table if exists public.events add column if not exists image_asset_path text;
 alter table if exists public.events add column if not exists created_by uuid references auth.users(id) on delete set null;
 alter table if exists public.events add column if not exists posted_by_name text;
 alter table if exists public.events add column if not exists status public.content_status not null default 'draft';
@@ -191,6 +197,7 @@ alter table if exists public.resource_submissions add column if not exists conta
 alter table if exists public.resource_submissions add column if not exists contact_phone text;
 alter table if exists public.resource_submissions add column if not exists tags text[] not null default '{}'::text[];
 alter table if exists public.resource_submissions add column if not exists image_url text;
+alter table if exists public.resource_submissions add column if not exists image_asset_path text;
 alter table if exists public.resource_submissions add column if not exists submitter_name text;
 alter table if exists public.resource_submissions add column if not exists submitter_email text;
 alter table if exists public.resource_submissions add column if not exists submitter_connection text;
@@ -209,6 +216,7 @@ alter table if exists public.event_submissions add column if not exists location
 alter table if exists public.event_submissions add column if not exists starts_at timestamptz not null default now();
 alter table if exists public.event_submissions add column if not exists ends_at timestamptz;
 alter table if exists public.event_submissions add column if not exists image_url text;
+alter table if exists public.event_submissions add column if not exists image_asset_path text;
 alter table if exists public.event_submissions add column if not exists organizer_name text;
 alter table if exists public.event_submissions add column if not exists organizer_email text;
 alter table if exists public.event_submissions add column if not exists organizer_phone text;
@@ -327,6 +335,31 @@ check (
     and lower(image_url) not like '%localhost%'
   )
 ) not valid;
+
+insert into storage.buckets (
+  id,
+  name,
+  public,
+  file_size_limit
+)
+values (
+  'external-images',
+  'external-images',
+  true,
+  26214400
+)
+on conflict (id) do update
+set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit;
+
+create index if not exists idx_resources_image_backfill_pending
+  on public.resources (id)
+  where image_url is not null and image_asset_path is null;
+
+create index if not exists idx_events_image_backfill_pending
+  on public.events (id)
+  where image_url is not null and image_asset_path is null;
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -493,6 +526,7 @@ begin
     hours,
     tags,
     image_url,
+    image_asset_path,
     created_by,
     posted_by_name,
     status,
@@ -511,6 +545,7 @@ begin
     submission_row.hours,
     coalesce(submission_row.tags, '{}'::text[]),
     submission_row.image_url,
+    submission_row.image_asset_path,
     reviewer_id,
     coalesce(
       nullif(submission_row.organization_name, ''),
@@ -572,6 +607,7 @@ begin
     starts_at,
     ends_at,
     image_url,
+    image_asset_path,
     created_by,
     posted_by_name,
     status,
@@ -585,6 +621,7 @@ begin
     submission_row.starts_at,
     submission_row.ends_at,
     submission_row.image_url,
+    submission_row.image_asset_path,
     reviewer_id,
     coalesce(
       nullif(submission_row.organizer_name, ''),

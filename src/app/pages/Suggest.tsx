@@ -120,6 +120,13 @@ function plusOneHour(iso: string) {
   return new Date(new Date(iso).getTime() + 60 * 60 * 1000).toISOString();
 }
 
+function toErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function Suggest() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { profile, role } = useAuth();
@@ -218,7 +225,7 @@ export function Suggest() {
       setSuccessMessage("Resource proposal received. It is pending moderator review and is not live on the site yet.");
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not submit this resource proposal right now.");
+      setError(toErrorMessage(nextError, "Could not submit this resource proposal right now."));
     } finally {
       setSubmitting(false);
     }
@@ -291,7 +298,7 @@ export function Suggest() {
       setSuccessMessage("Event proposal received. It is pending moderator review and is not live on the site yet.");
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not submit this event proposal right now.");
+      setError(toErrorMessage(nextError, "Could not submit this event proposal right now."));
     } finally {
       setSubmitting(false);
     }
