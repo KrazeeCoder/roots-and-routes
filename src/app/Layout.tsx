@@ -52,12 +52,12 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233] font-['Public_Sans',sans-serif] selection:bg-[#E7D9C3] selection:text-[#334233] flex flex-col">
-      <header className="sticky top-0 z-50 w-full bg-[#F6F1E7]/90 backdrop-blur-md border-b border-[#E7D9C3]">
+      <header className="sticky top-0 z-50 w-full bg-[#F6F1E7]/90 backdrop-blur-md border-b border-[#E7D9C3]" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex-shrink-0 flex items-center gap-3">
               <Trees className="h-8 w-8 text-[#6F7553]" />
-              <Link to="/" className="font-['Cormorant_Garamond',serif] text-2xl font-bold tracking-tight text-[#334233]">
+              <Link to="/" className="font-['Cormorant_Garamond',serif] text-2xl font-bold tracking-tight text-[#334233]" aria-label="Roots & Routes Bothell - Home">
                 Roots & Routes
                 <span className="block text-sm font-['Public_Sans',sans-serif] font-normal tracking-wide text-[#6F7553] uppercase mt-0.5">
                   Bothell
@@ -65,7 +65,7 @@ export function Layout() {
               </Link>
             </div>
 
-            <nav className="hidden md:flex space-x-8 items-center">
+            <nav className="hidden md:flex space-x-8 items-center" role="navigation" aria-label="Main navigation" id="navigation">
               {navItems.map((item) => {
                 const isActive = isNavActive(item.href);
                 const baseClass = "text-sm font-medium transition-colors relative group";
@@ -74,7 +74,7 @@ export function Layout() {
                   : "text-[#5B473A] hover:text-[#334233]";
 
                 return (
-                  <Link key={item.name} to={item.href} className={`${baseClass} ${activeClasses}`}>
+                  <Link key={item.name} to={item.href} className={`${baseClass} ${activeClasses}`} aria-current={isActive ? "page" : undefined}>
                     {item.name}
                     <span
                       className={`absolute -bottom-1 left-0 h-0.5 bg-[#B36A4C] transition-all ${
@@ -90,12 +90,14 @@ export function Layout() {
               <Link
                 to="/suggest"
                 className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-[#334233] hover:bg-[#B36A4C] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
+                aria-label="Suggest a resource or event"
               >
                 Suggest
               </Link>
               <Link
                 to="/contributor-login"
                 className="inline-flex items-center justify-center px-5 py-2.5 border border-[#334233] text-sm font-semibold rounded-xl text-[#334233] bg-transparent hover:bg-[#E7D9C3] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
+                aria-label="Access contributor portal"
               >
                 Portal
               </Link>
@@ -116,6 +118,8 @@ export function Layout() {
 
         <div
           className={`md:hidden transition-max-h duration-300 overflow-hidden ${isMenuOpen ? "max-h-[520px]" : "max-h-0"}`}
+          role="navigation"
+          aria-label="Mobile navigation"
         >
           <div className="px-4 pb-4 space-y-3">
             {navItems.map((item) => {
@@ -128,6 +132,7 @@ export function Layout() {
                   to={item.href}
                   onClick={() => setIsMenuOpen(false)}
                   className={`block text-base font-medium transition-colors ${activeText}`}
+                  aria-current={isActive ? "page" : undefined}
                 >
                   {item.name}
                 </Link>
@@ -139,6 +144,7 @@ export function Layout() {
                 to="/suggest"
                 onClick={() => setIsMenuOpen(false)}
                 className="block text-center px-4 py-2.5 rounded-xl bg-[#334233] text-white text-sm font-semibold"
+                aria-label="Suggest a resource or event"
               >
                 Suggest
               </Link>
@@ -146,6 +152,7 @@ export function Layout() {
                 to="/contributor-login"
                 onClick={() => setIsMenuOpen(false)}
                 className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold"
+                aria-label="Access contributor portal"
               >
                 Portal
               </Link>
@@ -154,11 +161,11 @@ export function Layout() {
         </div>
       </header>
 
-      <main className="flex-grow">
+      <main className="flex-grow" role="main" id="main-content">
         <Outlet />
       </main>
 
-      <footer className="bg-[#334233] text-[#E7D9C3] py-16 border-t-[8px] border-[#B36A4C]">
+      <footer className="bg-[#334233] text-[#E7D9C3] py-16 border-t-[8px] border-[#B36A4C]" role="contentinfo">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-6">
@@ -173,7 +180,7 @@ export function Layout() {
 
           <div>
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Navigation</h3>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-3 text-sm" role="list">
               <li>
                 <Link to="/directory" className="hover:text-white transition-colors">
                   Directory
@@ -204,7 +211,7 @@ export function Layout() {
 
           <div>
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Resources</h3>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-3 text-sm" role="list">
               {RESOURCE_CATEGORIES.map((category) => (
                 <li key={category}>
                   <Link
@@ -220,7 +227,7 @@ export function Layout() {
 
           <div>
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Connect</h3>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-3 text-sm" role="list">
               <li>
                 <a href="mailto:rootsandroutes.bothell@outlook.com" className="hover:text-white transition-colors">
                   Contact Us

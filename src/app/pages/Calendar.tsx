@@ -355,7 +355,6 @@ export function Calendar() {
                   )}
                 </div>
               </div>
-              )}
             </ScrollReveal>
           </div>
         </div>
