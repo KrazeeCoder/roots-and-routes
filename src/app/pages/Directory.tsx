@@ -432,10 +432,11 @@ export function Directory() {
                   </a>
                 </div>
             </div>
+            </div>
           </aside>
 
           <div className="flex-grow">
-            <div ref={resultsTopRef} />
+            <div ref={resultsTopRef}>
             <div className="flex items-center justify-between mb-8 gap-4">
               <p className="text-[#5B473A] text-sm">
                 Showing <span className="font-semibold text-[#334233]">{totalCount}</span>{" "}
@@ -453,6 +454,7 @@ export function Directory() {
                   </>
                 )}
               </p>
+              </div>
               {hasFilters && (
                 <button
                   disabled={loadingEntries}
