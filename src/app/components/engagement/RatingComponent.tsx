@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Star } from "lucide-react";
+import { toast } from "sonner";
 import { addRating, getRatingReason } from "../../../utils/engagementSupabase";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -20,7 +21,8 @@ interface RatingComponentProps {
   readonly?: boolean;
   size?: "sm" | "md" | "lg";
   showCount?: boolean;
-  onRatingChange?: (newRating: number | null) => void;
+  onRatingChange?: (newRating: number | null) => void | Promise<void>;
+  itemLabel?: string;
 }
 
 function clampStarFill(value: number, starIndex: number) {
@@ -37,6 +39,7 @@ export function RatingComponent({
   size = "md",
   showCount = true,
   onRatingChange,
+  itemLabel = "listing",
 }: RatingComponentProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,17 +90,24 @@ export function RatingComponent({
 
     setIsSubmitting(true);
     setError(null);
+    const label = itemLabel.trim() || "listing";
+    const toastId = toast.loading(`Submitting rating for ${label}...`);
 
     try {
       const result = await addRating(spotlightId, selectedRating, reason.trim());
       if (result.success) {
-        onRatingChange?.(selectedRating);
+        await onRatingChange?.(selectedRating);
         setIsDialogOpen(false);
+        toast.success(`Rating submitted for ${label}.`, { id: toastId });
       } else {
-        setError(result.error || "Failed to submit rating.");
+        const nextError = result.error || "Failed to submit rating.";
+        setError(nextError);
+        toast.error(nextError, { id: toastId });
       }
     } catch {
-      setError("An unexpected error occurred.");
+      const nextError = "An unexpected error occurred.";
+      setError(nextError);
+      toast.error(nextError, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -148,7 +158,7 @@ export function RatingComponent({
         <DialogContent className="border-[#E7D9C3] bg-[#F6F1E7] text-[#334233]">
           <DialogHeader>
             <DialogTitle className="font-['Cormorant_Garamond',serif] text-2xl text-[#334233]">
-              Rate This Listing
+              Rate {itemLabel}
             </DialogTitle>
             <DialogDescription className="text-[#6F7553]">
               Choose a score and share a short reason for your rating.

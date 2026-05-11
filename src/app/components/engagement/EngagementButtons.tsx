@@ -8,6 +8,7 @@ interface EngagementButtonsProps {
   engagement: SpotlightEngagement;
   onUpdate: (engagement: SpotlightEngagement) => void;
   compact?: boolean;
+  itemLabel?: string;
 }
 
 export function EngagementButtons({
@@ -15,6 +16,7 @@ export function EngagementButtons({
   engagement,
   onUpdate,
   compact = false,
+  itemLabel = "listing",
 }: EngagementButtonsProps) {
   const [isUpdatingLike, setIsUpdatingLike] = useState(false);
 

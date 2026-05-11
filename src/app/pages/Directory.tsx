@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Search, MapPin, Filter, X, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
@@ -155,6 +155,15 @@ export function Directory() {
 
   const hasFilters = query.trim().length > 0 || activeCategory !== "All" || minRatingDraft > 0 || minRating > 0;
   const showSpinnerOverlay = loadingEntries && entries.length > 0;
+  const resultSummary = useMemo(() => {
+    const parts = [
+      appliedQuery.trim() ? `matching "${appliedQuery.trim()}"` : null,
+      activeCategory !== "All" ? `in ${activeCategory}` : null,
+      minRating > 0 ? `rated ${minRating.toFixed(1)}+` : null,
+    ].filter(Boolean);
+
+    return parts.length > 0 ? parts.join(", ") : "across all resources";
+  }, [activeCategory, appliedQuery, minRating]);
   const commitMinRating = (rating: number) => {
     setMinRating(rating);
   };
@@ -343,21 +352,24 @@ export function Directory() {
           <div className="flex-grow">
             <div ref={resultsTopRef} />
             <div className="flex items-center justify-between mb-8 gap-4">
-              <p className="text-[#5B473A] text-sm">
-                Showing <span className="font-semibold text-[#334233]">{totalCount}</span>{" "}
-                {totalCount === 1 ? "resource" : "resources"}
-                {activeCategory !== "All" && (
-                  <>
-                    {" "}
-                    in <span className="font-semibold text-[#334233]">{activeCategory}</span>
-                  </>
-                )}
-                {minRating > 0 && (
-                  <>
-                    {" "}
-                    with rating <span className="font-semibold text-[#334233]">{minRating.toFixed(1)}+</span>
-                  </>
-                )}
+              <p className="text-[#5B473A] text-sm" aria-live="polite">
+                <span className="inline-flex items-baseline gap-1.5">
+                  <span>Showing</span>
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                      key={`${totalCount}-${resultSummary}`}
+                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.18, ease: "easeOut" }}
+                      className="inline-flex min-w-6 justify-center rounded-full bg-[#E7D9C3] px-2 py-0.5 font-semibold text-[#334233]"
+                    >
+                      {totalCount}
+                    </motion.span>
+                  </AnimatePresence>
+                  <span>{totalCount === 1 ? "resource" : "resources"}</span>
+                </span>{" "}
+                <span>{resultSummary}</span>
               </p>
               {hasFilters && (
                 <button
@@ -462,9 +474,8 @@ export function Directory() {
                               totalRatings={engagementByEntry[entry.id]?.stats.totalRatings ?? 0}
                               size="sm"
                               showCount={false}
-                              onRatingChange={() => {
-                                void refreshEntryEngagement(entry.id);
-                              }}
+                              itemLabel={entry.name}
+                              onRatingChange={() => refreshEntryEngagement(entry.id)}
                             />
                             {engagementByEntry[entry.id] ? (
                               <EngagementButtons
@@ -474,6 +485,7 @@ export function Directory() {
                                   setEngagementByEntry((prev) => ({ ...prev, [entry.id]: nextEngagement }))
                                 }
                                 compact={true}
+                                itemLabel={entry.name}
                               />
                             ) : null}
                           </div>

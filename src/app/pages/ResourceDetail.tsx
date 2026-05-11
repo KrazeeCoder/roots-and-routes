@@ -219,9 +219,8 @@ export function ResourceDetail() {
                       totalRatings={engagement?.stats.totalRatings ?? 0}
                       size="sm"
                       showCount={true}
-                      onRatingChange={() => {
-                        void refreshEngagement();
-                      }}
+                      itemLabel={resource.name}
+                      onRatingChange={() => refreshEngagement()}
                     />
                   </div>
                 </div>
@@ -233,6 +232,7 @@ export function ResourceDetail() {
                       engagement={engagement}
                       onUpdate={(newEngagement) => setEngagement(newEngagement)}
                       compact={true}
+                      itemLabel={resource.name}
                     />
                   </div>
                 ) : null}
