@@ -62,10 +62,9 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
       style={style}
       srcSet={!disableSrcSet && currentSrc === resolvedSrc ? resolvedSrcSet : undefined}
       sizes={resolvedSizes}
-      loading={loading}
+      loading="lazy"
       {...rest}
       onError={handleError}
-      onLoad={handleLoad}
     />
   )
 }
