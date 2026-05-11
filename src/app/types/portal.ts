@@ -36,7 +36,6 @@ export interface ResourceRecord {
   hours: string | null;
   tags: string[];
   image_url: string | null;
-  image_asset_path: string | null;
   status: ContentStatus;
   is_spotlight: boolean;
   spotlight_subtitle: string | null;
@@ -57,7 +56,6 @@ export interface EventRecord {
   starts_at: string;
   ends_at: string | null;
   image_url: string | null;
-  image_asset_path: string | null;
   status: ContentStatus;
   is_spotlight: boolean;
   posted_by_name: string | null;
@@ -78,7 +76,6 @@ export interface ResourcePayload {
   hours?: string | null;
   tags?: string[];
   image_url?: string | null;
-  image_asset_path?: string | null;
   status: ContentStatus;
   is_spotlight?: boolean;
   spotlight_subtitle?: string | null;
@@ -94,7 +91,6 @@ export interface EventPayload {
   starts_at: string;
   ends_at?: string | null;
   image_url?: string | null;
-  image_asset_path?: string | null;
   status: ContentStatus;
   is_spotlight?: boolean;
 }
@@ -126,7 +122,6 @@ export interface ResourceSubmissionRecord {
   contact_phone: string | null;
   tags: string[];
   image_url: string | null;
-  image_asset_path: string | null;
   submitter_name: string;
   submitter_email: string;
   submitter_connection: string | null;
@@ -159,7 +154,6 @@ export interface ResourceSubmissionPayload {
   contact_phone?: string | null;
   tags?: string[];
   image_url?: string | null;
-  image_asset_path?: string | null;
   submitter_name: string;
   submitter_email: string;
   submitter_connection?: string | null;
@@ -174,7 +168,6 @@ export interface EventSubmissionRecord {
   starts_at: string;
   ends_at: string | null;
   image_url: string | null;
-  image_asset_path: string | null;
   organizer_name: string | null;
   organizer_email: string | null;
   organizer_phone: string | null;
@@ -198,7 +191,6 @@ export interface EventSubmissionPayload {
   starts_at: string;
   ends_at?: string | null;
   image_url?: string | null;
-  image_asset_path?: string | null;
   organizer_name?: string | null;
   organizer_email?: string | null;
   organizer_phone?: string | null;

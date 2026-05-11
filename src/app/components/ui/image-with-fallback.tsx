@@ -1,43 +1,41 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { buildDisplayImageSet, buildStoragePublicUrl } from "../../../utils/imageProxy";
+import React, { useEffect, useState } from 'react'
+import { buildDisplayImageSet } from "../../../utils/imageProxy";
 
 const ERROR_IMG_SRC =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg=='
 
-interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  assetPath?: string | null;
-}
+interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
 
 export function ImageWithFallback(props: ImageWithFallbackProps) {
   const [didError, setDidError] = useState(false)
   const [currentSrc, setCurrentSrc] = useState<string | undefined>()
   const [disableSrcSet, setDisableSrcSet] = useState(false)
-  const [didTryPublicFallback, setDidTryPublicFallback] = useState(false)
+  const [didTryOriginalFallback, setDidTryOriginalFallback] = useState(false)
 
-  const { src, alt, style, className, assetPath, srcSet, sizes, ...rest } = props
-  const transformed = buildDisplayImageSet(assetPath)
-  const publicFallbackSrc = useMemo(() => buildStoragePublicUrl(assetPath) ?? undefined, [assetPath]);
+  const { src, alt, style, className, srcSet, sizes, ...rest } = props
+  const originalSrc = typeof src === "string" ? src : undefined
+  const transformed = buildDisplayImageSet(originalSrc)
 
-  const resolvedSrc = transformed?.src ?? src
-  const resolvedSrcSet = srcSet ?? transformed?.srcSet
+  const resolvedSrc = transformed?.src ?? originalSrc
+  const resolvedSrcSet = srcSet ?? transformed?.srcSet ?? undefined
   const resolvedSizes = sizes ?? (resolvedSrcSet ? "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" : undefined)
 
   useEffect(() => {
     setDidError(false)
     setDisableSrcSet(false)
-    setDidTryPublicFallback(false)
+    setDidTryOriginalFallback(false)
     setCurrentSrc(resolvedSrc)
-  }, [resolvedSrc])
+  }, [resolvedSrc, originalSrc])
 
   const handleError = () => {
     if (!disableSrcSet && resolvedSrcSet) {
       setDisableSrcSet(true)
-      setCurrentSrc(publicFallbackSrc ?? resolvedSrc)
+      setCurrentSrc(resolvedSrc)
       return
     }
-    if (!didTryPublicFallback && publicFallbackSrc && currentSrc !== publicFallbackSrc) {
-      setDidTryPublicFallback(true)
-      setCurrentSrc(publicFallbackSrc)
+    if (!didTryOriginalFallback && originalSrc && currentSrc !== originalSrc) {
+      setDidTryOriginalFallback(true)
+      setCurrentSrc(originalSrc)
       return
     }
     setDidError(true)

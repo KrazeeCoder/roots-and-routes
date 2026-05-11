@@ -1,51 +1,14 @@
 begin;
 
-insert into storage.buckets (
-  id,
-  name,
-  public,
-  file_size_limit
-)
-values (
-  'external-images',
-  'external-images',
-  true,
-  26214400
-)
-on conflict (id) do update
-set
-  public = excluded.public,
-  file_size_limit = excluded.file_size_limit;
+drop function if exists public.list_directory_resources_page(
+  integer,
+  integer,
+  text,
+  text,
+  numeric
+);
 
-alter table if exists public.resources
-  add column if not exists image_asset_path text;
-
-alter table if exists public.events
-  add column if not exists image_asset_path text;
-
-alter table if exists public.resource_submissions
-  add column if not exists image_asset_path text;
-
-alter table if exists public.event_submissions
-  add column if not exists image_asset_path text;
-
-create index if not exists idx_resources_image_backfill_pending
-  on public.resources (id)
-  where image_url is not null and image_asset_path is null;
-
-create index if not exists idx_events_image_backfill_pending
-  on public.events (id)
-  where image_url is not null and image_asset_path is null;
-
-create index if not exists idx_resource_submissions_image_backfill_pending
-  on public.resource_submissions (id)
-  where image_url is not null and image_asset_path is null;
-
-create index if not exists idx_event_submissions_image_backfill_pending
-  on public.event_submissions (id)
-  where image_url is not null and image_asset_path is null;
-
-create or replace function public.list_directory_resources_page(
+create function public.list_directory_resources_page(
   p_page integer default 1,
   p_page_size integer default 8,
   p_query text default null,
@@ -65,7 +28,6 @@ returns table (
   hours text,
   tags text[],
   image_url text,
-  image_asset_path text,
   status text,
   is_spotlight boolean,
   spotlight_subtitle text,
@@ -136,7 +98,6 @@ begin
     p.hours,
     p.tags,
     p.image_url,
-    p.image_asset_path,
     p.status::text,
     p.is_spotlight,
     p.spotlight_subtitle,
@@ -152,7 +113,9 @@ $$;
 grant execute on function public.list_directory_resources_page(integer, integer, text, text, numeric)
 to anon, authenticated;
 
-create or replace function public.approve_resource_submission(submission_id uuid)
+drop function if exists public.approve_resource_submission(uuid);
+
+create function public.approve_resource_submission(submission_id uuid)
 returns uuid
 language plpgsql
 security definer
@@ -161,29 +124,10 @@ as $$
 declare
   submission_row public.resource_submissions%rowtype;
   reviewer_id uuid := auth.uid();
-  reviewer_role public.contributor_role;
-  reviewer_status text;
   new_resource_id uuid;
 begin
-  if reviewer_id is null then
-    raise exception 'Authentication required';
-  end if;
-
-  select role, status
-  into reviewer_role, reviewer_status
-  from public.profiles
-  where id = reviewer_id;
-
-  if reviewer_role is null or reviewer_status is null then
-    raise exception 'Profile is required to approve submissions';
-  end if;
-
-  if reviewer_status <> 'approved' then
-    raise exception 'Only approved profiles can approve submissions';
-  end if;
-
-  if reviewer_role not in ('moderator', 'super_admin') then
-    raise exception 'Only moderators can approve submissions';
+  if not public.is_moderator() then
+    raise exception 'Only moderators can approve submissions.';
   end if;
 
   select *
@@ -192,12 +136,12 @@ begin
   where id = submission_id
   for update;
 
-  if submission_row.id is null then
-    raise exception 'Resource submission not found';
+  if not found then
+    raise exception 'Resource submission not found.';
   end if;
 
   if submission_row.status <> 'pending' then
-    raise exception 'Only pending submissions can be approved';
+    raise exception 'Resource submission has already been reviewed.';
   end if;
 
   insert into public.resources (
@@ -212,7 +156,6 @@ begin
     hours,
     tags,
     image_url,
-    image_asset_path,
     created_by,
     posted_by_name,
     status,
@@ -231,7 +174,6 @@ begin
     submission_row.hours,
     coalesce(submission_row.tags, '{}'::text[]),
     submission_row.image_url,
-    submission_row.image_asset_path,
     reviewer_id,
     coalesce(
       nullif(submission_row.organization_name, ''),
@@ -248,8 +190,6 @@ begin
   set
     status = 'approved',
     approved_resource_id = new_resource_id,
-    moderator_notes = null,
-    updated_at = now(),
     reviewed_by = reviewer_id,
     reviewed_at = now()
   where id = submission_id;
@@ -258,7 +198,9 @@ begin
 end;
 $$;
 
-create or replace function public.approve_event_submission(submission_id uuid)
+drop function if exists public.approve_event_submission(uuid);
+
+create function public.approve_event_submission(submission_id uuid)
 returns uuid
 language plpgsql
 security definer
@@ -267,29 +209,10 @@ as $$
 declare
   submission_row public.event_submissions%rowtype;
   reviewer_id uuid := auth.uid();
-  reviewer_role public.contributor_role;
-  reviewer_status text;
   new_event_id uuid;
 begin
-  if reviewer_id is null then
-    raise exception 'Authentication required';
-  end if;
-
-  select role, status
-  into reviewer_role, reviewer_status
-  from public.profiles
-  where id = reviewer_id;
-
-  if reviewer_role is null or reviewer_status is null then
-    raise exception 'Profile is required to approve submissions';
-  end if;
-
-  if reviewer_status <> 'approved' then
-    raise exception 'Only approved profiles can approve submissions';
-  end if;
-
-  if reviewer_role not in ('moderator', 'super_admin') then
-    raise exception 'Only moderators can approve submissions';
+  if not public.is_moderator() then
+    raise exception 'Only moderators can approve submissions.';
   end if;
 
   select *
@@ -298,12 +221,12 @@ begin
   where id = submission_id
   for update;
 
-  if submission_row.id is null then
-    raise exception 'Event submission not found';
+  if not found then
+    raise exception 'Event submission not found.';
   end if;
 
   if submission_row.status <> 'pending' then
-    raise exception 'Only pending submissions can be approved';
+    raise exception 'Event submission has already been reviewed.';
   end if;
 
   insert into public.events (
@@ -314,7 +237,6 @@ begin
     starts_at,
     ends_at,
     image_url,
-    image_asset_path,
     created_by,
     posted_by_name,
     status,
@@ -328,7 +250,6 @@ begin
     submission_row.starts_at,
     submission_row.ends_at,
     submission_row.image_url,
-    submission_row.image_asset_path,
     reviewer_id,
     coalesce(
       nullif(submission_row.organizer_name, ''),
@@ -344,8 +265,6 @@ begin
   set
     status = 'approved',
     approved_event_id = new_event_id,
-    moderator_notes = null,
-    updated_at = now(),
     reviewed_by = reviewer_id,
     reviewed_at = now()
   where id = submission_id;
@@ -353,5 +272,15 @@ begin
   return new_event_id;
 end;
 $$;
+
+drop index if exists idx_resources_image_backfill_pending;
+drop index if exists idx_events_image_backfill_pending;
+drop index if exists idx_resource_submissions_image_backfill_pending;
+drop index if exists idx_event_submissions_image_backfill_pending;
+
+alter table if exists public.resources drop column if exists image_asset_path;
+alter table if exists public.events drop column if exists image_asset_path;
+alter table if exists public.resource_submissions drop column if exists image_asset_path;
+alter table if exists public.event_submissions drop column if exists image_asset_path;
 
 commit;

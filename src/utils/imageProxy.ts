@@ -1,71 +1,84 @@
-const IMAGE_BUCKET = "external-images";
 const DEFAULT_WIDTHS = [480, 768, 1080] as const;
+const DEFAULT_WIDTH = 1080;
 
-function getSupabaseUrl() {
-  const base = import.meta.env.VITE_SUPABASE_URL?.trim();
-  if (!base) return "";
-  return base.replace(/\/+$/, "");
-}
-
-function encodeObjectPath(path: string) {
-  return path
-    .split("/")
-    .filter(Boolean)
-    .map((segment) => encodeURIComponent(segment))
-    .join("/");
+function getCloudinaryCloudName() {
+  return import.meta.env.VITE_CLOUDINARY_CLOUD_NAME?.trim() ?? "";
 }
 
 export interface ImageProxyUrlOptions {
   width?: (typeof DEFAULT_WIDTHS)[number];
 }
 
-function toVariantPath(assetPath: string, width: (typeof DEFAULT_WIDTHS)[number]) {
-  const lastDotIndex = assetPath.lastIndexOf(".");
-  if (lastDotIndex <= 0) return null;
+function normalizeHttpUrl(raw: string | null | undefined) {
+  const trimmed = raw?.trim() ?? "";
+  if (!trimmed) return null;
 
-  const base = assetPath.slice(0, lastDotIndex);
-  return `${base}_w${width}.webp`;
+  const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }
 
-export function buildStorageRenderUrl(
-  assetPath: string | null | undefined,
+function isCloudinaryUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === "res.cloudinary.com";
+  } catch {
+    return false;
+  }
+}
+
+function buildCloudinaryFetchUrl(
+  sourceUrl: string | null | undefined,
   options: ImageProxyUrlOptions = {},
 ) {
-  if (!assetPath || !options.width) return null;
-  const variantPath = toVariantPath(assetPath, options.width);
-  if (!variantPath) return null;
-  return buildStoragePublicUrl(variantPath);
+  const cloudName = getCloudinaryCloudName();
+  if (!cloudName) return null;
+
+  const normalizedUrl = normalizeHttpUrl(sourceUrl);
+  if (!normalizedUrl) return null;
+
+  if (isCloudinaryUrl(normalizedUrl)) {
+    return normalizedUrl;
+  }
+
+  const transforms = [
+    "f_auto",
+    "q_auto",
+    "c_limit",
+    "fl_progressive",
+    `w_${options.width ?? DEFAULT_WIDTH}`,
+  ];
+
+  return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/image/fetch/${transforms.join(",")}/${encodeURIComponent(normalizedUrl)}`;
 }
 
-export function buildStoragePublicUrl(assetPath: string | null | undefined) {
-  if (!assetPath) return null;
+export function buildDisplayImageSet(sourceUrl?: string | null) {
+  const normalizedUrl = normalizeHttpUrl(sourceUrl);
+  if (!normalizedUrl) return null;
 
-  const supabaseUrl = getSupabaseUrl();
-  if (!supabaseUrl) return null;
+  if (isCloudinaryUrl(normalizedUrl)) {
+    return {
+      src: normalizedUrl,
+      srcSet: null,
+    };
+  }
 
-  const normalizedPath = encodeObjectPath(assetPath);
-  return `${supabaseUrl}/storage/v1/object/public/${IMAGE_BUCKET}/${normalizedPath}`;
-}
-
-export function getDisplayImageUrl(assetPath?: string | null, originalUrl?: string | null) {
-  return buildStoragePublicUrl(assetPath) ?? originalUrl ?? null;
-}
-
-export function buildDisplayImageSet(assetPath?: string | null) {
-  if (!assetPath) return null;
-
-  const src = buildStoragePublicUrl(assetPath);
-  if (!src || !assetPath.endsWith(".webp")) return null;
+  const src = buildCloudinaryFetchUrl(normalizedUrl);
+  if (!src) return null;
 
   const srcSet = DEFAULT_WIDTHS
     .map((width) => {
-      const variant = buildStorageRenderUrl(assetPath, { width });
+      const variant = buildCloudinaryFetchUrl(normalizedUrl, { width });
       return variant ? `${variant} ${width}w` : null;
     })
     .filter((entry): entry is string => Boolean(entry))
-    .join(", ");
-
-  if (!srcSet) return null;
+    .join(", ") || null;
 
   return {
     src,

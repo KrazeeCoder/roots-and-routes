@@ -138,7 +138,6 @@ export function EventDetail() {
             <div className="h-64 sm:h-80">
               <ImageWithFallback
                 src={event.image_url}
-                assetPath={event.image_asset_path}
                 alt={event.title}
                 className="w-full h-full object-cover"
               />

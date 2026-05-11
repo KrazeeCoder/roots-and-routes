@@ -1,11 +1,5 @@
-import {
-  AuthError,
-  FunctionsFetchError,
-  FunctionsHttpError,
-  FunctionsRelayError,
-} from "@supabase/supabase-js";
+import { AuthError } from "@supabase/supabase-js";
 import { supabase } from "../../utils/supabase";
-import { getDisplayImageUrl } from "../../utils/imageProxy";
 import type { DirectoryEntry, EventItem, SpotlightItem } from "../types/home";
 import type {
   ContributorProfile,
@@ -52,15 +46,6 @@ interface DirectoryResourcesPageRpcRow extends ResourceRecord {
   total_count: number | string;
 }
 
-type ImageEntityType = "resource" | "event" | "resource_submission" | "event_submission";
-
-interface IngestExternalImageResponse {
-  assetPath: string;
-  sourceUrl: string;
-  contentType: string;
-  bytes: number;
-}
-
 export interface DirectoryResourcesPageParams {
   page: number;
   pageSize: number;
@@ -95,69 +80,25 @@ function normalizeHttpUrl(raw: string | null | undefined) {
 function withResolvedResourceImage(resource: ResourceRecord): ResourceRecord {
   return {
     ...resource,
-    image_url: getDisplayImageUrl(resource.image_asset_path, resource.image_url),
+    image_url: resource.image_url,
   };
 }
 
 function withResolvedEventImage(event: EventRecord): EventRecord {
   return {
     ...event,
-    image_url: getDisplayImageUrl(event.image_asset_path, event.image_url),
+    image_url: event.image_url,
   };
 }
 
-async function extractFunctionErrorMessage(error: FunctionsHttpError) {
-  try {
-    const payload = await error.context.json();
-    if (payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string") {
-      return payload.error;
-    }
-    if (payload && typeof payload === "object" && "message" in payload && typeof payload.message === "string") {
-      return payload.message;
-    }
-  } catch {
-    // no-op
-  }
-
-  return "Image optimization failed due to a remote image error.";
-}
-
-async function ingestExternalImage(
-  sourceUrl: string | null | undefined,
-  entityType: ImageEntityType,
-) {
+function prepareImageFields(sourceUrl: string | null | undefined) {
   const normalized = normalizeHttpUrl(sourceUrl);
   if (!normalized) {
-    return { image_url: null, image_asset_path: null };
-  }
-
-  const { data, error } = await supabase.functions.invoke("ingest-external-image", {
-    body: {
-      sourceUrl: normalized,
-      entityType,
-    },
-  });
-
-  if (error) {
-    if (error instanceof FunctionsHttpError) {
-      throw new Error(await extractFunctionErrorMessage(error));
-    }
-
-    if (error instanceof FunctionsFetchError || error instanceof FunctionsRelayError) {
-      throw new Error("Image optimization service is currently unavailable. Please try again.");
-    }
-
-    throw new Error("Image optimization failed. Please try a different image URL.");
-  }
-
-  const payload = data as IngestExternalImageResponse | null;
-  if (!payload?.assetPath || typeof payload.assetPath !== "string") {
-    throw new Error("Image optimization failed. Please try a different image URL.");
+    return { image_url: null };
   }
 
   return {
     image_url: normalized,
-    image_asset_path: payload.assetPath,
   };
 }
 
@@ -353,8 +294,7 @@ export async function listSpotlightItems(): Promise<SpotlightItem[]> {
     fullDescription: resource.full_description ?? resource.description,
     audience: resource.posted_by_name?.trim() || "Community Contributor",
     location: resource.address,
-    image: getDisplayImageUrl(resource.image_asset_path, resource.image_url),
-    imageAssetPath: resource.image_asset_path,
+    image: resource.image_url,
     featured: index === 0,
   }));
 }
@@ -450,10 +390,10 @@ export async function updateProfileStatus(userId: string, status: "approved" | "
 }
 
 export async function createResource(payload: ResourcePayload) {
-  const ingestedImage = await ingestExternalImage(payload.image_url, "resource");
+  const imageFields = prepareImageFields(payload.image_url);
   const { error } = await supabase.from("resources").insert({
     ...payload,
-    ...ingestedImage,
+    ...imageFields,
     tags: payload.tags ?? [],
   });
 
@@ -461,12 +401,12 @@ export async function createResource(payload: ResourcePayload) {
 }
 
 export async function updateResource(resourceId: string, payload: ResourcePayload) {
-  const ingestedImage = await ingestExternalImage(payload.image_url, "resource");
+  const imageFields = prepareImageFields(payload.image_url);
   const { error } = await supabase
     .from("resources")
     .update({
       ...payload,
-      ...ingestedImage,
+      ...imageFields,
     })
     .eq("id", resourceId);
   if (error) throw error;
@@ -478,22 +418,22 @@ export async function deleteResource(resourceId: string) {
 }
 
 export async function createEvent(payload: EventPayload) {
-  const ingestedImage = await ingestExternalImage(payload.image_url, "event");
+  const imageFields = prepareImageFields(payload.image_url);
   const { error } = await supabase.from("events").insert({
     ...payload,
-    ...ingestedImage,
+    ...imageFields,
   });
 
   if (error) throw error;
 }
 
 export async function updateEvent(eventId: string, payload: EventPayload) {
-  const ingestedImage = await ingestExternalImage(payload.image_url, "event");
+  const imageFields = prepareImageFields(payload.image_url);
   const { error } = await supabase
     .from("events")
     .update({
       ...payload,
-      ...ingestedImage,
+      ...imageFields,
     })
     .eq("id", eventId);
   if (error) throw error;
@@ -505,10 +445,10 @@ export async function deleteEvent(eventId: string) {
 }
 
 export async function createPublicResourceSubmission(payload: ResourceSubmissionPayload) {
-  const ingestedImage = await ingestExternalImage(payload.image_url, "resource_submission");
+  const imageFields = prepareImageFields(payload.image_url);
   const { error } = await supabase.from("resource_submissions").insert({
     ...payload,
-    ...ingestedImage,
+    ...imageFields,
     tags: payload.tags ?? [],
   });
 
@@ -516,10 +456,10 @@ export async function createPublicResourceSubmission(payload: ResourceSubmission
 }
 
 export async function createPublicEventSubmission(payload: EventSubmissionPayload) {
-  const ingestedImage = await ingestExternalImage(payload.image_url, "event_submission");
+  const imageFields = prepareImageFields(payload.image_url);
   const { error } = await supabase.from("event_submissions").insert({
     ...payload,
-    ...ingestedImage,
+    ...imageFields,
   });
 
   if (error) throw error;
@@ -600,7 +540,6 @@ export function mapResourceRecordToPayload(resource: ResourceRecord): ResourcePa
     hours: resource.hours,
     tags: resource.tags,
     image_url: resource.image_url,
-    image_asset_path: resource.image_asset_path,
     status: resource.status,
     is_spotlight: resource.is_spotlight,
     spotlight_subtitle: resource.spotlight_subtitle,
@@ -618,7 +557,6 @@ export function mapEventRecordToPayload(event: EventRecord): EventPayload {
     starts_at: event.starts_at,
     ends_at: event.ends_at,
     image_url: event.image_url,
-    image_asset_path: event.image_asset_path,
     status: event.status,
     is_spotlight: event.is_spotlight,
   };
@@ -640,8 +578,7 @@ export function mapResourceToDirectoryEntry(resource: ResourceRecord): Directory
     website: resource.website ?? undefined,
     hours: resource.hours ?? undefined,
     tags: resource.tags ?? [],
-    image: getDisplayImageUrl(resource.image_asset_path, resource.image_url),
-    imageAssetPath: resource.image_asset_path,
+    image: resource.image_url,
     postedByName: resource.posted_by_name ?? "Community Contributor",
     status: resource.status,
   };
@@ -659,8 +596,7 @@ export function mapEventToEventItem(event: EventRecord): EventItem {
     startsAt: event.starts_at,
     endsAt: event.ends_at ?? undefined,
     category: event.category ?? "Community Event",
-    image: getDisplayImageUrl(event.image_asset_path, event.image_url),
-    imageAssetPath: event.image_asset_path,
+    image: event.image_url,
     postedByName: event.posted_by_name ?? "Community Contributor",
     locationLat: event.location_lat,
     locationLng: event.location_lng,

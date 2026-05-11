@@ -783,7 +783,6 @@ export function Events() {
                       featured?.image
                       ?? "https://images.unsplash.com/photo-1528605248644-14dd04022da1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
                     }
-                    assetPath={featured?.imageAssetPath}
                     alt={featured?.title ?? "Featured event"}
                     className="w-full h-52 object-cover sm:h-full"
                   />
@@ -1191,7 +1190,6 @@ export function Events() {
                           <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
                             <ImageWithFallback
                               src={event.image}
-                              assetPath={event.imageAssetPath}
                               alt={event.title}
                               className="w-full h-full object-cover"
                             />

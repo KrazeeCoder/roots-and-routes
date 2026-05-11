@@ -1,3 +1,2 @@
-[functions.ingest-external-image]
-verify_jwt = false
-
+# Supabase project config intentionally minimal.
+# The legacy ingest-external-image function config was removed.
