@@ -9,19 +9,19 @@ interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElemen
 }
 
 export function ImageWithFallback(props: ImageWithFallbackProps) {
+  const imageRef = React.useRef<HTMLImageElement>(null)
   const [didError, setDidError] = useState(false)
   const [currentSrc, setCurrentSrc] = useState<string | undefined>()
   const [disableSrcSet, setDisableSrcSet] = useState(false)
   const [didTryPublicFallback, setDidTryPublicFallback] = useState(false)
 
   const handleLoad = () => {
-    setIsLoaded(true)
     setDidError(false)
   }
 
   // Use Intersection Observer for lazy loading
   React.useEffect(() => {
-    if (!imageRef) return
+    if (!imageRef.current) return
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -42,16 +42,16 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
       }
     )
 
-    if (imageRef.complete && imageRef.naturalHeight !== 0) {
-      setIsLoaded(true)
+    if (imageRef.current?.complete && imageRef.current.naturalHeight !== 0) {
+      // Image already loaded
     } else {
-      observer.observe(imageRef)
+      observer.observe(imageRef.current)
     }
 
     return () => {
       observer.disconnect()
     }
-  }, [imageRef])
+  }, [])
 
   const { src, alt, style, className, assetPath, srcSet, sizes, loading = 'lazy', ...rest } = props
   const transformed = buildDisplayImageSet(assetPath)
@@ -93,6 +93,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     </div>
   ) : (
     <img
+      ref={imageRef}
       src={currentSrc}
       alt={alt}
       className={className}
