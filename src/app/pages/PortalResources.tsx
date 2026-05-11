@@ -40,6 +40,7 @@ import { AddressAutocompleteInput } from "../components/forms/AddressAutocomplet
 import { CategoryPicker } from "../components/forms/CategoryPicker";
 import { ResourceHoursSelector } from "../components/forms/ResourceHoursSelector";
 import { TagChipInput, joinTagsForValidation } from "../components/forms/TagChipInput";
+import { TableSkeleton, FormSkeleton } from "../components/ui/skeleton";
 
 interface ResourceFormState {
   name: string;
@@ -591,7 +592,7 @@ export function PortalResources() {
             <CardDescription>Published listings are live right away for approved contributors.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {loading ? <p className="text-sm text-[#6F7553]">Loading resources...</p> : null}
+            {loading ? <TableSkeleton rows={3} columns={4} /> : null}
             {!loading && listError ? <p className="text-sm text-red-600">{listError}</p> : null}
             {!loading && sortedResources.length === 0 ? (
               <p className="text-sm text-[#6F7553]">No resources yet. Create your first listing.</p>
@@ -712,7 +713,7 @@ export function PortalResources() {
           </DialogHeader>
           <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
             {feedbackLoading ? (
-              <p className="text-sm text-[#6F7553]">Loading feedback...</p>
+              <FormSkeleton />
             ) : null}
             {!feedbackLoading && feedbackError ? (
               <p className="text-sm text-red-600">{feedbackError}</p>

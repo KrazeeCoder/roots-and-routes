@@ -7,6 +7,7 @@ const ERROR_IMG_SRC =
 interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
 
 export function ImageWithFallback(props: ImageWithFallbackProps) {
+  const imageRef = React.useRef<HTMLImageElement>(null)
   const [didError, setDidError] = useState(false)
   const [currentSrc, setCurrentSrc] = useState<string | undefined>()
   const [disableSrcSet, setDisableSrcSet] = useState(false)
@@ -45,6 +46,8 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     <div
       className={`inline-block bg-gray-100 text-center align-middle ${className ?? ''}`}
       style={style}
+      role="img"
+      aria-label={alt || "Image failed to load"}
     >
       <div className="flex items-center justify-center w-full h-full">
         <img src={ERROR_IMG_SRC} alt="Error loading image" {...rest} data-original-url={resolvedSrc} />
@@ -52,14 +55,17 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     </div>
   ) : (
     <img
+      ref={imageRef}
       src={currentSrc}
       alt={alt}
       className={className}
       style={style}
       srcSet={!disableSrcSet && currentSrc === resolvedSrc ? resolvedSrcSet : undefined}
       sizes={resolvedSizes}
+      loading={loading}
       {...rest}
       onError={handleError}
+      onLoad={handleLoad}
     />
   )
 }

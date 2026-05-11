@@ -18,6 +18,7 @@ import {
 import { ArrowLeft, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Button } from "../components/ui/button";
+import { CalendarSkeleton } from "../components/ui/skeleton";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 import { listPublishedEvents, mapEventToEventItem } from "../data/portalApi";
 import type { EventItem } from "../types/home";
@@ -59,6 +60,7 @@ function parseEventDate(event: EventItem): Date | null {
 
 export function Calendar() {
   const [events, setEvents] = useState<EventWithDate[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
 
@@ -91,6 +93,8 @@ export function Calendar() {
         setCurrentMonth(startOfMonth(initialDate));
       } catch (error) {
         console.error("Could not load published events", error);
+      } finally {
+        if (!cancelled) setLoadingEvents(false);
       }
     }
 
@@ -182,6 +186,9 @@ export function Calendar() {
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,1fr)] gap-6 items-start">
           <div className="order-2 xl:order-1">
             <ScrollReveal>
+              {loadingEvents ? (
+                <CalendarSkeleton />
+              ) : (
               <div className="bg-white rounded-3xl border border-[#E7D9C3] shadow-lg p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <Button
@@ -281,6 +288,7 @@ export function Calendar() {
                   })}
                 </div>
               </div>
+              )}
             </ScrollReveal>
           </div>
 

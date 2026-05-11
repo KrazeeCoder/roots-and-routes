@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft, Clock, ExternalLink, Globe, Mail, MapPin, Phone, Tag, User } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
+import { BreadcrumbNav } from "../components/BreadcrumbNav";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
 import { RatingComponent } from "../components/engagement/RatingComponent";
@@ -141,6 +142,7 @@ export function ResourceDetail() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
+      <BreadcrumbNav />
       <div className="sticky top-20 z-40 border-b border-[#E7D9C3] bg-[#F6F1E7]/95 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <Button
