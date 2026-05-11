@@ -1,6 +1,5 @@
 const IMAGE_BUCKET = "external-images";
 const DEFAULT_WIDTHS = [480, 768, 1080] as const;
-const DEFAULT_QUALITY = 72;
 
 function getSupabaseUrl() {
   const base = import.meta.env.VITE_SUPABASE_URL?.trim();
@@ -17,42 +16,46 @@ function encodeObjectPath(path: string) {
 }
 
 export interface ImageProxyUrlOptions {
-  width?: number;
-  quality?: number;
+  width?: (typeof DEFAULT_WIDTHS)[number];
+}
+
+function toVariantPath(assetPath: string, width: (typeof DEFAULT_WIDTHS)[number]) {
+  const lastDotIndex = assetPath.lastIndexOf(".");
+  if (lastDotIndex <= 0) return null;
+
+  const base = assetPath.slice(0, lastDotIndex);
+  return `${base}_w${width}.webp`;
 }
 
 export function buildStorageRenderUrl(
   assetPath: string | null | undefined,
   options: ImageProxyUrlOptions = {},
 ) {
+  if (!assetPath || !options.width) return null;
+  const variantPath = toVariantPath(assetPath, options.width);
+  if (!variantPath) return null;
+  return buildStoragePublicUrl(variantPath);
+}
+
+export function buildStoragePublicUrl(assetPath: string | null | undefined) {
   if (!assetPath) return null;
 
   const supabaseUrl = getSupabaseUrl();
   if (!supabaseUrl) return null;
 
   const normalizedPath = encodeObjectPath(assetPath);
-  const url = new URL(
-    `${supabaseUrl}/storage/v1/render/image/public/${IMAGE_BUCKET}/${normalizedPath}`,
-  );
-
-  if (options.width && Number.isFinite(options.width)) {
-    url.searchParams.set("width", String(Math.max(1, Math.trunc(options.width))));
-  }
-
-  const quality = options.quality ?? DEFAULT_QUALITY;
-  url.searchParams.set("quality", String(Math.max(20, Math.min(100, Math.trunc(quality)))));
-  return url.toString();
+  return `${supabaseUrl}/storage/v1/object/public/${IMAGE_BUCKET}/${normalizedPath}`;
 }
 
 export function getDisplayImageUrl(assetPath?: string | null, originalUrl?: string | null) {
-  return buildStorageRenderUrl(assetPath) ?? originalUrl ?? null;
+  return buildStoragePublicUrl(assetPath) ?? originalUrl ?? null;
 }
 
 export function buildDisplayImageSet(assetPath?: string | null) {
   if (!assetPath) return null;
 
-  const src = buildStorageRenderUrl(assetPath, { width: DEFAULT_WIDTHS[1] });
-  if (!src) return null;
+  const src = buildStoragePublicUrl(assetPath);
+  if (!src || !assetPath.endsWith(".webp")) return null;
 
   const srcSet = DEFAULT_WIDTHS
     .map((width) => {
@@ -69,4 +72,3 @@ export function buildDisplayImageSet(assetPath?: string | null) {
     srcSet,
   };
 }
-

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../auth/AuthProvider";
 import { TopoPattern } from "../components/TopoPattern";
 import { ScrollReveal } from "../components/ScrollReveal";
@@ -202,6 +203,8 @@ export function Suggest() {
       return;
     }
 
+    const toastId = toast.loading("Submitting resource proposal...");
+
     try {
       await createPublicResourceSubmission({
         resource_name: resourceForm.resourceName.trim(),
@@ -222,10 +225,14 @@ export function Suggest() {
       });
 
       setResourceForm(defaultResourceForm);
-      setSuccessMessage("Resource proposal received. It is pending moderator review and is not live on the site yet.");
+      const nextMessage = "Resource proposal received. It is pending moderator review and is not live on the site yet.";
+      setSuccessMessage(nextMessage);
+      toast.success("Resource proposal submitted for review.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setError(toErrorMessage(nextError, "Could not submit this resource proposal right now."));
+      const nextMessage = toErrorMessage(nextError, "Could not submit this resource proposal right now.");
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setSubmitting(false);
     }
@@ -277,6 +284,8 @@ export function Suggest() {
       ? endsAtCandidate
       : plusOneHour(startsAtIso);
 
+    const toastId = toast.loading("Submitting event proposal...");
+
     try {
       await createPublicEventSubmission({
         title: eventForm.title.trim(),
@@ -295,10 +304,14 @@ export function Suggest() {
       });
 
       setEventForm(defaultEventForm);
-      setSuccessMessage("Event proposal received. It is pending moderator review and is not live on the site yet.");
+      const nextMessage = "Event proposal received. It is pending moderator review and is not live on the site yet.";
+      setSuccessMessage(nextMessage);
+      toast.success("Event proposal submitted for review.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setError(toErrorMessage(nextError, "Could not submit this event proposal right now."));
+      const nextMessage = toErrorMessage(nextError, "Could not submit this event proposal right now.");
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setSubmitting(false);
     }

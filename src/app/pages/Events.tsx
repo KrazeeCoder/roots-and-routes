@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useJsApiLoader, CircleF, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
-import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { toast } from "sonner";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
@@ -241,7 +243,7 @@ function CalendarMenu({
           role="menu"
           className={`absolute ${menuPositionClass} mt-2 w-56 rounded-md border border-[#D9C6A8] bg-white shadow-lg z-[120] p-1`}
         >
-          <p className="px-2 py-1.5 text-sm font-medium text-[#334233]">Save This Event</p>
+          <p className="px-2 py-1.5 text-sm font-medium text-[#334233]">Export This Event</p>
           <div className="my-1 h-px bg-[#E7D9C3]" />
 
           {googleUrl ? (
@@ -251,7 +253,10 @@ function CalendarMenu({
               rel="noopener noreferrer"
               role="menuitem"
               className="block rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7]"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                toast.message("Opening Google Calendar in a new tab...");
+                setOpen(false);
+              }}
             >
               Google Calendar
             </a>
@@ -268,8 +273,15 @@ function CalendarMenu({
             className="w-full text-left rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7] disabled:text-[#9AA085] disabled:hover:bg-transparent disabled:cursor-not-allowed"
             onClick={() => {
               if (!payload) return;
-              downloadIcs(payload);
-              setOpen(false);
+              const toastId = toast.loading("Downloading .ics file...");
+              try {
+                downloadIcs(payload);
+                toast.success("Downloaded .ics calendar file.", { id: toastId });
+                setOpen(false);
+              } catch (error) {
+                console.error("Could not download calendar file", error);
+                toast.error("Could not download .ics file.", { id: toastId });
+              }
             }}
           >
             Apple / Outlook (.ics)
@@ -282,7 +294,10 @@ function CalendarMenu({
               rel="noopener noreferrer"
               role="menuitem"
               className="block rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7]"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                toast.message("Opening Yahoo Calendar in a new tab...");
+                setOpen(false);
+              }}
             >
               Yahoo Calendar
             </a>
@@ -296,7 +311,7 @@ function CalendarMenu({
             <>
               <div className="my-1 h-px bg-[#E7D9C3]" />
               <span className="block rounded-sm px-2 py-1.5 text-sm text-[#9AA085] cursor-not-allowed">
-                Event time unavailable
+                Event time unavailable; calendar export disabled.
               </span>
             </>
           ) : null}
@@ -455,12 +470,27 @@ export function Events() {
 
   const mapCenter = activeCenter ?? { ...bothellCenter, label: "Bothell, WA" };
   const selectedMarker = mapEvents.find((event) => event.id === selectedMarkerId);
+  const eventResultSummary = useMemo(() => {
+    const countLabel = `${visibleEvents.length} ${visibleEvents.length === 1 ? "event" : "events"}`;
+    const context = [
+      query ? `matching "${query}"` : null,
+      activeCenter ? `within ${radiusMilesFilter} miles of ${mapCenter.label}` : "across all locations",
+      viewMode === "map" ? `${mapEvents.length} mappable` : null,
+    ].filter(Boolean);
+
+    return `${countLabel} ${context.join(", ")}`;
+  }, [activeCenter, mapCenter.label, mapEvents.length, query, radiusMilesFilter, viewMode, visibleEvents.length]);
   const featuredHref = featured?.id ? `/events/${featured.id}` : null;
   const featuredCalendar = useMemo(() => {
     if (!featured) return null;
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     return buildCalendarPayload(featured, origin);
   }, [featured]);
+  const selectedMarkerCalendar = useMemo(() => {
+    if (!selectedMarker) return null;
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    return buildCalendarPayload(selectedMarker, origin);
+  }, [selectedMarker]);
 
   useEffect(() => {
     if (selectedMarkerId && !mapEvents.some((event) => event.id === selectedMarkerId)) {
@@ -889,7 +919,28 @@ export function Events() {
               </div>
             </div>
 
-            <div className="mt-3 text-sm text-[#5B473A]">
+            <div className="mt-3 text-sm text-[#5B473A]" aria-live="polite">
+              <p className="mb-1 inline-flex flex-wrap items-center gap-1.5">
+                <span>Showing</span>
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={`${visibleEvents.length}-${mapEvents.length}-${viewMode}-${query}-${radiusMilesFilter}-${mapCenter.label}`}
+                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="inline-flex min-w-6 justify-center rounded-full bg-[#E7D9C3] px-2 py-0.5 font-semibold text-[#334233]"
+                  >
+                    {visibleEvents.length}
+                  </motion.span>
+                </AnimatePresence>
+                <span>{visibleEvents.length === 1 ? "event" : "events"}</span>
+                {viewMode === "map" ? (
+                  <span className="rounded-full bg-[#A7AE8A]/20 px-2 py-0.5 text-xs font-semibold text-[#5B473A]">
+                    {mapEvents.length} mappable
+                  </span>
+                ) : null}
+              </p>
               {activeCenter ? (
                 <p>
                   Nearby search center: <span className="font-semibold text-[#334233]">{mapCenter.label}</span>
@@ -902,6 +953,7 @@ export function Events() {
                   Keyword filter: <span className="font-semibold text-[#334233]">{query}</span>
                 </p>
               ) : null}
+              <p className="sr-only">{eventResultSummary}</p>
               {nearbyMessage ? <p className="mt-1 text-[#6F7553]">{nearbyMessage}</p> : null}
             </div>
           </div>
@@ -989,6 +1041,74 @@ export function Events() {
                       </InfoWindowF>
                     ) : null}
                   </GoogleMap>
+                  <AnimatePresence initial={false}>
+                    {selectedMarker ? (
+                      <motion.div
+                        key={selectedMarker.id ?? selectedMarker.title}
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="border-t border-[#E7D9C3] bg-[#F6F1E7] p-4"
+                        aria-live="polite"
+                      >
+                        <div className="rounded-2xl border border-[#A7AE8A] bg-white p-4 shadow-sm">
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wider text-[#6F7553]">
+                                Selected map event
+                              </p>
+                              {selectedMarker.id ? (
+                                <Link
+                                  to={`/events/${selectedMarker.id}`}
+                                  className="mt-1 block font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] hover:text-[#B36A4C]"
+                                >
+                                  {selectedMarker.title}
+                                </Link>
+                              ) : (
+                                <h3 className="mt-1 font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233]">
+                                  {selectedMarker.title}
+                                </h3>
+                              )}
+                              <div className="mt-2 flex flex-wrap gap-3 text-sm text-[#5B473A]">
+                                <span className="inline-flex items-center gap-1">
+                                  <Clock className="h-4 w-4 text-[#A7AE8A]" />
+                                  {selectedMarker.date} at {selectedMarker.time}
+                                </span>
+                                <span className="inline-flex items-center gap-1">
+                                  <MapPin className="h-4 w-4 text-[#A7AE8A]" />
+                                  {selectedMarker.location}
+                                </span>
+                                {selectedMarker.distanceMiles !== null ? (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Navigation className="h-4 w-4 text-[#A7AE8A]" />
+                                    {selectedMarker.distanceMiles.toFixed(1)} miles away
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedMarker.id ? (
+                                <Button size="sm" asChild>
+                                  <Link to={`/events/${selectedMarker.id}`}>Details</Link>
+                                </Button>
+                              ) : null}
+                              <CalendarMenu payload={selectedMarkerCalendar} triggerVariant="outline" triggerSize="sm" align="end" />
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setSelectedMarkerId(null)}
+                              >
+                                <X className="h-4 w-4" />
+                                Clear
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
                   {mapEvents.length === 0 ? (
                     <p className="border-t border-[#E7D9C3] p-4 text-sm text-[#5B473A]">
                       No mappable events found for the current nearby filter.
@@ -1020,17 +1140,21 @@ export function Events() {
                 const detailHref = event.id ? `/events/${event.id}` : null;
                 const origin = typeof window !== "undefined" ? window.location.origin : "";
                 const eventCalendar = buildCalendarPayload(event, origin);
+                const isSelected = selectedMarkerId === event.id;
 
                 return (
                   <StaggerItem key={event.id ?? index} className="relative">
-                  <div className="relative border-l-2 border-[#A7AE8A]/50 pl-6 sm:pl-8">
-                    <div className="absolute -left-[26px] top-3 w-6 h-6 rounded-full bg-[#F6F1E7] border-3 border-[#A7AE8A] shadow-sm" />
-                    <div className="bg-white rounded-2xl border border-[#E7D9C3] shadow-sm p-5 hover:border-[#B36A4C] hover:shadow-md transition-all">
+                  <div className={`relative border-l-2 pl-6 sm:pl-8 ${isSelected ? "border-[#B36A4C]" : "border-[#A7AE8A]/50"}`}>
+                    <div className={`absolute -left-[26px] top-3 w-6 h-6 rounded-full bg-[#F6F1E7] border-3 shadow-sm ${isSelected ? "border-[#B36A4C] ring-4 ring-[#B36A4C]/20" : "border-[#A7AE8A]"}`} />
+                    <div className={`bg-white rounded-2xl border shadow-sm p-5 hover:border-[#B36A4C] hover:shadow-md transition-all ${isSelected ? "border-[#B36A4C] ring-2 ring-[#B36A4C]/20" : "border-[#E7D9C3]"}`}>
                       <div className="flex flex-col lg:flex-row lg:items-start gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-xs font-semibold text-[#334233]/80 mb-2">
                             <span className="px-2 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A] text-xs">{event.date}</span>
                             <span className="px-2 py-1 rounded-full bg-[#B36A4C]/10 text-[#B36A4C] text-xs">{event.category}</span>
+                            {isSelected ? (
+                              <span className="px-2 py-1 rounded-full bg-[#334233] text-white text-xs">Selected on map</span>
+                            ) : null}
                           </div>
                           {detailHref ? (
                             <Link to={detailHref} className="text-xl font-bold text-[#334233] mb-2 hover:text-[#B36A4C] transition-colors block">

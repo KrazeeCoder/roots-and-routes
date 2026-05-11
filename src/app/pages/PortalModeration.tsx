@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, ClipboardList, FileText, Trash2, UserCheck, UserX, Users } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
@@ -191,77 +192,110 @@ export function PortalModeration() {
   const handleResourceStatus = async (id: string, status: ContentStatus) => {
     const target = resources.find((item) => item.id === id);
     if (!target) return;
+    const toastId = toast.loading(`Updating resource to ${status}...`);
+    setError(null);
 
     try {
       await updateResource(id, { ...mapResourceRecordToPayload(target), status });
       await loadQueue();
+      toast.success(`Resource marked ${status}.`, { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not update resource status.");
+      const nextMessage = "Could not update resource status.";
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     }
   };
 
   const handleEventStatus = async (id: string, status: ContentStatus) => {
     const target = events.find((item) => item.id === id);
     if (!target) return;
+    const toastId = toast.loading(`Updating event to ${status}...`);
+    setError(null);
 
     try {
       await updateEvent(id, { ...mapEventRecordToPayload(target), status });
       await loadQueue();
+      toast.success(`Event marked ${status}.`, { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not update event status.");
+      const nextMessage = "Could not update event status.";
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     }
   };
 
   const handleDeleteResource = async (id: string) => {
     if (!window.confirm("Delete this resource permanently?")) return;
+    const toastId = toast.loading("Deleting resource...");
+    setError(null);
 
     try {
       await deleteResource(id);
       await loadQueue();
+      toast.success("Resource deleted.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not delete this resource.");
+      const nextMessage = "Could not delete this resource.";
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     }
   };
 
   const handleDeleteEvent = async (id: string) => {
     if (!window.confirm("Delete this event permanently?")) return;
+    const toastId = toast.loading("Deleting event...");
+    setError(null);
 
     try {
       await deleteEvent(id);
       await loadQueue();
+      toast.success("Event deleted.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setError("Could not delete this event.");
+      const nextMessage = "Could not delete this event.";
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     }
   };
 
   const handleProfileStatus = async (id: string, status: "approved" | "rejected") => {
+    const toastId = toast.loading(status === "approved" ? "Approving contributor..." : "Rejecting contributor...");
+    setError(null);
+
     try {
       await updateProfileStatus(id, status);
       await loadQueue();
+      toast.success(status === "approved" ? "Contributor approved." : "Contributor rejected.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setError(`Could not ${status} that contributor account.`);
+      const nextMessage = `Could not ${status} that contributor account.`;
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     }
   };
 
   const handleApproveResourceSubmission = async (id: string) => {
     if (resourceSubmissionBusy[id]) return;
     setResourceSubmissionBusy((prev) => ({ ...prev, [id]: true }));
+    const toastId = toast.loading("Approving resource submission...");
+    setError(null);
 
     try {
       await approveResourceSubmission(id);
       await loadQueue();
+      toast.success("Resource submission approved and published.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
       if (isAlreadyReviewedError(nextError)) {
-        setError("This resource submission was already reviewed. Refreshed moderation queues.");
+        const nextMessage = "This resource submission was already reviewed. Refreshed moderation queues.";
+        setError(nextMessage);
         await loadQueue();
+        toast.message(nextMessage, { id: toastId });
       } else {
-        setError("Could not approve this resource submission.");
+        const nextMessage = "Could not approve this resource submission.";
+        setError(nextMessage);
+        toast.error(nextMessage, { id: toastId });
       }
     } finally {
       setResourceSubmissionBusy((prev) => ({ ...prev, [id]: false }));
@@ -271,17 +305,24 @@ export function PortalModeration() {
   const handleRejectResourceSubmission = async (id: string) => {
     if (resourceSubmissionBusy[id]) return;
     setResourceSubmissionBusy((prev) => ({ ...prev, [id]: true }));
+    const toastId = toast.loading("Rejecting resource submission...");
+    setError(null);
 
     try {
       await rejectResourceSubmission(id, resourceNotes[id]);
       await loadQueue();
+      toast.success("Resource submission rejected.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
       if (isAlreadyReviewedError(nextError)) {
-        setError("This resource submission was already reviewed. Refreshed moderation queues.");
+        const nextMessage = "This resource submission was already reviewed. Refreshed moderation queues.";
+        setError(nextMessage);
         await loadQueue();
+        toast.message(nextMessage, { id: toastId });
       } else {
-        setError("Could not reject this resource submission.");
+        const nextMessage = "Could not reject this resource submission.";
+        setError(nextMessage);
+        toast.error(nextMessage, { id: toastId });
       }
     } finally {
       setResourceSubmissionBusy((prev) => ({ ...prev, [id]: false }));
@@ -291,17 +332,24 @@ export function PortalModeration() {
   const handleApproveEventSubmission = async (id: string) => {
     if (eventSubmissionBusy[id]) return;
     setEventSubmissionBusy((prev) => ({ ...prev, [id]: true }));
+    const toastId = toast.loading("Approving event submission...");
+    setError(null);
 
     try {
       await approveEventSubmission(id);
       await loadQueue();
+      toast.success("Event submission approved and published.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
       if (isAlreadyReviewedError(nextError)) {
-        setError("This event submission was already reviewed. Refreshed moderation queues.");
+        const nextMessage = "This event submission was already reviewed. Refreshed moderation queues.";
+        setError(nextMessage);
         await loadQueue();
+        toast.message(nextMessage, { id: toastId });
       } else {
-        setError("Could not approve this event submission.");
+        const nextMessage = "Could not approve this event submission.";
+        setError(nextMessage);
+        toast.error(nextMessage, { id: toastId });
       }
     } finally {
       setEventSubmissionBusy((prev) => ({ ...prev, [id]: false }));
@@ -311,17 +359,24 @@ export function PortalModeration() {
   const handleRejectEventSubmission = async (id: string) => {
     if (eventSubmissionBusy[id]) return;
     setEventSubmissionBusy((prev) => ({ ...prev, [id]: true }));
+    const toastId = toast.loading("Rejecting event submission...");
+    setError(null);
 
     try {
       await rejectEventSubmission(id, eventNotes[id]);
       await loadQueue();
+      toast.success("Event submission rejected.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
       if (isAlreadyReviewedError(nextError)) {
-        setError("This event submission was already reviewed. Refreshed moderation queues.");
+        const nextMessage = "This event submission was already reviewed. Refreshed moderation queues.";
+        setError(nextMessage);
         await loadQueue();
+        toast.message(nextMessage, { id: toastId });
       } else {
-        setError("Could not reject this event submission.");
+        const nextMessage = "Could not reject this event submission.";
+        setError(nextMessage);
+        toast.error(nextMessage, { id: toastId });
       }
     } finally {
       setEventSubmissionBusy((prev) => ({ ...prev, [id]: false }));

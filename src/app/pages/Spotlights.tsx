@@ -321,9 +321,8 @@ export function Spotlights() {
                           totalRatings={engagementData[featured.id]?.stats.totalRatings || 0}
                           size="sm"
                           showCount={true}
-                          onRatingChange={() => {
-                            void refreshEngagement(featured.id);
-                          }}
+                          itemLabel={featured.title}
+                          onRatingChange={() => refreshEngagement(featured.id)}
                         />
                       </div>
 
@@ -334,6 +333,7 @@ export function Spotlights() {
                           engagement={engagementData[featured.id]}
                           onUpdate={(newEngagement) => updateEngagement(featured.id, newEngagement)}
                           compact={true}
+                          itemLabel={featured.title}
                         />
                       )}
                     </div>
@@ -462,9 +462,8 @@ export function Spotlights() {
                           size="sm"
                           showCount={true}
                           readonly={false}
-                          onRatingChange={() => {
-                            void refreshEngagement(item.id);
-                          }}
+                          itemLabel={item.title}
+                          onRatingChange={() => refreshEngagement(item.id)}
                         />
                       </div>
 
@@ -475,6 +474,7 @@ export function Spotlights() {
                           engagement={engagementData[item.id]}
                           onUpdate={(newEngagement) => updateEngagement(item.id, newEngagement)}
                           compact={true}
+                          itemLabel={item.title}
                         />
                       )}
                     </div>

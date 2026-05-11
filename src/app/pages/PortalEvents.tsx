@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -472,25 +473,32 @@ export function PortalEvents() {
       return;
     }
 
+    const toastId = toast.loading("Creating event...");
     const resolvedLocation = await resolveLocationForSave(createForm, false, null);
     setCreateGeoNotice(resolvedLocation.geoNotice);
 
     const normalizedImageUrl = normalizeHttpUrl(createForm.imageUrl);
     if (createForm.imageUrl.trim() && !normalizedImageUrl) {
+      const nextMessage = "Image URL must be a valid URL (for example: https://images.unsplash.com/...).";
       setCreateSaving(false);
-      setCreateError("Image URL must be a valid URL (for example: https://images.unsplash.com/...).");
+      setCreateError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
       return;
     }
     if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
+      const nextMessage = "Image URL cannot use placeholder domains like example.com or localhost.";
       setCreateSaving(false);
-      setCreateError("Image URL cannot use placeholder domains like example.com or localhost.");
+      setCreateError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
       return;
     }
 
     const payload = buildPayload(createForm, resolvedLocation.lat, resolvedLocation.lng);
     if (!payload) {
+      const nextMessage = "Image URL must be a valid URL.";
       setCreateSaving(false);
-      setCreateError("Image URL must be a valid URL.");
+      setCreateError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
       return;
     }
 
@@ -498,9 +506,12 @@ export function PortalEvents() {
       await createEvent(payload);
       setCreateForm(defaultForm);
       await loadEvents();
+      toast.success("Event created.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setCreateError(toErrorMessage(nextError, "Could not create this event. Check the required fields and try again."));
+      const nextMessage = toErrorMessage(nextError, "Could not create this event. Check the required fields and try again.");
+      setCreateError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setCreateSaving(false);
     }
@@ -521,25 +532,32 @@ export function PortalEvents() {
       return;
     }
 
+    const toastId = toast.loading("Saving event changes...");
     const resolvedLocation = await resolveLocationForSave(editForm, true, editOriginalLocation);
     setEditGeoNotice(resolvedLocation.geoNotice);
 
     const normalizedImageUrl = normalizeHttpUrl(editForm.imageUrl);
     if (editForm.imageUrl.trim() && !normalizedImageUrl) {
+      const nextMessage = "Image URL must be a valid URL (for example: https://images.unsplash.com/...).";
       setEditSaving(false);
-      setEditError("Image URL must be a valid URL (for example: https://images.unsplash.com/...).");
+      setEditError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
       return;
     }
     if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
+      const nextMessage = "Image URL cannot use placeholder domains like example.com or localhost.";
       setEditSaving(false);
-      setEditError("Image URL cannot use placeholder domains like example.com or localhost.");
+      setEditError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
       return;
     }
 
     const payload = buildPayload(editForm, resolvedLocation.lat, resolvedLocation.lng);
     if (!payload) {
+      const nextMessage = "Image URL must be a valid URL.";
       setEditSaving(false);
-      setEditError("Image URL must be a valid URL.");
+      setEditError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
       return;
     }
 
@@ -547,9 +565,12 @@ export function PortalEvents() {
       await updateEvent(editId, payload);
       closeEditDialog();
       await loadEvents();
+      toast.success("Event changes saved.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setEditError(toErrorMessage(nextError, "Could not save this event. Check the required fields and try again."));
+      const nextMessage = toErrorMessage(nextError, "Could not save this event. Check the required fields and try again.");
+      setEditError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setEditSaving(false);
     }
@@ -559,12 +580,17 @@ export function PortalEvents() {
     const confirmed = window.confirm("Delete this event?");
     if (!confirmed) return;
 
+    const toastId = toast.loading("Deleting event...");
+
     try {
       await deleteEvent(eventId);
       await loadEvents();
+      toast.success("Event deleted.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setListError("Could not delete this event.");
+      const nextMessage = "Could not delete this event.";
+      setListError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     }
   };
 

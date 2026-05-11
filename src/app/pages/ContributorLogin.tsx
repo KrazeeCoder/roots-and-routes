@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { KeyRound, Mail, Sparkles, UserRound } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -72,11 +73,16 @@ export function ContributorLogin() {
     setError(null);
     setMessage(null);
 
+    const toastId = toast.loading("Signing in...");
+
     try {
       await signInContributor(email, password);
+      toast.success("Signed in.", { id: toastId });
       void navigate(redirectPath, { replace: true });
     } catch (nextError) {
-      setError(getFriendlyAuthError(nextError));
+      const nextMessage = getFriendlyAuthError(nextError);
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setSubmitting(false);
     }
@@ -137,6 +143,8 @@ export function ContributorLogin() {
       return;
     }
 
+    const toastId = toast.loading("Creating contributor account...");
+
     try {
       const result = await signUpContributor({
         organizationName: signUp.organizationName,
@@ -150,16 +158,21 @@ export function ContributorLogin() {
       });
 
       if (result.session) {
+        toast.success("Contributor account created.", { id: toastId });
         void navigate("/portal", { replace: true });
         return;
       }
 
-      setMessage("Account created. Your account is pending moderator approval. After approval, you can publish official resources and events directly. Check your email to verify your address first.");
+      const nextMessage = "Account created. Your account is pending moderator approval. After approval, you can publish official resources and events directly. Check your email to verify your address first.";
+      setMessage(nextMessage);
+      toast.success("Contributor account created and pending approval.", { id: toastId });
       setMode("signin");
       setEmail(signUp.email);
       setPassword("");
     } catch (nextError) {
-      setError(getFriendlyAuthError(nextError));
+      const nextMessage = getFriendlyAuthError(nextError);
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setSubmitting(false);
     }
@@ -171,11 +184,17 @@ export function ContributorLogin() {
     setError(null);
     setMessage(null);
 
+    const toastId = toast.loading("Sending password reset email...");
+
     try {
       await sendContributorPasswordReset(forgotEmail);
-      setMessage("Password reset email sent. Check your inbox.");
+      const nextMessage = "Password reset email sent. Check your inbox.";
+      setMessage(nextMessage);
+      toast.success(nextMessage, { id: toastId });
     } catch (nextError) {
-      setError(getFriendlyAuthError(nextError));
+      const nextMessage = getFriendlyAuthError(nextError);
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setSubmitting(false);
     }

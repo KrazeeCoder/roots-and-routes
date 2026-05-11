@@ -1,15 +1,25 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0?bundle";
+import {
+  ImageMagick,
+  initializeImageMagick,
+  MagickFormat,
+} from "npm:@imagemagick/magick-wasm@0.0.30";
 import { corsHeaders } from "../_shared/cors.ts";
 
 const BUCKET = "external-images";
 const MAX_BYTES = 25 * 1024 * 1024;
 const TIMEOUT_MS = 15_000;
+const CACHE_CONTROL_SECONDS = 31536000;
+const MAX_OUTPUT_WIDTH = 1600;
+const WEBP_QUALITY = 72;
+const RESPONSIVE_WIDTHS = [480, 768, 1080] as const;
 const ALLOWED_ENTITY_TYPES = new Set([
   "resource",
   "event",
   "resource_submission",
   "event_submission",
 ]);
+const NON_REENCODE_CONTENT_TYPES = new Set(["image/svg+xml", "image/gif"]);
 const CONTENT_TYPE_TO_EXT: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/jpg": "jpg",
@@ -29,6 +39,25 @@ interface IngestRequest {
   sourceUrl?: string;
   entityType?: string;
 }
+
+interface VariantUpload {
+  path: string;
+  bytes: Uint8Array;
+}
+
+interface OptimizedImage {
+  assetPath: string;
+  assetBytes: Uint8Array;
+  contentType: string;
+  variants: VariantUpload[];
+}
+
+const magickReady = (async () => {
+  const wasmBytes = await Deno.readFile(
+    new URL("magick.wasm", import.meta.resolve("npm:@imagemagick/magick-wasm@0.0.30")),
+  );
+  await initializeImageMagick(wasmBytes);
+})();
 
 function jsonResponse(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
@@ -127,6 +156,69 @@ async function fetchImageBytes(sourceUrl: string) {
   }
 }
 
+function calculateResizedHeight(width: number, sourceWidth: number, sourceHeight: number) {
+  return Math.max(1, Math.round((sourceHeight * width) / sourceWidth));
+}
+
+function optimizeToWebp(bytes: Uint8Array, width: number): Uint8Array {
+  return ImageMagick.read(bytes, (image) => {
+    image.autoOrient();
+    image.strip();
+
+    const sourceWidth = image.width;
+    const sourceHeight = image.height;
+    if (sourceWidth > width) {
+      image.resize(width, calculateResizedHeight(width, sourceWidth, sourceHeight));
+    }
+
+    image.quality = WEBP_QUALITY;
+    image.format = MagickFormat.Webp;
+    return image.write(MagickFormat.Webp, (data) => data);
+  });
+}
+
+async function buildOptimizedImage(
+  sourceUrl: string,
+  originalBytes: Uint8Array,
+  contentType: string,
+  folder: string,
+  hash: string,
+): Promise<OptimizedImage> {
+  if (NON_REENCODE_CONTENT_TYPES.has(contentType)) {
+    const ext = getExtension(sourceUrl, contentType);
+    return {
+      assetPath: `${folder}/${hash}.${ext}`,
+      assetBytes: originalBytes,
+      contentType,
+      variants: [],
+    };
+  }
+
+  await magickReady;
+
+  const sourceWidth = ImageMagick.read(originalBytes, (image) => image.width);
+  const assetPath = `${folder}/${hash}.webp`;
+  const assetBytes = optimizeToWebp(originalBytes, MAX_OUTPUT_WIDTH);
+  const variants: VariantUpload[] = [];
+
+  for (const width of RESPONSIVE_WIDTHS) {
+    if (sourceWidth <= width) continue;
+
+    const variantBytes = optimizeToWebp(originalBytes, width);
+    variants.push({
+      path: `${folder}/${hash}_w${width}.webp`,
+      bytes: variantBytes,
+    });
+  }
+
+  return {
+    assetPath,
+    assetBytes,
+    contentType: "image/webp",
+    variants,
+  };
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -171,10 +263,15 @@ Deno.serve(async (request) => {
   }
 
   const hash = await sha256(normalizedUrl);
-  const ext = getExtension(normalizedUrl, fetched.contentType);
   const folder = `external/${body.entityType}`;
-  const filename = `${hash}.${ext}`;
-  const objectPath = `${folder}/${filename}`;
+  let optimized: OptimizedImage;
+  try {
+    optimized = await buildOptimizedImage(normalizedUrl, fetched.bytes, fetched.contentType, folder, hash);
+  } catch {
+    return jsonResponse(422, { error: "Remote image format is unsupported or unreadable." });
+  }
+  const filename = optimized.assetPath.split("/").pop() ?? "";
+  const objectPath = optimized.assetPath;
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false },
@@ -192,16 +289,16 @@ Deno.serve(async (request) => {
     return jsonResponse(200, {
       assetPath: objectPath,
       sourceUrl: normalizedUrl,
-      contentType: fetched.contentType,
-      bytes: fetched.bytes.byteLength,
+      contentType: optimized.contentType,
+      bytes: optimized.assetBytes.byteLength,
     });
   }
 
   const { error: uploadError } = await adminClient.storage
     .from(BUCKET)
-    .upload(objectPath, fetched.bytes, {
-      contentType: fetched.contentType,
-      cacheControl: "31536000",
+    .upload(objectPath, optimized.assetBytes, {
+      contentType: optimized.contentType,
+      cacheControl: String(CACHE_CONTROL_SECONDS),
       upsert: false,
     });
 
@@ -209,11 +306,24 @@ Deno.serve(async (request) => {
     return jsonResponse(500, { error: "Could not store optimized image asset." });
   }
 
+  for (const variant of optimized.variants) {
+    const { error: variantError } = await adminClient.storage
+      .from(BUCKET)
+      .upload(variant.path, variant.bytes, {
+        contentType: "image/webp",
+        cacheControl: String(CACHE_CONTROL_SECONDS),
+        upsert: false,
+      });
+
+    if (variantError && !variantError.message.toLowerCase().includes("already exists")) {
+      return jsonResponse(500, { error: "Could not store optimized image variants." });
+    }
+  }
+
   return jsonResponse(200, {
     assetPath: objectPath,
     sourceUrl: normalizedUrl,
-    contentType: fetched.contentType,
-    bytes: fetched.bytes.byteLength,
+    contentType: optimized.contentType,
+    bytes: optimized.assetBytes.byteLength,
   });
 });
-

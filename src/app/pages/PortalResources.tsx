@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -485,13 +486,18 @@ export function PortalResources() {
       return;
     }
 
+    const toastId = toast.loading("Creating resource...");
+
     try {
       await createResource(toResourcePayload(createForm, canModerate));
       setCreateForm(defaultForm);
       await loadResources();
+      toast.success("Resource created.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setCreateError(toErrorMessage(nextError, "Could not create this resource. Please check required fields and try again."));
+      const nextMessage = toErrorMessage(nextError, "Could not create this resource. Please check required fields and try again.");
+      setCreateError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setCreateSaving(false);
     }
@@ -511,13 +517,18 @@ export function PortalResources() {
       return;
     }
 
+    const toastId = toast.loading("Saving resource changes...");
+
     try {
       await updateResource(editId, toResourcePayload(editForm, canModerate));
       closeEditDialog();
       await loadResources();
+      toast.success("Resource changes saved.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setEditError(toErrorMessage(nextError, "Could not save this resource. Please check required fields and try again."));
+      const nextMessage = toErrorMessage(nextError, "Could not save this resource. Please check required fields and try again.");
+      setEditError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setEditSaving(false);
     }
@@ -527,12 +538,17 @@ export function PortalResources() {
     const confirmed = window.confirm("Delete this resource?");
     if (!confirmed) return;
 
+    const toastId = toast.loading("Deleting resource...");
+
     try {
       await deleteResource(resourceId);
       await loadResources();
+      toast.success("Resource deleted.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
-      setListError("Could not delete this resource.");
+      const nextMessage = "Could not delete this resource.";
+      setListError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     }
   };
 

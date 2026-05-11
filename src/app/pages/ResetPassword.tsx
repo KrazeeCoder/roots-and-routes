@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { KeyRound } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -32,14 +33,19 @@ export function ResetPassword() {
     }
 
     setSubmitting(true);
+    const toastId = toast.loading("Updating password...");
     try {
       await updateContributorPassword(password);
-      setMessage("Password updated. You can sign in now.");
+      const nextMessage = "Password updated. You can sign in now.";
+      setMessage(nextMessage);
+      toast.success(nextMessage, { id: toastId });
       setTimeout(() => {
         void navigate("/contributor-login");
       }, 1200);
     } catch (nextError) {
-      setError(getFriendlyAuthError(nextError));
+      const nextMessage = getFriendlyAuthError(nextError);
+      setError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
     } finally {
       setSubmitting(false);
     }
