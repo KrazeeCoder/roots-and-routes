@@ -1,23 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
-import { useJsApiLoader, CircleF, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
-import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { toast } from "sonner";
+import { useJsApiLoader, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
+import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
+import { validateZipCode } from "../../utils/validation";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
-import { EventCardSkeleton } from "../components/ui/skeleton";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 import { listPublishedEvents, mapEventToEventItem } from "../data/portalApi";
 import type { EventItem } from "../types/home";
-import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS, milesToMeters } from "../../utils/googleMaps";
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/googleMaps";
 
 const bothellCenter = { lat: 47.7614, lng: -122.2052 };
-const radiusOptions = [1, 5, 10, 25] as const;
-const EVENTS_PER_PAGE = 5;
+const radiusOptions = [5, 10, 25, 50] as const;
+const EVENTS_PER_PAGE = 3;
 
 type ViewMode = "list" | "map";
 
@@ -62,27 +60,6 @@ function distanceMiles(latA: number, lngA: number, latB: number, lngB: number) {
     + Math.cos(toRadians(latA)) * Math.cos(toRadians(latB)) * Math.sin(dLng / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return earthRadiusMiles * c;
-}
-
-function zoomForCircleHeight({
-  latitude,
-  radiusMeters,
-  mapHeightPx,
-}: {
-  latitude: number;
-  radiusMeters: number;
-  mapHeightPx: number;
-}) {
-  if (!Number.isFinite(mapHeightPx) || mapHeightPx <= 0) return null;
-
-  const latRadians = (latitude * Math.PI) / 180;
-  const metersPerPixelAtZoom0 = 156543.03392 * Math.cos(latRadians);
-  const desiredMetersPerPixel = (radiusMeters * 2) / mapHeightPx;
-
-  if (desiredMetersPerPixel <= 0 || !Number.isFinite(desiredMetersPerPixel)) return null;
-
-  const zoom = Math.log2(metersPerPixelAtZoom0 / desiredMetersPerPixel);
-  return Math.max(0, Math.min(21, zoom));
 }
 
 function toCalendarTimestamp(date: Date) {
@@ -243,7 +220,7 @@ function CalendarMenu({
           role="menu"
           className={`absolute ${menuPositionClass} mt-2 w-56 rounded-md border border-[#D9C6A8] bg-white shadow-lg z-[120] p-1`}
         >
-          <p className="px-2 py-1.5 text-sm font-medium text-[#334233]">Export This Event</p>
+          <p className="px-2 py-1.5 text-sm font-medium text-[#334233]">Save This Event</p>
           <div className="my-1 h-px bg-[#E7D9C3]" />
 
           {googleUrl ? (
@@ -253,10 +230,7 @@ function CalendarMenu({
               rel="noopener noreferrer"
               role="menuitem"
               className="block rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7]"
-              onClick={() => {
-                toast.message("Opening Google Calendar in a new tab...");
-                setOpen(false);
-              }}
+              onClick={() => setOpen(false)}
             >
               Google Calendar
             </a>
@@ -273,15 +247,8 @@ function CalendarMenu({
             className="w-full text-left rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7] disabled:text-[#9AA085] disabled:hover:bg-transparent disabled:cursor-not-allowed"
             onClick={() => {
               if (!payload) return;
-              const toastId = toast.loading("Downloading .ics file...");
-              try {
-                downloadIcs(payload);
-                toast.success("Downloaded .ics calendar file.", { id: toastId });
-                setOpen(false);
-              } catch (error) {
-                console.error("Could not download calendar file", error);
-                toast.error("Could not download .ics file.", { id: toastId });
-              }
+              downloadIcs(payload);
+              setOpen(false);
             }}
           >
             Apple / Outlook (.ics)
@@ -294,10 +261,7 @@ function CalendarMenu({
               rel="noopener noreferrer"
               role="menuitem"
               className="block rounded-sm px-2 py-1.5 text-sm text-[#334233] hover:bg-[#F6F1E7]"
-              onClick={() => {
-                toast.message("Opening Yahoo Calendar in a new tab...");
-                setOpen(false);
-              }}
+              onClick={() => setOpen(false)}
             >
               Yahoo Calendar
             </a>
@@ -311,7 +275,7 @@ function CalendarMenu({
             <>
               <div className="my-1 h-px bg-[#E7D9C3]" />
               <span className="block rounded-sm px-2 py-1.5 text-sm text-[#9AA085] cursor-not-allowed">
-                Event time unavailable; calendar export disabled.
+                Event time unavailable
               </span>
             </>
           ) : null}
@@ -331,14 +295,13 @@ export function Events() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [activeCenter, setActiveCenter] = useState<{ lat: number; lng: number; label: string } | null>(null);
   const [radiusMilesFilter, setRadiusMilesFilter] = useState<number>(25);
-  const [locationQuery, setLocationQuery] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [nearbyMessage, setNearbyMessage] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const [eventsWithGeocodedCoords, setEventsWithGeocodedCoords] = useState<EventItem[]>([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const mapRef = useRef<google.maps.Map | null>(null);
 
   useEffect(() => {
     // Smooth scroll to top when component mounts
@@ -466,31 +429,15 @@ export function Events() {
     () => visibleEvents.filter((event) => hasCoordinates(event)),
     [visibleEvents],
   );
-  const radiusMeters = useMemo(() => milesToMeters(radiusMilesFilter), [radiusMilesFilter]);
 
   const mapCenter = activeCenter ?? { ...bothellCenter, label: "Bothell, WA" };
   const selectedMarker = mapEvents.find((event) => event.id === selectedMarkerId);
-  const eventResultSummary = useMemo(() => {
-    const countLabel = `${visibleEvents.length} ${visibleEvents.length === 1 ? "event" : "events"}`;
-    const context = [
-      query ? `matching "${query}"` : null,
-      activeCenter ? `within ${radiusMilesFilter} miles of ${mapCenter.label}` : "across all locations",
-      viewMode === "map" ? `${mapEvents.length} mappable` : null,
-    ].filter(Boolean);
-
-    return `${countLabel} ${context.join(", ")}`;
-  }, [activeCenter, mapCenter.label, mapEvents.length, query, radiusMilesFilter, viewMode, visibleEvents.length]);
   const featuredHref = featured?.id ? `/events/${featured.id}` : null;
   const featuredCalendar = useMemo(() => {
     if (!featured) return null;
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     return buildCalendarPayload(featured, origin);
   }, [featured]);
-  const selectedMarkerCalendar = useMemo(() => {
-    if (!selectedMarker) return null;
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    return buildCalendarPayload(selectedMarker, origin);
-  }, [selectedMarker]);
 
   useEffect(() => {
     if (selectedMarkerId && !mapEvents.some((event) => event.id === selectedMarkerId)) {
@@ -498,48 +445,13 @@ export function Events() {
     }
   }, [mapEvents, selectedMarkerId]);
 
-  const syncMapToActiveRadius = useCallback((map: google.maps.Map) => {
-    if (!activeCenter) return;
-
-    map.setCenter({ lat: activeCenter.lat, lng: activeCenter.lng });
-    const mapHeightPx = map.getDiv().clientHeight;
-    const zoom = zoomForCircleHeight({
-      latitude: activeCenter.lat,
-      radiusMeters,
-      mapHeightPx,
-    });
-
-    if (zoom !== null) {
-      map.setZoom(zoom);
-    }
-  }, [activeCenter, radiusMeters]);
-
-  useEffect(() => {
-    if (viewMode !== "map" || !mapRef.current) return;
-    syncMapToActiveRadius(mapRef.current);
-  }, [syncMapToActiveRadius, viewMode]);
-
-  useEffect(() => {
-    if (viewMode !== "map" || !activeCenter) return;
-
-    const handleResize = () => {
-      if (mapRef.current) {
-        syncMapToActiveRadius(mapRef.current);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [activeCenter, syncMapToActiveRadius, viewMode]);
-
   const useNearMe = () => {
     setNearbyMessage(null);
     setIsLocating(true);
 
     if (!navigator.geolocation) {
-      setNearbyMessage("Location access is unavailable on this browser. Enter a ZIP or address instead.");
+      setActiveCenter({ ...bothellCenter, label: "Bothell, WA" });
+      setNearbyMessage("Location access is unavailable on this browser, so we are showing nearby events around Bothell.");
       setIsLocating(false);
       return;
     }
@@ -555,7 +467,8 @@ export function Events() {
         setIsLocating(false);
       },
       () => {
-        setNearbyMessage("Location permission was denied. Enter a ZIP or address to search nearby.");
+        setActiveCenter({ ...bothellCenter, label: "Bothell, WA" });
+        setNearbyMessage("Location permission was denied, so we are showing nearby events around Bothell.");
         setIsLocating(false);
       },
       {
@@ -566,53 +479,58 @@ export function Events() {
     );
   };
 
-  const onLocationSearch = async (event: FormEvent<HTMLFormElement>) => {
+  const onZipSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const trimmedLocation = locationQuery.trim();
+    const trimmedZip = zipCode.trim();
 
-    if (!trimmedLocation) {
-      setNearbyMessage("Enter a ZIP or address to search nearby events.");
+    if (!trimmedZip) {
+      setNearbyMessage("Enter a ZIP code to search nearby events.");
+      return;
+    }
+
+    // Validate ZIP code format
+    const zipError = validateZipCode(trimmedZip);
+    if (zipError) {
+      setNearbyMessage(zipError);
       return;
     }
 
     if (!GOOGLE_MAPS_API_KEY) {
-      setNearbyMessage("Google Maps API key is missing, so location search is unavailable.");
+      setNearbyMessage("Google Maps API key is missing, so ZIP search is unavailable.");
       return;
     }
 
     if (!isMapsLoaded || !window.google?.maps?.Geocoder) {
-      setNearbyMessage("Map service is still loading. Try location search again in a moment.");
+      setNearbyMessage("Map service is still loading. Try ZIP search again in a moment.");
       return;
     }
 
     try {
       const geocoder = new window.google.maps.Geocoder();
-      const geocode = await geocoder.geocode({ address: trimmedLocation });
-      const topResult = geocode.results[0];
-      const location = topResult?.geometry?.location;
+      const geocode = await geocoder.geocode({ address: trimmedZip });
+      const location = geocode.results[0]?.geometry?.location;
 
       if (!location) {
-        setNearbyMessage("Could not find that location. Try a nearby ZIP or full address.");
+        setNearbyMessage("Could not find that ZIP code. Try a nearby ZIP.");
         return;
       }
 
-      const label = topResult?.formatted_address ?? trimmedLocation;
       setActiveCenter({
         lat: location.lat(),
         lng: location.lng(),
-        label,
+        label: trimmedZip,
       });
-      setNearbyMessage(`Showing events near ${label}.`);
-    } catch (locationError) {
-      console.error("Could not geocode location query", locationError);
-      setNearbyMessage("Could not search that location right now. Please try again.");
+      setNearbyMessage(`Showing events near ZIP ${trimmedZip}.`);
+    } catch (zipError) {
+      console.error("Could not geocode zip code", zipError);
+      setNearbyMessage("Could not search that ZIP right now. Please try again.");
     }
   };
 
   const clearNearby = () => {
     setActiveCenter(null);
     setNearbyMessage(null);
-    setLocationQuery("");
+    setZipCode("");
     setSelectedMarkerId(null);
   };
 
@@ -740,24 +658,24 @@ export function Events() {
                     </h3>
                   )}
                   <div className="mt-4 rounded-xl border border-[#D9C6A8] bg-[#F8F5F0] divide-y divide-[#E7D9C3]">
-                    <div className="flex items-start gap-4 px-5 py-4">
-                      <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
-                        <Clock className="size-5" />
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
+                        <Clock className="size-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[11px] uppercase tracking-wide font-semibold text-[#6F7553] mb-1">Time</p>
-                        <p className="text-[#334233] font-semibold text-base leading-snug">
+                        <p className="text-[10px] uppercase tracking-wide font-semibold text-[#6F7553]">Time</p>
+                        <p className="mt-1 text-[#334233] font-semibold text-sm leading-snug">
                           {featured?.time ?? "Time TBD"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-4 px-5 py-4">
-                      <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
-                        <MapPin className="size-5" />
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
+                        <MapPin className="size-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[11px] uppercase tracking-wide font-semibold text-[#6F7553] mb-1">Location</p>
-                        <p className="text-[#334233] font-medium text-sm leading-snug break-words">
+                        <p className="text-[10px] uppercase tracking-wide font-semibold text-[#6F7553]">Location</p>
+                        <p className="mt-1 text-[#334233] font-medium text-sm leading-snug break-words">
                           {featured?.location ?? "Location TBD"}
                         </p>
                       </div>
@@ -784,7 +702,6 @@ export function Events() {
                       featured?.image
                       ?? "https://images.unsplash.com/photo-1528605248644-14dd04022da1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
                     }
-                    assetPath={featured?.imageAssetPath}
                     alt={featured?.title ?? "Featured event"}
                     className="w-full h-52 object-cover sm:h-full"
                   />
@@ -865,33 +782,33 @@ export function Events() {
               </div>
 
               <div className="flex flex-wrap items-end gap-3">
+                <Button type="button" variant="outline" onClick={useNearMe} disabled={isLocating}>
+                  <Navigation className="w-4 h-4" />
+                  {isLocating ? "Finding location..." : "Near me"}
+                </Button>
+
                 <form
                   onSubmit={(event) => {
-                    void onLocationSearch(event);
+                    void onZipSearch(event);
                   }}
                   className="flex items-end gap-2"
                 >
                   <div className="space-y-1">
-                    <Label htmlFor="events-location-search" className="text-xs text-[#6F7553]">
-                      Location
+                    <Label htmlFor="events-zip-search" className="text-xs text-[#6F7553]">
+                      ZIP fallback
                     </Label>
                     <Input
-                      id="events-location-search"
-                      value={locationQuery}
-                      onChange={(event) => setLocationQuery(event.target.value)}
-                      placeholder="ZIP or address"
-                      className="w-48 sm:w-64"
+                      id="events-zip-search"
+                      value={zipCode}
+                      onChange={(event) => setZipCode(event.target.value)}
+                      placeholder="98011"
+                      className="w-28"
                     />
                   </div>
                   <Button type="submit" variant="secondary">
-                    Search
+                    Use ZIP
                   </Button>
                 </form>
-
-                <Button type="button" variant="outline" onClick={useNearMe} disabled={isLocating}>
-                  <Navigation className="w-4 h-4" />
-                  {isLocating ? "Finding location..." : "Use my location"}
-                </Button>
 
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="events-radius" className="mb-0 text-xs text-[#6F7553]">
@@ -919,28 +836,7 @@ export function Events() {
               </div>
             </div>
 
-            <div className="mt-3 text-sm text-[#5B473A]" aria-live="polite">
-              <p className="mb-1 inline-flex flex-wrap items-center gap-1.5">
-                <span>Showing</span>
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.span
-                    key={`${visibleEvents.length}-${mapEvents.length}-${viewMode}-${query}-${radiusMilesFilter}-${mapCenter.label}`}
-                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                    className="inline-flex min-w-6 justify-center rounded-full bg-[#E7D9C3] px-2 py-0.5 font-semibold text-[#334233]"
-                  >
-                    {visibleEvents.length}
-                  </motion.span>
-                </AnimatePresence>
-                <span>{visibleEvents.length === 1 ? "event" : "events"}</span>
-                {viewMode === "map" ? (
-                  <span className="rounded-full bg-[#A7AE8A]/20 px-2 py-0.5 text-xs font-semibold text-[#5B473A]">
-                    {mapEvents.length} mappable
-                  </span>
-                ) : null}
-              </p>
+            <div className="mt-3 text-sm text-[#5B473A]">
               {activeCenter ? (
                 <p>
                   Nearby search center: <span className="font-semibold text-[#334233]">{mapCenter.label}</span>
@@ -953,7 +849,6 @@ export function Events() {
                   Keyword filter: <span className="font-semibold text-[#334233]">{query}</span>
                 </p>
               ) : null}
-              <p className="sr-only">{eventResultSummary}</p>
               {nearbyMessage ? <p className="mt-1 text-[#6F7553]">{nearbyMessage}</p> : null}
             </div>
           </div>
@@ -968,163 +863,64 @@ export function Events() {
                 <p className="p-6 text-sm text-[#5B473A]">Loading map...</p>
               ) : isGeocoding ? (
                 <p className="p-6 text-sm text-[#5B473A]">Geocoding event addresses...</p>
+              ) : mapEvents.length === 0 ? (
+                <p className="p-6 text-sm text-[#5B473A]">No mappable events found for the current nearby filter.</p>
               ) : (
-                <>
-                  <GoogleMap
-                    mapContainerStyle={{ width: "100%", height: "360px" }}
-                    center={{ lat: mapCenter.lat, lng: mapCenter.lng }}
-                    zoom={activeCenter ? 11 : 10}
-                    onLoad={(map) => {
-                      mapRef.current = map;
-                      syncMapToActiveRadius(map);
-                    }}
-                    onUnmount={() => {
-                      mapRef.current = null;
-                    }}
-                    options={{
-                      mapTypeControl: false,
-                      streetViewControl: false,
-                      fullscreenControl: false,
-                    }}
-                  >
-                    {activeCenter ? (
-                      <CircleF
-                        center={{ lat: activeCenter.lat, lng: activeCenter.lng }}
-                        radius={radiusMeters}
-                        options={{
-                          fillColor: "#A7AE8A",
-                          fillOpacity: 0.12,
-                          strokeColor: "#5B473A",
-                          strokeOpacity: 0.8,
-                          strokeWeight: 2,
-                          clickable: false,
-                        }}
-                      />
-                    ) : null}
+                <GoogleMap
+                  mapContainerStyle={{ width: "100%", height: "360px" }}
+                  center={{ lat: mapCenter.lat, lng: mapCenter.lng }}
+                  zoom={activeCenter ? 11 : 10}
+                  options={{
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                  }}
+                >
+                  {mapEvents.map((event, index) => (
+                    <MarkerF
+                      key={event.id ?? `marker-${index}`}
+                      position={{ lat: event.locationLat as number, lng: event.locationLng as number }}
+                      onClick={() => setSelectedMarkerId(event.id ?? null)}
+                    />
+                  ))}
 
-                    {mapEvents.map((event, index) => (
-                      <MarkerF
-                        key={event.id ?? `marker-${index}`}
-                        position={{ lat: event.locationLat as number, lng: event.locationLng as number }}
-                        onClick={() => setSelectedMarkerId(event.id ?? null)}
-                      />
-                    ))}
-
-                    {selectedMarker && hasCoordinates(selectedMarker) ? (
-                      <InfoWindowF
-                        position={{
-                          lat: selectedMarker.locationLat as number,
-                          lng: selectedMarker.locationLng as number,
-                        }}
-                        onCloseClick={() => setSelectedMarkerId(null)}
-                      >
-                        <div className="max-w-[220px] text-[#334233]">
-                          <p className="text-xs uppercase tracking-wide text-[#6F7553]">{selectedMarker.category}</p>
-                          {selectedMarker.id ? (
-                            <Link
-                              to={`/events/${selectedMarker.id}`}
-                              className="font-semibold hover:text-[#B36A4C] transition-colors"
-                            >
-                              {selectedMarker.title}
-                            </Link>
-                          ) : (
-                            <p className="font-semibold">{selectedMarker.title}</p>
-                          )}
-                          <p className="text-sm text-[#5B473A]">{selectedMarker.location}</p>
-                          <p className="text-xs text-[#6F7553] mt-1">{selectedMarker.date} - {selectedMarker.time}</p>
-                          {selectedMarker.distanceMiles !== null ? (
-                            <p className="text-xs text-[#6F7553] mt-1">
-                              {selectedMarker.distanceMiles.toFixed(1)} miles away
-                            </p>
-                          ) : null}
-                        </div>
-                      </InfoWindowF>
-                    ) : null}
-                  </GoogleMap>
-                  <AnimatePresence initial={false}>
-                    {selectedMarker ? (
-                      <motion.div
-                        key={selectedMarker.id ?? selectedMarker.title}
-                        initial={{ opacity: 0, y: 14 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="border-t border-[#E7D9C3] bg-[#F6F1E7] p-4"
-                        aria-live="polite"
-                      >
-                        <div className="rounded-2xl border border-[#A7AE8A] bg-white p-4 shadow-sm">
-                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                            <div>
-                              <p className="text-xs font-bold uppercase tracking-wider text-[#6F7553]">
-                                Selected map event
-                              </p>
-                              {selectedMarker.id ? (
-                                <Link
-                                  to={`/events/${selectedMarker.id}`}
-                                  className="mt-1 block font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] hover:text-[#B36A4C]"
-                                >
-                                  {selectedMarker.title}
-                                </Link>
-                              ) : (
-                                <h3 className="mt-1 font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233]">
-                                  {selectedMarker.title}
-                                </h3>
-                              )}
-                              <div className="mt-2 flex flex-wrap gap-3 text-sm text-[#5B473A]">
-                                <span className="inline-flex items-center gap-1">
-                                  <Clock className="h-4 w-4 text-[#A7AE8A]" />
-                                  {selectedMarker.date} at {selectedMarker.time}
-                                </span>
-                                <span className="inline-flex items-center gap-1">
-                                  <MapPin className="h-4 w-4 text-[#A7AE8A]" />
-                                  {selectedMarker.location}
-                                </span>
-                                {selectedMarker.distanceMiles !== null ? (
-                                  <span className="inline-flex items-center gap-1">
-                                    <Navigation className="h-4 w-4 text-[#A7AE8A]" />
-                                    {selectedMarker.distanceMiles.toFixed(1)} miles away
-                                  </span>
-                                ) : null}
-                              </div>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedMarker.id ? (
-                                <Button size="sm" asChild>
-                                  <Link to={`/events/${selectedMarker.id}`}>Details</Link>
-                                </Button>
-                              ) : null}
-                              <CalendarMenu payload={selectedMarkerCalendar} triggerVariant="outline" triggerSize="sm" align="end" />
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setSelectedMarkerId(null)}
-                              >
-                                <X className="h-4 w-4" />
-                                Clear
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
-                  {mapEvents.length === 0 ? (
-                    <p className="border-t border-[#E7D9C3] p-4 text-sm text-[#5B473A]">
-                      No mappable events found for the current nearby filter.
-                    </p>
+                  {selectedMarker && hasCoordinates(selectedMarker) ? (
+                    <InfoWindowF
+                      position={{
+                        lat: selectedMarker.locationLat as number,
+                        lng: selectedMarker.locationLng as number,
+                      }}
+                      onCloseClick={() => setSelectedMarkerId(null)}
+                    >
+                      <div className="max-w-[220px] text-[#334233]">
+                        <p className="text-xs uppercase tracking-wide text-[#6F7553]">{selectedMarker.category}</p>
+                        {selectedMarker.id ? (
+                          <Link
+                            to={`/events/${selectedMarker.id}`}
+                            className="font-semibold hover:text-[#B36A4C] transition-colors"
+                          >
+                            {selectedMarker.title}
+                          </Link>
+                        ) : (
+                          <p className="font-semibold">{selectedMarker.title}</p>
+                        )}
+                        <p className="text-sm text-[#5B473A]">{selectedMarker.location}</p>
+                        <p className="text-xs text-[#6F7553] mt-1">{selectedMarker.date} • {selectedMarker.time}</p>
+                        {selectedMarker.distanceMiles !== null ? (
+                          <p className="text-xs text-[#6F7553] mt-1">
+                            {selectedMarker.distanceMiles.toFixed(1)} miles away
+                          </p>
+                        ) : null}
+                      </div>
+                    </InfoWindowF>
                   ) : null}
-                </>
+                </GoogleMap>
               )}
             </div>
           ) : null}
 
           {loadingEvents ? (
-            <div className="space-y-8">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <EventCardSkeleton key={index} />
-              ))}
-            </div>
+            <p className="mt-10 text-[#5B473A]">Loading events...</p>
           ) : visibleEvents.length === 0 ? (
             <p className="mt-10 text-[#5B473A]">
               {query
@@ -1140,21 +936,17 @@ export function Events() {
                 const detailHref = event.id ? `/events/${event.id}` : null;
                 const origin = typeof window !== "undefined" ? window.location.origin : "";
                 const eventCalendar = buildCalendarPayload(event, origin);
-                const isSelected = selectedMarkerId === event.id;
 
                 return (
                   <StaggerItem key={event.id ?? index} className="relative">
-                  <div className={`relative border-l-2 pl-6 sm:pl-8 ${isSelected ? "border-[#B36A4C]" : "border-[#A7AE8A]/50"}`}>
-                    <div className={`absolute -left-[26px] top-3 w-6 h-6 rounded-full bg-[#F6F1E7] border-3 shadow-sm ${isSelected ? "border-[#B36A4C] ring-4 ring-[#B36A4C]/20" : "border-[#A7AE8A]"}`} />
-                    <div className={`bg-white rounded-2xl border shadow-sm p-5 hover:border-[#B36A4C] hover:shadow-md transition-all ${isSelected ? "border-[#B36A4C] ring-2 ring-[#B36A4C]/20" : "border-[#E7D9C3]"}`}>
+                  <div className="relative border-l-2 border-[#A7AE8A]/50 pl-6 sm:pl-8">
+                    <div className="absolute -left-[26px] top-3 w-6 h-6 rounded-full bg-[#F6F1E7] border-3 border-[#A7AE8A] shadow-sm" />
+                    <div className="bg-white rounded-2xl border border-[#E7D9C3] shadow-sm p-5 hover:border-[#B36A4C] hover:shadow-md transition-all">
                       <div className="flex flex-col lg:flex-row lg:items-start gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-xs font-semibold text-[#334233]/80 mb-2">
                             <span className="px-2 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A] text-xs">{event.date}</span>
                             <span className="px-2 py-1 rounded-full bg-[#B36A4C]/10 text-[#B36A4C] text-xs">{event.category}</span>
-                            {isSelected ? (
-                              <span className="px-2 py-1 rounded-full bg-[#334233] text-white text-xs">Selected on map</span>
-                            ) : null}
                           </div>
                           {detailHref ? (
                             <Link to={detailHref} className="text-xl font-bold text-[#334233] mb-2 hover:text-[#B36A4C] transition-colors block">
@@ -1194,12 +986,7 @@ export function Events() {
                         </div>
                         {event.image ? (
                           <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
-                            <ImageWithFallback
-                              src={event.image}
-                              assetPath={event.imageAssetPath}
-                              alt={event.title}
-                              className="w-full h-full object-cover"
-                            />
+                            <ImageWithFallback src={event.image} alt={event.title} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/60 via-transparent" />
                           </div>
                         ) : null}
