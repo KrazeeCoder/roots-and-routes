@@ -10,12 +10,54 @@ interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElemen
 
 export function ImageWithFallback(props: ImageWithFallbackProps) {
   const [didError, setDidError] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null)
 
   const handleError = () => {
     setDidError(true)
+    setIsLoaded(false)
   }
 
-  const { src, alt, style, className, assetPath, srcSet, sizes, ...rest } = props
+  const handleLoad = () => {
+    setIsLoaded(true)
+    setDidError(false)
+  }
+
+  // Use Intersection Observer for lazy loading
+  React.useEffect(() => {
+    if (!imageRef) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const img = entry.target as HTMLImageElement
+            if (img.dataset.src) {
+              img.src = img.dataset.src
+              img.removeAttribute('data-src')
+            }
+            observer.unobserve(img)
+          }
+        })
+      },
+      {
+        rootMargin: '50px 0px',
+        threshold: 0.01
+      }
+    )
+
+    if (imageRef.complete && imageRef.naturalHeight !== 0) {
+      setIsLoaded(true)
+    } else {
+      observer.observe(imageRef)
+    }
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [imageRef])
+
+  const { src, alt, style, className, assetPath, srcSet, sizes, loading = 'lazy', ...rest } = props
   const transformed = buildDisplayImageSet(assetPath)
 
   const resolvedSrc = transformed?.src ?? src
@@ -32,15 +74,24 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
       </div>
     </div>
   ) : (
-    <img
-      src={resolvedSrc}
-      alt={alt}
-      className={className}
-      style={style}
-      srcSet={resolvedSrcSet}
-      sizes={resolvedSizes}
-      {...rest}
-      onError={handleError}
-    />
+    <div className="relative">
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-lg" />
+      )}
+      <img
+        ref={setImageRef}
+        data-src={resolvedSrc}
+        alt={alt}
+        className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className ?? ''}`}
+        style={style}
+        srcSet={resolvedSrcSet}
+        sizes={resolvedSizes}
+        loading={loading}
+        decoding="async"
+        {...rest}
+        onError={handleError}
+        onLoad={handleLoad}
+      />
+    </div>
   )
 }

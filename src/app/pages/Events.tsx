@@ -5,6 +5,7 @@ import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Spa
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
+import { EventCardSkeleton } from "../components/ui/skeleton";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
@@ -14,7 +15,7 @@ import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS, milesToMeters } from "
 
 const bothellCenter = { lat: 47.7614, lng: -122.2052 };
 const radiusOptions = [1, 5, 10, 25] as const;
-const EVENTS_PER_PAGE = 3;
+const EVENTS_PER_PAGE = 5;
 
 type ViewMode = "list" | "map";
 
@@ -999,7 +1000,11 @@ export function Events() {
           ) : null}
 
           {loadingEvents ? (
-            <p className="mt-10 text-[#5B473A]">Loading events...</p>
+            <div className="space-y-8">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <EventCardSkeleton key={index} />
+              ))}
+            </div>
           ) : visibleEvents.length === 0 ? (
             <p className="mt-10 text-[#5B473A]">
               {query

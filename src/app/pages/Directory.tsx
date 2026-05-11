@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
+import { CardSkeleton } from "../components/ui/skeleton";
 import { RatingComponent } from "../components/engagement/RatingComponent";
 import { EngagementButtons } from "../components/engagement/EngagementButtons";
 import {
@@ -56,6 +57,14 @@ export function Directory() {
   const [minRatingDraft, setMinRatingDraft] = useState(0);
   const [minRating, setMinRating] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Advanced filters
+  const [hasWebsite, setHasWebsite] = useState<boolean | null>(null);
+  const [hasPhone, setHasPhone] = useState<boolean | null>(null);
+  const [hasEmail, setHasEmail] = useState<boolean | null>(null);
+  const [isOpenNow, setIsOpenNow] = useState<boolean | null>(null);
+  const [selectedHours, setSelectedHours] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"relevance" | "rating" | "name">("relevance");
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -325,18 +334,103 @@ export function Directory() {
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-[#E7D9C3]">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[#6F7553] mb-3">Need Guidance?</h2>
-                <p className="text-sm text-[#5B473A] leading-relaxed mb-4">
-                  Still not seeing what you need? Submit a resource proposal for moderator review.
-                </p>
-                <a
-                  href="/suggest?type=resource"
-                  className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold hover:bg-[#334233] hover:text-white transition-colors"
-                >
-                  Submit a Resource
-                </a>
-              </div>
+              <div className="mt-6 pt-6 border-t border-[#E7D9C3]">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#6F7553] mb-3">Advanced Filters</h2>
+                
+                {/* Sort Options */}
+                <div className="mb-4">
+                  <h3 className="text-xs font-semibold text-[#6F7553] mb-2">Sort By</h3>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as "relevance" | "rating" | "name")}
+                    className="w-full px-3 py-2 border border-[#E7D9C3] rounded-lg text-sm focus:outline-none focus:border-[#B36A4C]"
+                  >
+                    <option value="relevance">Relevance</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="name">Name (A-Z)</option>
+                  </select>
+                </div>
+
+                {/* Contact Information Filters */}
+                <div className="mb-4">
+                  <h3 className="text-xs font-semibold text-[#6F7553] mb-2">Contact Information</h3>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={hasWebsite === true}
+                        onChange={(e) => setHasWebsite(e.target.checked ? true : e.target.indeterminate ? null : false)}
+                        className="rounded border-[#E7D9C3] text-[#B36A4C] focus:ring-[#B36A4C]"
+                      />
+                      Has Website
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={hasPhone === true}
+                        onChange={(e) => setHasPhone(e.target.checked ? true : e.target.indeterminate ? null : false)}
+                        className="rounded border-[#E7D9C3] text-[#B36A4C] focus:ring-[#B36A4C]"
+                      />
+                      Has Phone Number
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={hasEmail === true}
+                        onChange={(e) => setHasEmail(e.target.checked ? true : e.target.indeterminate ? null : false)}
+                        className="rounded border-[#E7D9C3] text-[#B36A4C] focus:ring-[#B36A4C]"
+                      />
+                      Has Email
+                    </label>
+                  </div>
+                </div>
+
+                {/* Hours Filter */}
+                <div className="mb-4">
+                  <h3 className="text-xs font-semibold text-[#6F7553] mb-2">Availability</h3>
+                  <select
+                    value={selectedHours}
+                    onChange={(e) => setSelectedHours(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#E7D9C3] rounded-lg text-sm focus:outline-none focus:border-[#B36A4C]"
+                  >
+                    <option value="">Any Hours</option>
+                    <option value="weekdays">Weekdays Only</option>
+                    <option value="weekends">Weekends Only</option>
+                    <option value="evenings">Evenings Only</option>
+                    <option value="24-7">24/7 Available</option>
+                  </select>
+                </div>
+
+                {/* Clear Filters */}
+                <div className="pt-4 border-t border-[#E7D9C3]">
+                  <button
+                    onClick={() => {
+                      setHasWebsite(null);
+                      setHasPhone(null);
+                      setHasEmail(null);
+                      setIsOpenNow(null);
+                      setSelectedHours("");
+                      setSortBy("relevance");
+                      scrollToResultsTop();
+                    }}
+                    className="w-full text-center px-3 py-2 text-sm text-[#B36A4C] hover:text-[#334233] transition-colors"
+                  >
+                    Clear Advanced Filters
+                  </button>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-[#E7D9C3]">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#6F7553] mb-3">Need Guidance?</h2>
+                  <p className="text-sm text-[#5B473A] leading-relaxed mb-4">
+                    Still not seeing what you need? Submit a resource proposal for moderator review.
+                  </p>
+                  <a
+                    href="/suggest?type=resource"
+                    className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold hover:bg-[#334233] hover:text-white transition-colors"
+                  >
+                    Submit a Resource
+                  </a>
+                </div>
             </div>
           </aside>
 
@@ -389,9 +483,16 @@ export function Directory() {
               )}
 
               {loadingEntries && entries.length === 0 ? (
-                <div className="text-center py-24 text-[#6F7553]">
-                  <Loader2 className="w-6 h-6 mx-auto mb-3 animate-spin text-[#B36A4C]" />
-                  <p className="text-lg font-medium text-[#334233]">Loading resources...</p>
+                <div>
+                  <div className="text-center py-24 text-[#6F7553]">
+                    <Loader2 className="w-6 h-6 mx-auto mb-3 animate-spin text-[#B36A4C]" />
+                    <p className="text-lg font-medium text-[#334233]">Loading resources...</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <CardSkeleton key={index} />
+                    ))}
+                  </div>
                 </div>
               ) : loadError ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24 text-[#6F7553]">
