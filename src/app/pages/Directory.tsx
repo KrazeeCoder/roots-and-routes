@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
-import { CardSkeleton } from "../components/ui/skeleton";
+import { ResourceListSkeleton } from "../components/ui/skeleton";
 import { RatingComponent } from "../components/engagement/RatingComponent";
 import { EngagementButtons } from "../components/engagement/EngagementButtons";
 import {
@@ -497,17 +497,7 @@ export function Directory() {
               )}
 
               {loadingEntries && entries.length === 0 ? (
-                <div>
-                  <div className="text-center py-24 text-[#6F7553]">
-                    <Loader2 className="w-6 h-6 mx-auto mb-3 animate-spin text-[#B36A4C]" />
-                    <p className="text-lg font-medium text-[#334233]">Loading resources...</p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {Array.from({ length: 4 }).map((_, index) => (
-                      <CardSkeleton key={index} />
-                    ))}
-                  </div>
-                </div>
+                <ResourceListSkeleton />
               ) : loadError ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24 text-[#6F7553]">
                   <p className="text-lg font-medium text-[#334233] mb-1">We ran into a loading issue</p>

@@ -6,6 +6,7 @@ import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { Input } from "../components/ui/input";
 import { PortalShell } from "../components/portal/PortalShell";
+import { TableSkeleton } from "../components/ui/skeleton";
 import {
   approveEventSubmission,
   approveResourceSubmission,
@@ -434,7 +435,7 @@ export function PortalModeration() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <p className="text-sm text-[#6F7553]">Loading account queue...</p>
+                <TableSkeleton rows={3} columns={3} />
               ) : pendingProfiles.length === 0 ? (
                 <p className="text-sm text-[#6F7553]">No contributor accounts are waiting for review.</p>
               ) : (
@@ -487,7 +488,7 @@ export function PortalModeration() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {loading ? <p className="text-sm text-[#6F7553]">Loading resource proposals...</p> : null}
+              {loading ? <TableSkeleton rows={3} columns={4} /> : null}
               {!loading && resourceSubmissions.length === 0 && pendingResourceContent.length === 0 ? (
                 <p className="text-sm text-[#6F7553]">No resources are pending moderation.</p>
               ) : null}

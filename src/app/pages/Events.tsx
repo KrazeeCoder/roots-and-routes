@@ -8,6 +8,7 @@ import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { EventListSkeleton } from "../components/ui/skeleton";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 import { listPublishedEvents, mapEventToEventItem } from "../data/portalApi";
 import type { EventItem } from "../types/home";
@@ -920,7 +921,7 @@ export function Events() {
           ) : null}
 
           {loadingEvents ? (
-            <p className="mt-10 text-[#5B473A]">Loading events...</p>
+            <EventListSkeleton />
           ) : visibleEvents.length === 0 ? (
             <p className="mt-10 text-[#5B473A]">
               {query

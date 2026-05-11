@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
+import { FormSkeleton } from "../components/ui/skeleton";
 import {
   createPublicEventSubmission,
   createPublicResourceSubmission,
