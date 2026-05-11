@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentProps, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useJsApiLoader, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
 import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
@@ -17,6 +17,7 @@ import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS } from "../../utils/goo
 const bothellCenter = { lat: 47.7614, lng: -122.2052 };
 const radiusOptions = [5, 10, 25, 50] as const;
 const EVENTS_PER_PAGE = 3;
+const DEFAULT_EVENT_IMAGE = "https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,w_1280/sample.jpg";
 
 type ViewMode = "list" | "map";
 
@@ -35,8 +36,8 @@ interface CalendarPayload {
 interface CalendarMenuProps {
   payload: CalendarPayload | null;
   triggerClassName?: string;
-  triggerVariant?: React.ComponentProps<typeof Button>["variant"];
-  triggerSize?: React.ComponentProps<typeof Button>["size"];
+  triggerVariant?: ComponentProps<typeof Button>["variant"];
+  triggerSize?: ComponentProps<typeof Button>["size"];
   align?: "start" | "center" | "end";
 }
 
@@ -699,10 +700,7 @@ export function Events() {
 
                 <div className="relative rounded-2xl overflow-hidden shadow-sm border border-[#E7D9C3]">
                   <ImageWithFallback
-                    src={
-                      featured?.image
-                      ?? "https://images.unsplash.com/photo-1528605248644-14dd04022da1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-                    }
+                    src={featured?.image?.trim() ? featured.image : DEFAULT_EVENT_IMAGE}
                     alt={featured?.title ?? "Featured event"}
                     className="w-full h-52 object-cover sm:h-full"
                   />
@@ -862,8 +860,10 @@ export function Events() {
                 </p>
               ) : !isMapsLoaded ? (
                 <p className="p-6 text-sm text-[#5B473A]">Loading map...</p>
-              ) : isGeocoding ? (
-                <p className="p-6 text-sm text-[#5B473A]">Geocoding event addresses...</p>
+              ) : loadingEvents || isGeocoding ? (
+                <p className="p-6 text-sm text-[#5B473A]">
+                  {loadingEvents ? "Loading events..." : "Geocoding event addresses..."}
+                </p>
               ) : mapEvents.length === 0 ? (
                 <p className="p-6 text-sm text-[#5B473A]">No mappable events found for the current nearby filter.</p>
               ) : (
@@ -985,16 +985,14 @@ export function Events() {
                             <CalendarMenu payload={eventCalendar} triggerVariant="outline" triggerSize="sm" />
                           </div>
                         </div>
-                        {event.image ? (
-                          <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
-                            <ImageWithFallback
-                              src={event.image}
-                              alt={event.title}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/60 via-transparent" />
-                          </div>
-                        ) : null}
+                        <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
+                          <ImageWithFallback
+                            src={event.image?.trim() ? event.image : DEFAULT_EVENT_IMAGE}
+                            alt={event.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/60 via-transparent" />
+                        </div>
                       </div>
                     </div>
                   </div>
