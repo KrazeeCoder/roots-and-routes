@@ -13,6 +13,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const [currentSrc, setCurrentSrc] = useState<string | undefined>()
   const [disableSrcSet, setDisableSrcSet] = useState(false)
   const [didTryPublicFallback, setDidTryPublicFallback] = useState(false)
+  const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null)
 
   const handleLoad = () => {
     setIsLoaded(true)
