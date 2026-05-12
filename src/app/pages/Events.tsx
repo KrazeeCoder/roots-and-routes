@@ -304,6 +304,7 @@ export function Events() {
   const [eventsWithGeocodedCoords, setEventsWithGeocodedCoords] = useState<EventItem[]>([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const mapSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Smooth scroll to top when component mounts
@@ -446,6 +447,24 @@ export function Events() {
       setSelectedMarkerId(null);
     }
   }, [mapEvents, selectedMarkerId]);
+
+  useEffect(() => {
+    if (!selectedMarkerId) return;
+    const selectedIndex = visibleEvents.findIndex((event) => event.id === selectedMarkerId);
+    if (selectedIndex === -1) return;
+    const targetPage = Math.floor(selectedIndex / EVENTS_PER_PAGE) + 1;
+    if (targetPage !== currentPage) {
+      setCurrentPage(targetPage);
+    }
+  }, [currentPage, selectedMarkerId, visibleEvents]);
+
+  const showEventOnMap = (eventId: string) => {
+    setSelectedMarkerId(eventId);
+    setViewMode("map");
+    window.setTimeout(() => {
+      mapSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  };
 
   const useNearMe = () => {
     setNearbyMessage(null);
@@ -853,7 +872,7 @@ export function Events() {
           </div>
 
           {viewMode === "map" ? (
-            <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white shadow-sm overflow-hidden">
+            <div ref={mapSectionRef} className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white shadow-sm overflow-hidden">
               {!GOOGLE_MAPS_API_KEY ? (
                 <p className="p-6 text-sm text-[#5B473A]">
                   Add <code>VITE_GOOGLE_MAPS_API_KEY</code> to enable map view.
@@ -937,12 +956,20 @@ export function Events() {
                 const detailHref = event.id ? `/events/${event.id}` : null;
                 const origin = typeof window !== "undefined" ? window.location.origin : "";
                 const eventCalendar = buildCalendarPayload(event, origin);
+                const canShowOnMap = Boolean(event.id && hasCoordinates(event));
+                const isSelectedCard = event.id !== undefined && selectedMarkerId === event.id;
 
                 return (
                   <StaggerItem key={event.id ?? index} className="relative">
                   <div className="relative border-l-2 border-[#A7AE8A]/50 pl-6 sm:pl-8">
                     <div className="absolute -left-[26px] top-3 w-6 h-6 rounded-full bg-[#F6F1E7] border-3 border-[#A7AE8A] shadow-sm" />
-                    <div className="bg-white rounded-2xl border border-[#E7D9C3] shadow-sm p-5 hover:border-[#B36A4C] hover:shadow-md transition-all">
+                    <div
+                      className={`rounded-2xl border shadow-sm p-5 transition-all ${
+                        isSelectedCard
+                          ? "bg-[#FFF8EE] border-[#B36A4C] ring-2 ring-[#B36A4C]/20"
+                          : "bg-white border-[#E7D9C3] hover:border-[#B36A4C] hover:shadow-md"
+                      }`}
+                    >
                       <div className="flex flex-col lg:flex-row lg:items-start gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-xs font-semibold text-[#334233]/80 mb-2">
@@ -973,6 +1000,17 @@ export function Events() {
                             <p className="text-xs text-[#6F7553] mb-3">Posted by {event.postedByName}</p>
                           ) : null}
                           <div className="flex flex-wrap gap-3">
+                            {canShowOnMap && event.id ? (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => showEventOnMap(event.id as string)}
+                                className={isSelectedCard ? "border border-[#B36A4C]/35" : undefined}
+                              >
+                                Show on map
+                              </Button>
+                            ) : null}
                             {detailHref ? (
                               <Button variant="outline" size="sm" asChild>
                                 <Link to={detailHref}>View Details</Link>

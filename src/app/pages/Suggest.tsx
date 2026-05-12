@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
-import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../auth/AuthProvider";
 import { TopoPattern } from "../components/TopoPattern";
@@ -27,8 +27,16 @@ import { ResourceHoursSelector } from "../components/forms/ResourceHoursSelector
 import { TagChipInput, joinTagsForValidation } from "../components/forms/TagChipInput";
 import { validateProfanity } from "../../utils/profanityFilter";
 import { validateEmail, validatePhone, validateRequired, validateUrl, validateMaxLength } from "../../utils/validation";
+import { launchSuccessConfetti } from "../../utils/confetti";
 
 type SubmissionKind = "resource" | "event";
+type StepId = 1 | 2 | 3;
+
+const STEP_LABELS: Record<StepId, string> = {
+  1: "Basics",
+  2: "Details",
+  3: "Submitter",
+};
 
 interface ResourceFormState {
   resourceName: string;
@@ -134,11 +142,14 @@ export function Suggest() {
   const [kind, setKind] = useState<SubmissionKind>(searchParams.get("type") === "event" ? "event" : "resource");
   const [resourceForm, setResourceForm] = useState<ResourceFormState>(defaultResourceForm);
   const [eventForm, setEventForm] = useState<EventFormState>(defaultEventForm);
+  const [resourceStep, setResourceStep] = useState<StepId>(1);
+  const [eventStep, setEventStep] = useState<StepId>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const hasDirectPublishingAccess = isModerator(role) || profile?.status === "approved";
+  const currentStep = kind === "resource" ? resourceStep : eventStep;
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
@@ -149,14 +160,75 @@ export function Suggest() {
     setKind(nextKind);
   }, [searchParams]);
 
+  const setCurrentKindStep = (step: StepId) => {
+    if (kind === "resource") {
+      setResourceStep(step);
+      return;
+    }
+    setEventStep(step);
+  };
+
   const switchKind = (nextKind: SubmissionKind) => {
     setKind(nextKind);
+    if (nextKind === "resource") {
+      setResourceStep(1);
+    } else {
+      setEventStep(1);
+    }
     setError(null);
     setSuccessMessage(null);
     setSearchParams(nextKind === "event" ? { type: "event" } : { type: "resource" });
   };
 
-  const handleResourceSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const validateResourceStep = (step: StepId) => {
+    if (step === 1) {
+      return (
+        validateRequired(resourceForm.resourceName, "Resource name")
+        || validateRequired(resourceForm.category, "Category")
+        || validateRequired(resourceForm.description, "Description")
+      );
+    }
+
+    if (step === 2) {
+      return validateRequired(resourceForm.address, "Address");
+    }
+
+    return null;
+  };
+
+  const validateEventStep = (step: StepId) => {
+    if (step === 1) {
+      return (
+        validateRequired(eventForm.title, "Event title")
+        || validateRequired(eventForm.location, "Location")
+        || validateRequired(eventForm.startsAt, "Start date and time")
+      );
+    }
+
+    return null;
+  };
+
+  const goToNextStep = () => {
+    const stepError = kind === "resource" ? validateResourceStep(currentStep) : validateEventStep(currentStep);
+    if (stepError) {
+      setError(stepError);
+      return;
+    }
+
+    if (currentStep < 3) {
+      setError(null);
+      setCurrentKindStep((currentStep + 1) as StepId);
+    }
+  };
+
+  const goToPreviousStep = () => {
+    if (currentStep > 1) {
+      setError(null);
+      setCurrentKindStep((currentStep - 1) as StepId);
+    }
+  };
+
+  const handleResourceSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
@@ -225,9 +297,11 @@ export function Suggest() {
       });
 
       setResourceForm(defaultResourceForm);
+      setResourceStep(1);
       const nextMessage = "Resource proposal received. It is pending moderator review and is not live on the site yet.";
       setSuccessMessage(nextMessage);
       toast.success("Resource proposal submitted for review.", { id: toastId });
+      launchSuccessConfetti();
     } catch (nextError) {
       console.error(nextError);
       const nextMessage = toErrorMessage(nextError, "Could not submit this resource proposal right now.");
@@ -238,7 +312,7 @@ export function Suggest() {
     }
   };
 
-  const handleEventSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleEventSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
     setError(null);
@@ -304,9 +378,11 @@ export function Suggest() {
       });
 
       setEventForm(defaultEventForm);
+      setEventStep(1);
       const nextMessage = "Event proposal received. It is pending moderator review and is not live on the site yet.";
       setSuccessMessage(nextMessage);
       toast.success("Event proposal submitted for review.", { id: toastId });
+      launchSuccessConfetti();
     } catch (nextError) {
       console.error(nextError);
       const nextMessage = toErrorMessage(nextError, "Could not submit this event proposal right now.");
@@ -316,6 +392,67 @@ export function Suggest() {
       setSubmitting(false);
     }
   };
+
+  const renderStepProgress = () => {
+    const steps: StepId[] = [1, 2, 3];
+
+    return (
+      <div className="grid grid-cols-3 gap-2" role="list" aria-label="Submission steps">
+        {steps.map((step) => {
+          const isActive = currentStep === step;
+          const isDone = currentStep > step;
+
+          return (
+            <div
+              key={step}
+              role="listitem"
+              className={`rounded-xl border px-3 py-2 text-center transition-colors ${
+                isActive
+                  ? "border-[#B36A4C] bg-[#FFF8EE] text-[#334233]"
+                  : isDone
+                    ? "border-[#A7AE8A] bg-[#EEF4E4] text-[#334233]"
+                    : "border-[#E7D9C3] bg-white text-[#6F7553]"
+              }`}
+            >
+              <div className="text-xs font-semibold uppercase tracking-wide">Step {step}</div>
+              <div className="text-sm font-medium mt-0.5">{STEP_LABELS[step]}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderNavigation = (submitLabel: string) => (
+    <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={goToPreviousStep}
+        disabled={currentStep === 1 || submitting}
+        className="inline-flex items-center gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </Button>
+
+      {currentStep < 3 ? (
+        <Button
+          type="button"
+          onClick={goToNextStep}
+          disabled={submitting}
+          className="inline-flex items-center gap-2"
+        >
+          Next
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      ) : (
+        <Button type="submit" disabled={submitting}>
+          {submitting ? "Submitting..." : submitLabel}
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
@@ -384,111 +521,115 @@ export function Suggest() {
                 </button>
               </div>
 
+              {renderStepProgress()}
+
               {error ? <div role="alert" aria-live="polite" className="text-sm text-red-600">{error}</div> : null}
               {successMessage ? <div role="status" aria-live="polite" className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">{successMessage}</div> : null}
 
               {kind === "resource" ? (
                 <form className="space-y-4" onSubmit={handleResourceSubmit} role="tabpanel" id="resource-panel" aria-labelledby="resource-tab">
-                  <fieldset>
-                    <legend className="sr-only">Resource Information</legend>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div><Label htmlFor="resource-name">Resource name</Label><Input id="resource-name" value={resourceForm.resourceName} onChange={(event) => setResourceForm((prev) => ({ ...prev, resourceName: event.target.value }))} required aria-describedby="resource-name-help" /><span id="resource-name-help" className="sr-only">Enter the name of the resource you want to submit</span></div>
-                      <div><Label htmlFor="resource-organization">Organization name</Label><Input id="resource-organization" value={resourceForm.organizationName} onChange={(event) => setResourceForm((prev) => ({ ...prev, organizationName: event.target.value }))} aria-describedby="resource-organization-help" /><span id="resource-organization-help" className="sr-only">Optional: Enter the organization name</span></div>
-                    </div>
-                    <div>
-                      <Label htmlFor="resource-category">Category</Label>
-                      <CategoryPicker
-                        id="resource-category"
-                        value={resourceForm.category}
-                        onChange={(next) =>
-                          setResourceForm((prev) => ({ ...prev, category: next as ResourceCategory | "" }))
-                        }
-                        options={RESOURCE_CATEGORIES}
-                        allowCustom={false}
-                        placeholder="Choose a category"
-                        label="Resource category"
-                        aria-describedby="resource-category-help"
-                      />
-                      <span id="resource-category-help" className="sr-only">Select the appropriate category for this resource</span>
-                    </div>
-                    <div><Label htmlFor="resource-description">Short description</Label><Textarea id="resource-description" value={resourceForm.description} onChange={(event) => setResourceForm((prev) => ({ ...prev, description: event.target.value }))} required aria-describedby="resource-description-help" /><span id="resource-description-help" className="sr-only">Provide a brief description of the resource (required)</span></div>
-                    <div><Label htmlFor="resource-full-description">Full description</Label><Textarea id="resource-full-description" value={resourceForm.fullDescription} onChange={(event) => setResourceForm((prev) => ({ ...prev, fullDescription: event.target.value }))} aria-describedby="resource-full-description-help" /><span id="resource-full-description-help" className="sr-only">Optional: Provide detailed information about the resource</span></div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <Label htmlFor="resource-address">Address</Label>
-                        <AddressAutocompleteInput
-                          id="resource-address"
-                          value={resourceForm.address}
-                          onChange={(next) => setResourceForm((prev) => ({ ...prev, address: next }))}
-                          required
-                          aria-describedby="resource-address-help"
-                        />
-                        <span id="resource-address-help" className="sr-only">Enter the physical address where this resource is located</span>
-                      </div>
-                      <div>
-                        <Label htmlFor="resource-hours">Hours</Label>
-                        <ResourceHoursSelector
-                          id="resource-hours"
-                          value={resourceForm.hours}
-                          onChange={(next) => setResourceForm((prev) => ({ ...prev, hours: next }))}
-                          aria-describedby="resource-hours-help"
-                        />
-                        <span id="resource-hours-help" className="sr-only">Optional: Enter operating hours</span>
-                      </div>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                      <div><Label htmlFor="resource-website">Website</Label><Input id="resource-website" value={resourceForm.website} onChange={(event) => setResourceForm((prev) => ({ ...prev, website: event.target.value }))} aria-describedby="resource-website-help" /><span id="resource-website-help" className="sr-only">Optional: Enter website URL</span></div>
-                      <div><Label htmlFor="resource-contact-email">Contact email</Label><Input id="resource-contact-email" type="email" value={resourceForm.contactEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactEmail: event.target.value }))} aria-describedby="resource-contact-email-help" /><span id="resource-contact-email-help" className="sr-only">Optional: Enter contact email address</span></div>
-                      <div><Label htmlFor="resource-contact-phone">Contact phone</Label><Input id="resource-contact-phone" value={resourceForm.contactPhone} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactPhone: event.target.value }))} aria-describedby="resource-contact-phone-help" /><span id="resource-contact-phone-help" className="sr-only">Optional: Enter contact phone number</span></div>
-                      <div><Label htmlFor="resource-image-url">Image URL</Label><Input id="resource-image-url" value={resourceForm.imageUrl} onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))} aria-describedby="resource-image-url-help" /><span id="resource-image-url-help" className="sr-only">Optional: Enter image URL</span></div>
-                    </div>
-                    <div>
-                      <Label htmlFor="resource-tags">Tags</Label>
-                      <TagChipInput
-                        id="resource-tags"
-                        values={resourceForm.tags}
-                        onChange={(next) => setResourceForm((prev) => ({ ...prev, tags: next }))}
-                        maxChars={300}
-                        placeholder="Type a tag, then press Enter"
-                        aria-describedby="resource-tags-help"
-                      />
-                      <span id="resource-tags-help" className="sr-only">Optional: Add relevant tags separated by commas</span>
-                    </div>
+                  {currentStep === 1 ? (
                     <fieldset>
-                      <legend className="text-sm font-medium mb-2">Your Information</legend>
+                      <legend className="sr-only">Resource Basics</legend>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <div><Label htmlFor="resource-submitter-name">Your name</Label><Input id="resource-submitter-name" value={resourceForm.submitterName} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterName: event.target.value }))} required aria-describedby="resource-submitter-name-help" /><span id="resource-submitter-name-help" className="sr-only">Enter your full name (required)</span></div>
-                        <div><Label htmlFor="resource-submitter-email">Your email</Label><Input id="resource-submitter-email" type="email" value={resourceForm.submitterEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required aria-describedby="resource-submitter-email-help" /><span id="resource-submitter-email-help" className="sr-only">Enter your email address (required)</span></div>
+                        <div><Label htmlFor="resource-name">Resource name</Label><Input id="resource-name" value={resourceForm.resourceName} onChange={(event) => setResourceForm((prev) => ({ ...prev, resourceName: event.target.value }))} required /></div>
+                        <div>
+                          <Label htmlFor="resource-category">Category</Label>
+                          <CategoryPicker
+                            id="resource-category"
+                            value={resourceForm.category}
+                            onChange={(next) =>
+                              setResourceForm((prev) => ({ ...prev, category: next as ResourceCategory | "" }))
+                            }
+                            options={RESOURCE_CATEGORIES}
+                            allowCustom={false}
+                            placeholder="Choose a category"
+                            label="Resource category"
+                          />
+                        </div>
                       </div>
-                      <div><Label htmlFor="resource-connection">Your connection to this resource</Label><Textarea id="resource-connection" value={resourceForm.submitterConnection} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} aria-describedby="resource-connection-help" /><span id="resource-connection-help" className="sr-only">Optional: Describe your relationship to this resource</span></div>
+                      <div><Label htmlFor="resource-description">Short description</Label><Textarea id="resource-description" value={resourceForm.description} onChange={(event) => setResourceForm((prev) => ({ ...prev, description: event.target.value }))} required /></div>
                     </fieldset>
-                    <Button type="submit" disabled={submitting} aria-describedby="submit-status">{submitting ? "Submitting..." : "Submit Resource Proposal"}</Button>
-                    <span id="submit-status" className="sr-only">{submitting ? "Form is being submitted, please wait" : "Ready to submit"}</span>
-                  </fieldset>
+                  ) : null}
+
+                  {currentStep === 2 ? (
+                    <fieldset>
+                      <legend className="sr-only">Resource Details</legend>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div><Label htmlFor="resource-organization">Organization name</Label><Input id="resource-organization" value={resourceForm.organizationName} onChange={(event) => setResourceForm((prev) => ({ ...prev, organizationName: event.target.value }))} /></div>
+                        <div><Label htmlFor="resource-image-url">Image URL</Label><Input id="resource-image-url" value={resourceForm.imageUrl} onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))} /></div>
+                      </div>
+                      <div><Label htmlFor="resource-full-description">Full description</Label><Textarea id="resource-full-description" value={resourceForm.fullDescription} onChange={(event) => setResourceForm((prev) => ({ ...prev, fullDescription: event.target.value }))} /></div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                          <Label htmlFor="resource-address">Address</Label>
+                          <AddressAutocompleteInput
+                            id="resource-address"
+                            value={resourceForm.address}
+                            onChange={(next) => setResourceForm((prev) => ({ ...prev, address: next }))}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="resource-hours">Hours</Label>
+                          <ResourceHoursSelector
+                            id="resource-hours"
+                            value={resourceForm.hours}
+                            onChange={(next) => setResourceForm((prev) => ({ ...prev, hours: next }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div><Label htmlFor="resource-website">Website</Label><Input id="resource-website" value={resourceForm.website} onChange={(event) => setResourceForm((prev) => ({ ...prev, website: event.target.value }))} /></div>
+                        <div><Label htmlFor="resource-contact-email">Contact email</Label><Input id="resource-contact-email" type="email" value={resourceForm.contactEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactEmail: event.target.value }))} /></div>
+                        <div><Label htmlFor="resource-contact-phone">Contact phone</Label><Input id="resource-contact-phone" value={resourceForm.contactPhone} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactPhone: event.target.value }))} /></div>
+                      </div>
+                      <div>
+                        <Label htmlFor="resource-tags">Tags</Label>
+                        <TagChipInput
+                          id="resource-tags"
+                          values={resourceForm.tags}
+                          onChange={(next) => setResourceForm((prev) => ({ ...prev, tags: next }))}
+                          maxChars={300}
+                          placeholder="Type a tag, then press Enter"
+                        />
+                      </div>
+                    </fieldset>
+                  ) : null}
+
+                  {currentStep === 3 ? (
+                    <fieldset>
+                      <legend className="sr-only">Submitter Information</legend>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div><Label htmlFor="resource-submitter-name">Your name</Label><Input id="resource-submitter-name" value={resourceForm.submitterName} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterName: event.target.value }))} required /></div>
+                        <div><Label htmlFor="resource-submitter-email">Your email</Label><Input id="resource-submitter-email" type="email" value={resourceForm.submitterEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required /></div>
+                      </div>
+                      <div><Label htmlFor="resource-connection">Your connection to this resource</Label><Textarea id="resource-connection" value={resourceForm.submitterConnection} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} /></div>
+                    </fieldset>
+                  ) : null}
+
+                  {renderNavigation("Submit Resource Proposal")}
                 </form>
               ) : (
                 <form className="space-y-4" onSubmit={handleEventSubmit} role="tabpanel" id="event-panel" aria-labelledby="event-tab">
-                  <fieldset>
-                    <legend className="sr-only">Event Information</legend>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div><Label htmlFor="event-title">Event title</Label><Input id="event-title" value={eventForm.title} onChange={(event) => setEventForm((prev) => ({ ...prev, title: event.target.value }))} required aria-describedby="event-title-help" /><span id="event-title-help" className="sr-only">Enter the title of the event (required)</span></div>
-                      <div>
-                        <Label htmlFor="event-category">Category</Label>
-                        <CategoryPicker
-                          id="event-category"
-                          value={eventForm.category}
-                          onChange={(next) => setEventForm((prev) => ({ ...prev, category: next }))}
-                          options={EVENT_CATEGORY_SUGGESTIONS}
-                          allowCustom
-                          placeholder="Choose or enter a category"
-                          label="Event category"
-                          aria-describedby="event-category-help"
-                        />
-                        <span id="event-category-help" className="sr-only">Select or enter event category</span>
+                  {currentStep === 1 ? (
+                    <fieldset>
+                      <legend className="sr-only">Event Basics</legend>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div><Label htmlFor="event-title">Event title</Label><Input id="event-title" value={eventForm.title} onChange={(event) => setEventForm((prev) => ({ ...prev, title: event.target.value }))} required /></div>
+                        <div>
+                          <Label htmlFor="event-category">Category</Label>
+                          <CategoryPicker
+                            id="event-category"
+                            value={eventForm.category}
+                            onChange={(next) => setEventForm((prev) => ({ ...prev, category: next }))}
+                            options={EVENT_CATEGORY_SUGGESTIONS}
+                            allowCustom
+                            placeholder="Choose or enter a category"
+                            label="Event category"
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div><Label htmlFor="event-description">Description</Label><Textarea id="event-description" value={eventForm.description} onChange={(event) => setEventForm((prev) => ({ ...prev, description: event.target.value }))} aria-describedby="event-description-help" /><span id="event-description-help" className="sr-only">Optional: Provide detailed event description</span></div>
-                    <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <Label htmlFor="event-location">Location</Label>
                         <AddressAutocompleteInput
@@ -496,35 +637,43 @@ export function Suggest() {
                           value={eventForm.location}
                           onChange={(next) => setEventForm((prev) => ({ ...prev, location: next }))}
                           required
-                          aria-describedby="event-location-help"
                         />
-                        <span id="event-location-help" className="sr-only">Enter the event location (required)</span>
                       </div>
-                      <div><Label htmlFor="event-image-url">Image URL</Label><Input id="event-image-url" value={eventForm.imageUrl} onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))} aria-describedby="event-image-url-help" /><span id="event-image-url-help" className="sr-only">Optional: Enter event image URL</span></div>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div><Label htmlFor="event-starts-at">Starts at</Label><Input id="event-starts-at" type="datetime-local" value={eventForm.startsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, startsAt: event.target.value }))} required aria-describedby="event-starts-at-help" /><span id="event-starts-at-help" className="sr-only">Enter event start date and time (required)</span></div>
-                      <div><Label htmlFor="event-ends-at">Ends at</Label><Input id="event-ends-at" type="datetime-local" value={eventForm.endsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, endsAt: event.target.value }))} aria-describedby="event-ends-at-help" /><span id="event-ends-at-help" className="sr-only">Optional: Enter event end date and time</span></div>
-                    </div>
-                    <fieldset>
-                      <legend className="text-sm font-medium mb-2">Organizer Information</legend>
-                      <div className="grid gap-4 sm:grid-cols-3">
-                        <div><Label htmlFor="event-organizer-name">Organizer name</Label><Input id="event-organizer-name" value={eventForm.organizerName} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerName: event.target.value }))} aria-describedby="event-organizer-name-help" /><span id="event-organizer-name-help" className="sr-only">Optional: Enter organizer name</span></div>
-                        <div><Label htmlFor="event-organizer-email">Organizer email</Label><Input id="event-organizer-email" value={eventForm.organizerEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerEmail: event.target.value }))} aria-describedby="event-organizer-email-help" /><span id="event-organizer-email-help" className="sr-only">Optional: Enter organizer email</span></div>
-                        <div><Label htmlFor="event-organizer-phone">Organizer phone</Label><Input id="event-organizer-phone" value={eventForm.organizerPhone} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerPhone: event.target.value }))} aria-describedby="event-organizer-phone-help" /><span id="event-organizer-phone-help" className="sr-only">Optional: Enter organizer phone</span></div>
-                      </div>
+                      <div><Label htmlFor="event-starts-at">Starts at</Label><Input id="event-starts-at" type="datetime-local" value={eventForm.startsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, startsAt: event.target.value }))} required /></div>
                     </fieldset>
+                  ) : null}
+
+                  {currentStep === 2 ? (
                     <fieldset>
-                      <legend className="text-sm font-medium mb-2">Your Information</legend>
+                      <legend className="sr-only">Event Details</legend>
+                      <div><Label htmlFor="event-description">Description</Label><Textarea id="event-description" value={eventForm.description} onChange={(event) => setEventForm((prev) => ({ ...prev, description: event.target.value }))} /></div>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <div><Label htmlFor="event-submitter-name">Your name</Label><Input id="event-submitter-name" value={eventForm.submitterName} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterName: event.target.value }))} required aria-describedby="event-submitter-name-help" /><span id="event-submitter-name-help" className="sr-only">Enter your full name (required)</span></div>
-                        <div><Label htmlFor="event-submitter-email">Your email</Label><Input id="event-submitter-email" type="email" value={eventForm.submitterEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required aria-describedby="event-submitter-email-help" /><span id="event-submitter-email-help" className="sr-only">Enter your email address (required)</span></div>
+                        <div><Label htmlFor="event-ends-at">Ends at</Label><Input id="event-ends-at" type="datetime-local" value={eventForm.endsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, endsAt: event.target.value }))} /></div>
+                        <div><Label htmlFor="event-image-url">Image URL</Label><Input id="event-image-url" value={eventForm.imageUrl} onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))} /></div>
                       </div>
-                      <div><Label htmlFor="event-connection">Your connection to this event</Label><Textarea id="event-connection" value={eventForm.submitterConnection} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} aria-describedby="event-connection-help" /><span id="event-connection-help" className="sr-only">Optional: Describe your relationship to this event</span></div>
+                      <fieldset>
+                        <legend className="text-sm font-medium mb-2">Organizer Information</legend>
+                        <div className="grid gap-4 sm:grid-cols-3">
+                          <div><Label htmlFor="event-organizer-name">Organizer name</Label><Input id="event-organizer-name" value={eventForm.organizerName} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerName: event.target.value }))} /></div>
+                          <div><Label htmlFor="event-organizer-email">Organizer email</Label><Input id="event-organizer-email" value={eventForm.organizerEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerEmail: event.target.value }))} /></div>
+                          <div><Label htmlFor="event-organizer-phone">Organizer phone</Label><Input id="event-organizer-phone" value={eventForm.organizerPhone} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerPhone: event.target.value }))} /></div>
+                        </div>
+                      </fieldset>
                     </fieldset>
-                    <Button type="submit" disabled={submitting} aria-describedby="event-submit-status">{submitting ? "Submitting..." : "Submit Event Proposal"}</Button>
-                    <span id="event-submit-status" className="sr-only">{submitting ? "Form is being submitted, please wait" : "Ready to submit"}</span>
-                  </fieldset>
+                  ) : null}
+
+                  {currentStep === 3 ? (
+                    <fieldset>
+                      <legend className="sr-only">Submitter Information</legend>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div><Label htmlFor="event-submitter-name">Your name</Label><Input id="event-submitter-name" value={eventForm.submitterName} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterName: event.target.value }))} required /></div>
+                        <div><Label htmlFor="event-submitter-email">Your email</Label><Input id="event-submitter-email" type="email" value={eventForm.submitterEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required /></div>
+                      </div>
+                      <div><Label htmlFor="event-connection">Your connection to this event</Label><Textarea id="event-connection" value={eventForm.submitterConnection} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} /></div>
+                    </fieldset>
+                  ) : null}
+
+                  {renderNavigation("Submit Event Proposal")}
                 </form>
               )}
             </CardContent>
