@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
-import { Trees, Menu } from "lucide-react";
+import { Trees, Menu, X } from "lucide-react";
 import { RESOURCE_CATEGORIES } from "./constants/resourceCategories";
 
 const navItems = [
@@ -43,6 +43,13 @@ export function Layout() {
       window.clearTimeout(timeout);
     };
   }, [location.hash, location.pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
 
   const isNavActive = (href: string) => {
     if (href === "/events") return currentPath === "/events" || currentPath.startsWith("/events/");
@@ -116,50 +123,82 @@ export function Layout() {
           </div>
         </div>
 
+      </header>
+
+      <div
+        className={`fixed inset-x-0 top-20 bottom-0 z-40 md:hidden ${
+          isMenuOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+        aria-hidden={!isMenuOpen}
+      >
+        <button
+          type="button"
+          onClick={() => setIsMenuOpen(false)}
+          aria-label="Close mobile menu"
+          className={`absolute inset-0 bg-[#334233]/35 transition-opacity duration-300 ${
+            isMenuOpen ? "opacity-100" : "opacity-0"
+          }`}
+        />
         <div
-          className={`md:hidden transition-max-h duration-300 overflow-hidden ${isMenuOpen ? "max-h-[520px]" : "max-h-0"}`}
           role="navigation"
           aria-label="Mobile navigation"
+          className={`absolute top-0 right-0 h-full w-[min(85vw,22rem)] bg-[#F6F1E7] border-l border-[#E7D9C3] shadow-2xl transition-transform duration-300 ease-out ${
+            isMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
         >
-          <div className="px-4 pb-4 space-y-3">
-            {navItems.map((item) => {
-              const isActive = isNavActive(item.href);
-              const activeText = isActive ? "text-[#334233] font-semibold" : "text-[#334233] hover:text-[#B36A4C]";
+          <div className="h-full overflow-y-auto px-5 py-4">
+            <div className="mb-4 flex items-center justify-between border-b border-[#E7D9C3] pb-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#6F7553]">Menu</span>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen(false)}
+                aria-label="Close navigation menu"
+                className="rounded-md p-1 text-[#334233] transition-colors hover:text-[#B36A4C] focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2 focus:ring-offset-[#F6F1E7]"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-              return (
+            <div className="space-y-3">
+              {navItems.map((item) => {
+                const isActive = isNavActive(item.href);
+                const activeText = isActive ? "text-[#334233] font-semibold" : "text-[#334233] hover:text-[#B36A4C]";
+
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block text-base font-medium transition-colors ${activeText}`}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
+
+              <div className="pt-3 space-y-2">
                 <Link
-                  key={item.name}
-                  to={item.href}
+                  to="/suggest"
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block text-base font-medium transition-colors ${activeText}`}
-                  aria-current={isActive ? "page" : undefined}
+                  className="block text-center px-4 py-2.5 rounded-xl bg-[#334233] text-white text-sm font-semibold"
+                  aria-label="Suggest a resource or event"
                 >
-                  {item.name}
+                  Suggest
                 </Link>
-              );
-            })}
-
-            <div className="pt-2 space-y-2">
-              <Link
-                to="/suggest"
-                onClick={() => setIsMenuOpen(false)}
-                className="block text-center px-4 py-2.5 rounded-xl bg-[#334233] text-white text-sm font-semibold"
-                aria-label="Suggest a resource or event"
-              >
-                Suggest
-              </Link>
-              <Link
-                to="/contributor-login"
-                onClick={() => setIsMenuOpen(false)}
-                className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold"
-                aria-label="Access contributor portal"
-              >
-                Portal
-              </Link>
+                <Link
+                  to="/contributor-login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block text-center px-4 py-2.5 rounded-xl border border-[#334233] text-[#334233] text-sm font-semibold"
+                  aria-label="Access contributor portal"
+                >
+                  Portal
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="flex-grow" role="main" id="main-content">
         <Outlet />
