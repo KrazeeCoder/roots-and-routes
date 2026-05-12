@@ -1,6 +1,6 @@
 import { ScrollReveal } from "../ScrollReveal";
 import { homeTestimonials } from "../../data/homeData";
-import { StaggerTestimonials } from "../ui/stagger-testimonials";
+import { TestimonialsRowsMarquee } from "../ui/testimonials-rows-marquee";
 
 export function TestimonialsSection() {
   return (
@@ -21,7 +21,7 @@ export function TestimonialsSection() {
         </ScrollReveal>
 
         <ScrollReveal delay={0.08} className="mt-8">
-          <StaggerTestimonials testimonials={homeTestimonials} />
+          <TestimonialsRowsMarquee testimonials={homeTestimonials} />
         </ScrollReveal>
       </div>
     </section>
