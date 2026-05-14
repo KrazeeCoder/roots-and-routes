@@ -61,6 +61,7 @@ const researchSources = [
   { name: "City of Bothell: Maps & GIS", url: "https://www.bothellwa.gov/233/Maps-GIS" },
 ];
 
+
 const judgeQuickCheckItems = [
   {
     title: "Interactive resource hub",
