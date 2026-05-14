@@ -42,10 +42,10 @@ function TestimonialRow({ items, direction, duration }: TestimonialRowProps) {
         {repeatedItems.map((testimonial, index) => (
           <article
             key={`${testimonial.attribution}-${index}`}
-            className="w-[270px] shrink-0 rounded-2xl border border-[#D9C6A8] bg-[#F8F4EC] p-5 text-[#334233] shadow-[0_8px_24px_rgba(51,66,51,0.08)] sm:w-[320px] sm:p-6"
+            className="w-[270px] shrink-0 rounded-2xl border border-[#D9C6A8] bg-[#F8F4EC] p-5 text-[#334233] shadow-[0_8px_24px_rgba(51,66,51,0.08)] sm:w-[320px] sm:p-6 flex flex-col"
           >
             <p
-              className="text-sm leading-relaxed sm:text-base"
+              className="text-sm leading-relaxed sm:text-base flex-grow"
               style={{
                 display: "-webkit-box",
                 WebkitLineClamp: 4,
@@ -59,7 +59,7 @@ function TestimonialRow({ items, direction, duration }: TestimonialRowProps) {
               <ImageWithFallback
                 src={testimonial.image}
                 alt={testimonial.attribution}
-                className="h-10 w-10 rounded-full border border-[#D9C6A8] object-cover object-top"
+                className="h-10 w-10 rounded-full border border-[#D9C6A8] object-cover object-top flex-shrink-0"
               />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold sm:text-base">{testimonial.attribution}</p>
@@ -76,8 +76,8 @@ function TestimonialRow({ items, direction, duration }: TestimonialRowProps) {
 export function TestimonialsRowsMarquee({
   testimonials,
   className,
-  topRowDuration = 34,
-  bottomRowDuration = 30,
+  topRowDuration = 50,
+  bottomRowDuration = 45,
 }: TestimonialsRowsMarqueeProps) {
   const midpoint = Math.ceil(testimonials.length / 2);
   const topRow = testimonials.slice(0, midpoint);
