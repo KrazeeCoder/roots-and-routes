@@ -247,37 +247,42 @@ export function About() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-[#334233] text-[#F6F1E7] py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-[#334233]/5 py-20 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+          <TopoPattern />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold mb-4">
+                <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
                   Get involved
                 </h2>
-                <p className="text-[#A7AE8A] text-lg leading-relaxed mb-8">
+                <p className="text-[#5B473A] text-lg leading-relaxed mb-8">
                   Browse the directory, drop a resource idea, or show up to an event. Every small action helps strengthen our community network.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button asChild>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button asChild className="bg-[#B36A4C] hover:bg-[#A55A3C] text-white shadow-md">
                     <a href="/directory" className="inline-flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
                       Explore Directory
                     </a>
                   </Button>
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" asChild className="border-[#B36A4C] text-[#B36A4C] hover:bg-[#B36A4C] hover:text-white shadow-md">
                     <a href="/suggest" className="inline-flex items-center gap-2">
+                      <HeartPulse className="w-4 h-4" />
                       Submit a Resource or Event
                     </a>
                   </Button>
                 </div>
               </div>
               <div className="flex items-center justify-center">
-                <div className="rounded-3xl border border-[#B36A4C]/50 bg-[#F6F1E7]/10 p-10">
-                  <div className="flex items-center gap-3 text-sm font-semibold text-[#F6F1E7] mb-3">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#B36A4C]/20">•</span>
+                <div className="rounded-3xl border border-[#B36A4C]/40 bg-white p-10 shadow-xl">
+                  <div className="flex items-center gap-3 text-sm font-semibold text-[#334233] mb-4">
+                    <Sparkles className="w-5 h-5 text-[#B36A4C]" />
                     <span>Community-driven pathway network</span>
                   </div>
-                  <div className="text-2xl font-bold text-white">We’re building something together.</div>
+                  <div className="text-2xl font-bold text-[#334233]">We’re building something together.</div>
                 </div>
               </div>
             </div>
