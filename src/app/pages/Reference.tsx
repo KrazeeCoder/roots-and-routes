@@ -10,6 +10,7 @@ import { TopoPattern } from "../components/TopoPattern";
 import { ScrollReveal } from "../components/ScrollReveal";
 import { listPublishedEvents, listPublishedResources } from "../data/portalApi";
 
+
 const HERO_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/08/Bothell_Way_northbound_from_Main_Street_in_Bothell%2C_WA.jpg";
 const EVENTS_FALLBACK_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg";
 const COPYRIGHT_CHECKLIST_DRIVE_VIEW_URL = "https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/view";
