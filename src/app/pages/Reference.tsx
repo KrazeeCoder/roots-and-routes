@@ -20,6 +20,7 @@ const WORKLOG_DRIVE_VIEW_URL = "https://drive.google.com/file/d/1skSucePHHQdWwnG
 const WORKLOG_DRIVE_PREVIEW_URL = "https://drive.google.com/file/d/1skSucePHHQdWwnGoNzyIbNIuhbdwIWTk/preview";
 const WORKLOG_DOWNLOAD_URL = "/StudentWorklog.pdf";
 
+
 const additionalReferenceImages = [
   "https://upload.wikimedia.org/wikipedia/commons/0/08/Bothell_Way_northbound_from_Main_Street_in_Bothell%2C_WA.jpg",
   "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg",

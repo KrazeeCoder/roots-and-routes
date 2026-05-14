@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import { ArrowRight, MapPin, Users, Star, Award, Eye } from "lucide-react";
 import { motion } from "motion/react";
@@ -17,6 +17,7 @@ export function Spotlights() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [engagementData, setEngagementData] = useState<Record<string, SpotlightEngagement>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const spotlightGridRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,6 +92,13 @@ export function Spotlights() {
       updateEngagement(spotlightId, latest);
     } catch (error) {
       console.error(`Failed to refresh engagement for ${spotlightId}:`, error);
+    }
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    if (spotlightGridRef.current) {
+      spotlightGridRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -184,7 +192,7 @@ export function Spotlights() {
               </div>
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={() => setSelectedCategory("all")}
+                  onClick={() => handleCategoryChange("all")}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     selectedCategory === "all"
                       ? "bg-[#334233] text-white shadow-lg"
@@ -196,7 +204,7 @@ export function Spotlights() {
                 {categories.map((category) => (
                   <button
                     key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => handleCategoryChange(category)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                       selectedCategory === category
                         ? "bg-[#334233] text-white shadow-lg"
@@ -345,7 +353,7 @@ export function Spotlights() {
       ) : null}
 
       {/* ── Enhanced All Spotlights Grid ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
+      <section ref={spotlightGridRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
         <ScrollReveal>
           <div className="flex items-center gap-4 mb-8">
             <div className="flex items-center gap-2">
