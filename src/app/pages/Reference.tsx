@@ -16,9 +16,9 @@ const EVENTS_FALLBACK_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/common
 const COPYRIGHT_CHECKLIST_DRIVE_VIEW_URL = "https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/view";
 const COPYRIGHT_CHECKLIST_DRIVE_PREVIEW_URL = "https://drive.google.com/file/d/1N9d0weILs0gI_uovZHEJsEa91-c11wEP/preview";
 const COPYRIGHT_CHECKLIST_DOWNLOAD_URL = "/StudentCopyrightChecklist.pdf";
-const WORKLOG_DRIVE_VIEW_URL = "https://drive.google.com/file/d/1skSucePHHQdWwnGoNzyIbNIuhbdwIWTk/view";
-const WORKLOG_DRIVE_PREVIEW_URL = "https://drive.google.com/file/d/1skSucePHHQdWwnGoNzyIbNIuhbdwIWTk/preview";
-const WORKLOG_DOWNLOAD_URL = "/StudentWorklog.pdf";
+const WORKLOG_DRIVE_VIEW_URL = "https://drive.google.com/file/d/19JFaCY3_zdIYrD3ouQwGLSe-VPSIExab/view";
+const WORKLOG_DRIVE_PREVIEW_URL = "https://drive.google.com/file/d/19JFaCY3_zdIYrD3ouQwGLSe-VPSIExab/preview";
+const WORKLOG_DOWNLOAD_URL = "/StudentWorklogWebmaster.pdf";
 
 
 const additionalReferenceImages = [
