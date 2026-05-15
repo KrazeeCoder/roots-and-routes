@@ -31,6 +31,7 @@ import { launchSuccessConfetti } from "../../utils/confetti";
 
 type SubmissionKind = "resource" | "event";
 type StepId = 1 | 2 | 3;
+type FieldErrors = Record<string, string>;
 
 const STEP_LABELS: Record<StepId, string> = {
   1: "Basics",
@@ -147,6 +148,8 @@ export function Suggest() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [resourceFieldErrors, setResourceFieldErrors] = useState<FieldErrors>({});
+  const [eventFieldErrors, setEventFieldErrors] = useState<FieldErrors>({});
 
   const hasDirectPublishingAccess = isModerator(role) || profile?.status === "approved";
   const currentStep = kind === "resource" ? resourceStep : eventStep;
@@ -168,6 +171,22 @@ export function Suggest() {
     setEventStep(step);
   };
 
+  const getFieldErrorId = (fieldId: string) => `${fieldId}-error`;
+  const focusFieldById = (fieldId: string) => {
+    window.requestAnimationFrame(() => {
+      const node = document.getElementById(fieldId);
+      node?.focus();
+    });
+  };
+
+  const clearKindFieldErrors = (nextKind: SubmissionKind) => {
+    if (nextKind === "resource") {
+      setResourceFieldErrors({});
+      return;
+    }
+    setEventFieldErrors({});
+  };
+
   const switchKind = (nextKind: SubmissionKind) => {
     setKind(nextKind);
     if (nextKind === "resource") {
@@ -177,46 +196,73 @@ export function Suggest() {
     }
     setError(null);
     setSuccessMessage(null);
+    clearKindFieldErrors(nextKind);
     setSearchParams(nextKind === "event" ? { type: "event" } : { type: "resource" });
   };
 
   const validateResourceStep = (step: StepId) => {
+    const errors: FieldErrors = {};
+    let firstInvalidFieldId: string | null = null;
+
+    const markError = (fieldId: string, message: string | null) => {
+      if (!message) return;
+      errors[fieldId] = message;
+      if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
+    };
+
     if (step === 1) {
-      return (
-        validateRequired(resourceForm.resourceName, "Resource name")
-        || validateRequired(resourceForm.category, "Category")
-        || validateRequired(resourceForm.description, "Description")
-      );
+      markError("resource-name", validateRequired(resourceForm.resourceName, "Resource name"));
+      markError("resource-category", validateRequired(resourceForm.category, "Category"));
+      markError("resource-description", validateRequired(resourceForm.description, "Description"));
     }
 
     if (step === 2) {
-      return validateRequired(resourceForm.address, "Address");
+      markError("resource-address", validateRequired(resourceForm.address, "Address"));
     }
 
-    return null;
+    setResourceFieldErrors(errors);
+    return {
+      isValid: Object.keys(errors).length === 0,
+      firstInvalidFieldId,
+      firstError: Object.values(errors)[0] ?? null,
+    };
   };
 
   const validateEventStep = (step: StepId) => {
+    const errors: FieldErrors = {};
+    let firstInvalidFieldId: string | null = null;
+
+    const markError = (fieldId: string, message: string | null) => {
+      if (!message) return;
+      errors[fieldId] = message;
+      if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
+    };
+
     if (step === 1) {
-      return (
-        validateRequired(eventForm.title, "Event title")
-        || validateRequired(eventForm.location, "Location")
-        || validateRequired(eventForm.startsAt, "Start date and time")
-      );
+      markError("event-title", validateRequired(eventForm.title, "Event title"));
+      markError("event-location", validateRequired(eventForm.location, "Location"));
+      markError("event-starts-at", validateRequired(eventForm.startsAt, "Start date and time"));
     }
 
-    return null;
+    setEventFieldErrors(errors);
+    return {
+      isValid: Object.keys(errors).length === 0,
+      firstInvalidFieldId,
+      firstError: Object.values(errors)[0] ?? null,
+    };
   };
 
   const goToNextStep = () => {
-    const stepError = kind === "resource" ? validateResourceStep(currentStep) : validateEventStep(currentStep);
-    if (stepError) {
-      setError(stepError);
+    const validation = kind === "resource" ? validateResourceStep(currentStep) : validateEventStep(currentStep);
+    if (!validation.isValid) {
+      setError(validation.firstError);
+      if (validation.firstInvalidFieldId) focusFieldById(validation.firstInvalidFieldId);
       return;
     }
 
     if (currentStep < 3) {
       setError(null);
+      clearKindFieldErrors(kind);
       setCurrentKindStep((currentStep + 1) as StepId);
     }
   };
@@ -233,6 +279,27 @@ export function Suggest() {
     setSubmitting(true);
     setError(null);
     setSuccessMessage(null);
+    setResourceFieldErrors({});
+
+    const errors: FieldErrors = {};
+    let firstInvalidFieldId: string | null = null;
+    const markError = (fieldId: string, message: string | null) => {
+      if (!message) return;
+      errors[fieldId] = message;
+      if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
+    };
+
+    markError("resource-name", validateRequired(resourceForm.resourceName, "Resource name"));
+    markError("resource-category", validateRequired(resourceForm.category, "Category"));
+    markError("resource-description", validateRequired(resourceForm.description, "Description"));
+    markError("resource-address", validateRequired(resourceForm.address, "Address"));
+    markError("resource-submitter-name", validateRequired(resourceForm.submitterName, "Your name"));
+    markError("resource-submitter-email", validateRequired(resourceForm.submitterEmail, "Your email"));
+    markError("resource-submitter-email", validateEmail(resourceForm.submitterEmail));
+    markError("resource-contact-email", validateEmail(resourceForm.contactEmail));
+    markError("resource-contact-phone", validatePhone(resourceForm.contactPhone));
+    markError("resource-website", validateUrl(resourceForm.website));
+    markError("resource-image-url", validateUrl(resourceForm.imageUrl));
 
     const firstError =
       validateRequired(resourceForm.resourceName, "Resource name")
@@ -262,6 +329,14 @@ export function Suggest() {
       || validateMaxLength(resourceForm.address, "Address", 500)
       || validateMaxLength(resourceForm.hours, "Hours", 200)
       || validateMaxLength(joinTagsForValidation(resourceForm.tags), "Tags", 300);
+
+    if (Object.keys(errors).length > 0) {
+      setResourceFieldErrors(errors);
+      setError(Object.values(errors)[0]);
+      if (firstInvalidFieldId) focusFieldById(firstInvalidFieldId);
+      setSubmitting(false);
+      return;
+    }
 
     if (firstError) {
       setError(firstError);
@@ -298,6 +373,7 @@ export function Suggest() {
 
       setResourceForm(defaultResourceForm);
       setResourceStep(1);
+      setResourceFieldErrors({});
       const nextMessage = "Resource proposal received. It is pending moderator review and is not live on the site yet.";
       setSuccessMessage(nextMessage);
       toast.success("Resource proposal submitted for review.", { id: toastId });
@@ -317,6 +393,25 @@ export function Suggest() {
     setSubmitting(true);
     setError(null);
     setSuccessMessage(null);
+    setEventFieldErrors({});
+
+    const errors: FieldErrors = {};
+    let firstInvalidFieldId: string | null = null;
+    const markError = (fieldId: string, message: string | null) => {
+      if (!message) return;
+      errors[fieldId] = message;
+      if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
+    };
+
+    markError("event-title", validateRequired(eventForm.title, "Event title"));
+    markError("event-location", validateRequired(eventForm.location, "Location"));
+    markError("event-starts-at", validateRequired(eventForm.startsAt, "Start date and time"));
+    markError("event-submitter-name", validateRequired(eventForm.submitterName, "Your name"));
+    markError("event-submitter-email", validateRequired(eventForm.submitterEmail, "Your email"));
+    markError("event-submitter-email", validateEmail(eventForm.submitterEmail));
+    markError("event-organizer-email", validateEmail(eventForm.organizerEmail));
+    markError("event-organizer-phone", validatePhone(eventForm.organizerPhone));
+    markError("event-image-url", validateUrl(eventForm.imageUrl));
 
     const firstError =
       validateRequired(eventForm.title, "Event title")
@@ -339,6 +434,14 @@ export function Suggest() {
       || validateMaxLength(eventForm.category, "Category", 100)
       || validateMaxLength(eventForm.description, "Description", 1000)
       || validateMaxLength(eventForm.location, "Location", 500);
+
+    if (Object.keys(errors).length > 0) {
+      setEventFieldErrors(errors);
+      setError(Object.values(errors)[0]);
+      if (firstInvalidFieldId) focusFieldById(firstInvalidFieldId);
+      setSubmitting(false);
+      return;
+    }
 
     if (firstError) {
       setError(firstError);
@@ -379,6 +482,7 @@ export function Suggest() {
 
       setEventForm(defaultEventForm);
       setEventStep(1);
+      setEventFieldErrors({});
       const nextMessage = "Event proposal received. It is pending moderator review and is not live on the site yet.";
       setSuccessMessage(nextMessage);
       toast.success("Event proposal submitted for review.", { id: toastId });
@@ -513,10 +617,10 @@ export function Suggest() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="inline-flex rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-1" role="tablist" aria-label="Submission type">
-                <button type="button" onClick={() => switchKind("resource")} className={`rounded-lg px-4 py-2 text-sm font-semibold ${kind === "resource" ? "bg-[#334233] text-white" : "text-[#334233]"}`} role="tab" aria-selected={kind === "resource"} aria-controls="resource-panel">
+                <button id="resource-tab" type="button" onClick={() => switchKind("resource")} className={`rounded-lg px-4 py-2 text-sm font-semibold ${kind === "resource" ? "bg-[#334233] text-white" : "text-[#334233]"}`} role="tab" aria-selected={kind === "resource"} aria-controls="resource-panel">
                   Resource
                 </button>
-                <button type="button" onClick={() => switchKind("event")} className={`rounded-lg px-4 py-2 text-sm font-semibold ${kind === "event" ? "bg-[#334233] text-white" : "text-[#334233]"}`} role="tab" aria-selected={kind === "event"} aria-controls="event-panel">
+                <button id="event-tab" type="button" onClick={() => switchKind("event")} className={`rounded-lg px-4 py-2 text-sm font-semibold ${kind === "event" ? "bg-[#334233] text-white" : "text-[#334233]"}`} role="tab" aria-selected={kind === "event"} aria-controls="event-panel">
                   Event
                 </button>
               </div>
@@ -532,7 +636,18 @@ export function Suggest() {
                     <fieldset>
                       <legend className="sr-only">Resource Basics</legend>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <div><Label htmlFor="resource-name">Resource name</Label><Input id="resource-name" value={resourceForm.resourceName} onChange={(event) => setResourceForm((prev) => ({ ...prev, resourceName: event.target.value }))} required /></div>
+                        <div>
+                          <Label htmlFor="resource-name">Resource name</Label>
+                          <Input
+                            id="resource-name"
+                            value={resourceForm.resourceName}
+                            onChange={(event) => setResourceForm((prev) => ({ ...prev, resourceName: event.target.value }))}
+                            aria-invalid={!!resourceFieldErrors["resource-name"]}
+                            aria-describedby={resourceFieldErrors["resource-name"] ? getFieldErrorId("resource-name") : undefined}
+                            required
+                          />
+                          {resourceFieldErrors["resource-name"] ? <p id={getFieldErrorId("resource-name")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-name"]}</p> : null}
+                        </div>
                         <div>
                           <Label htmlFor="resource-category">Category</Label>
                           <CategoryPicker
@@ -545,10 +660,24 @@ export function Suggest() {
                             allowCustom={false}
                             placeholder="Choose a category"
                             label="Resource category"
+                            aria-invalid={!!resourceFieldErrors["resource-category"]}
+                            aria-describedby={resourceFieldErrors["resource-category"] ? getFieldErrorId("resource-category") : undefined}
                           />
+                          {resourceFieldErrors["resource-category"] ? <p id={getFieldErrorId("resource-category")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-category"]}</p> : null}
                         </div>
                       </div>
-                      <div><Label htmlFor="resource-description">Short description</Label><Textarea id="resource-description" value={resourceForm.description} onChange={(event) => setResourceForm((prev) => ({ ...prev, description: event.target.value }))} required /></div>
+                      <div>
+                        <Label htmlFor="resource-description">Short description</Label>
+                        <Textarea
+                          id="resource-description"
+                          value={resourceForm.description}
+                          onChange={(event) => setResourceForm((prev) => ({ ...prev, description: event.target.value }))}
+                          aria-invalid={!!resourceFieldErrors["resource-description"]}
+                          aria-describedby={resourceFieldErrors["resource-description"] ? getFieldErrorId("resource-description") : undefined}
+                          required
+                        />
+                        {resourceFieldErrors["resource-description"] ? <p id={getFieldErrorId("resource-description")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-description"]}</p> : null}
+                      </div>
                     </fieldset>
                   ) : null}
 
@@ -557,7 +686,7 @@ export function Suggest() {
                       <legend className="sr-only">Resource Details</legend>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div><Label htmlFor="resource-organization">Organization name</Label><Input id="resource-organization" value={resourceForm.organizationName} onChange={(event) => setResourceForm((prev) => ({ ...prev, organizationName: event.target.value }))} /></div>
-                        <div><Label htmlFor="resource-image-url">Image URL</Label><Input id="resource-image-url" value={resourceForm.imageUrl} onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))} /></div>
+                        <div><Label htmlFor="resource-image-url">Image URL</Label><Input id="resource-image-url" value={resourceForm.imageUrl} onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-image-url"]} aria-describedby={resourceFieldErrors["resource-image-url"] ? getFieldErrorId("resource-image-url") : undefined} />{resourceFieldErrors["resource-image-url"] ? <p id={getFieldErrorId("resource-image-url")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-image-url"]}</p> : null}</div>
                       </div>
                       <div><Label htmlFor="resource-full-description">Full description</Label><Textarea id="resource-full-description" value={resourceForm.fullDescription} onChange={(event) => setResourceForm((prev) => ({ ...prev, fullDescription: event.target.value }))} /></div>
                       <div className="grid gap-4 sm:grid-cols-2">
@@ -567,8 +696,11 @@ export function Suggest() {
                             id="resource-address"
                             value={resourceForm.address}
                             onChange={(next) => setResourceForm((prev) => ({ ...prev, address: next }))}
+                            aria-invalid={!!resourceFieldErrors["resource-address"]}
+                            aria-describedby={resourceFieldErrors["resource-address"] ? getFieldErrorId("resource-address") : undefined}
                             required
                           />
+                          {resourceFieldErrors["resource-address"] ? <p id={getFieldErrorId("resource-address")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-address"]}</p> : null}
                         </div>
                         <div>
                           <Label htmlFor="resource-hours">Hours</Label>
@@ -580,9 +712,9 @@ export function Suggest() {
                         </div>
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <div><Label htmlFor="resource-website">Website</Label><Input id="resource-website" value={resourceForm.website} onChange={(event) => setResourceForm((prev) => ({ ...prev, website: event.target.value }))} /></div>
-                        <div><Label htmlFor="resource-contact-email">Contact email</Label><Input id="resource-contact-email" type="email" value={resourceForm.contactEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactEmail: event.target.value }))} /></div>
-                        <div><Label htmlFor="resource-contact-phone">Contact phone</Label><Input id="resource-contact-phone" value={resourceForm.contactPhone} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactPhone: event.target.value }))} /></div>
+                        <div><Label htmlFor="resource-website">Website</Label><Input id="resource-website" value={resourceForm.website} onChange={(event) => setResourceForm((prev) => ({ ...prev, website: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-website"]} aria-describedby={resourceFieldErrors["resource-website"] ? getFieldErrorId("resource-website") : undefined} />{resourceFieldErrors["resource-website"] ? <p id={getFieldErrorId("resource-website")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-website"]}</p> : null}</div>
+                        <div><Label htmlFor="resource-contact-email">Contact email</Label><Input id="resource-contact-email" type="email" value={resourceForm.contactEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactEmail: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-contact-email"]} aria-describedby={resourceFieldErrors["resource-contact-email"] ? getFieldErrorId("resource-contact-email") : undefined} />{resourceFieldErrors["resource-contact-email"] ? <p id={getFieldErrorId("resource-contact-email")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-contact-email"]}</p> : null}</div>
+                        <div><Label htmlFor="resource-contact-phone">Contact phone</Label><Input id="resource-contact-phone" value={resourceForm.contactPhone} onChange={(event) => setResourceForm((prev) => ({ ...prev, contactPhone: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-contact-phone"]} aria-describedby={resourceFieldErrors["resource-contact-phone"] ? getFieldErrorId("resource-contact-phone") : undefined} />{resourceFieldErrors["resource-contact-phone"] ? <p id={getFieldErrorId("resource-contact-phone")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-contact-phone"]}</p> : null}</div>
                       </div>
                       <div>
                         <Label htmlFor="resource-tags">Tags</Label>
@@ -601,8 +733,8 @@ export function Suggest() {
                     <fieldset>
                       <legend className="sr-only">Submitter Information</legend>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <div><Label htmlFor="resource-submitter-name">Your name</Label><Input id="resource-submitter-name" value={resourceForm.submitterName} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterName: event.target.value }))} required /></div>
-                        <div><Label htmlFor="resource-submitter-email">Your email</Label><Input id="resource-submitter-email" type="email" value={resourceForm.submitterEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required /></div>
+                        <div><Label htmlFor="resource-submitter-name">Your name</Label><Input id="resource-submitter-name" value={resourceForm.submitterName} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterName: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-submitter-name"]} aria-describedby={resourceFieldErrors["resource-submitter-name"] ? getFieldErrorId("resource-submitter-name") : undefined} required />{resourceFieldErrors["resource-submitter-name"] ? <p id={getFieldErrorId("resource-submitter-name")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-submitter-name"]}</p> : null}</div>
+                        <div><Label htmlFor="resource-submitter-email">Your email</Label><Input id="resource-submitter-email" type="email" value={resourceForm.submitterEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-submitter-email"]} aria-describedby={resourceFieldErrors["resource-submitter-email"] ? getFieldErrorId("resource-submitter-email") : undefined} required />{resourceFieldErrors["resource-submitter-email"] ? <p id={getFieldErrorId("resource-submitter-email")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-submitter-email"]}</p> : null}</div>
                       </div>
                       <div><Label htmlFor="resource-connection">Your connection to this resource</Label><Textarea id="resource-connection" value={resourceForm.submitterConnection} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} /></div>
                     </fieldset>
@@ -616,7 +748,7 @@ export function Suggest() {
                     <fieldset>
                       <legend className="sr-only">Event Basics</legend>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <div><Label htmlFor="event-title">Event title</Label><Input id="event-title" value={eventForm.title} onChange={(event) => setEventForm((prev) => ({ ...prev, title: event.target.value }))} required /></div>
+                        <div><Label htmlFor="event-title">Event title</Label><Input id="event-title" value={eventForm.title} onChange={(event) => setEventForm((prev) => ({ ...prev, title: event.target.value }))} aria-invalid={!!eventFieldErrors["event-title"]} aria-describedby={eventFieldErrors["event-title"] ? getFieldErrorId("event-title") : undefined} required />{eventFieldErrors["event-title"] ? <p id={getFieldErrorId("event-title")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-title"]}</p> : null}</div>
                         <div>
                           <Label htmlFor="event-category">Category</Label>
                           <CategoryPicker
@@ -632,14 +764,17 @@ export function Suggest() {
                       </div>
                       <div>
                         <Label htmlFor="event-location">Location</Label>
-                        <AddressAutocompleteInput
-                          id="event-location"
-                          value={eventForm.location}
-                          onChange={(next) => setEventForm((prev) => ({ ...prev, location: next }))}
-                          required
-                        />
+                          <AddressAutocompleteInput
+                            id="event-location"
+                            value={eventForm.location}
+                            onChange={(next) => setEventForm((prev) => ({ ...prev, location: next }))}
+                            aria-invalid={!!eventFieldErrors["event-location"]}
+                            aria-describedby={eventFieldErrors["event-location"] ? getFieldErrorId("event-location") : undefined}
+                            required
+                          />
+                          {eventFieldErrors["event-location"] ? <p id={getFieldErrorId("event-location")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-location"]}</p> : null}
                       </div>
-                      <div><Label htmlFor="event-starts-at">Starts at</Label><Input id="event-starts-at" type="datetime-local" value={eventForm.startsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, startsAt: event.target.value }))} required /></div>
+                      <div><Label htmlFor="event-starts-at">Starts at</Label><Input id="event-starts-at" type="datetime-local" value={eventForm.startsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, startsAt: event.target.value }))} aria-invalid={!!eventFieldErrors["event-starts-at"]} aria-describedby={eventFieldErrors["event-starts-at"] ? getFieldErrorId("event-starts-at") : undefined} required />{eventFieldErrors["event-starts-at"] ? <p id={getFieldErrorId("event-starts-at")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-starts-at"]}</p> : null}</div>
                     </fieldset>
                   ) : null}
 
@@ -649,14 +784,14 @@ export function Suggest() {
                       <div><Label htmlFor="event-description">Description</Label><Textarea id="event-description" value={eventForm.description} onChange={(event) => setEventForm((prev) => ({ ...prev, description: event.target.value }))} /></div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div><Label htmlFor="event-ends-at">Ends at</Label><Input id="event-ends-at" type="datetime-local" value={eventForm.endsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, endsAt: event.target.value }))} /></div>
-                        <div><Label htmlFor="event-image-url">Image URL</Label><Input id="event-image-url" value={eventForm.imageUrl} onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))} /></div>
+                        <div><Label htmlFor="event-image-url">Image URL</Label><Input id="event-image-url" value={eventForm.imageUrl} onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))} aria-invalid={!!eventFieldErrors["event-image-url"]} aria-describedby={eventFieldErrors["event-image-url"] ? getFieldErrorId("event-image-url") : undefined} />{eventFieldErrors["event-image-url"] ? <p id={getFieldErrorId("event-image-url")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-image-url"]}</p> : null}</div>
                       </div>
                       <fieldset>
                         <legend className="text-sm font-medium mb-2">Organizer Information</legend>
                         <div className="grid gap-4 sm:grid-cols-3">
                           <div><Label htmlFor="event-organizer-name">Organizer name</Label><Input id="event-organizer-name" value={eventForm.organizerName} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerName: event.target.value }))} /></div>
-                          <div><Label htmlFor="event-organizer-email">Organizer email</Label><Input id="event-organizer-email" value={eventForm.organizerEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerEmail: event.target.value }))} /></div>
-                          <div><Label htmlFor="event-organizer-phone">Organizer phone</Label><Input id="event-organizer-phone" value={eventForm.organizerPhone} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerPhone: event.target.value }))} /></div>
+                          <div><Label htmlFor="event-organizer-email">Organizer email</Label><Input id="event-organizer-email" value={eventForm.organizerEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerEmail: event.target.value }))} aria-invalid={!!eventFieldErrors["event-organizer-email"]} aria-describedby={eventFieldErrors["event-organizer-email"] ? getFieldErrorId("event-organizer-email") : undefined} />{eventFieldErrors["event-organizer-email"] ? <p id={getFieldErrorId("event-organizer-email")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-organizer-email"]}</p> : null}</div>
+                          <div><Label htmlFor="event-organizer-phone">Organizer phone</Label><Input id="event-organizer-phone" value={eventForm.organizerPhone} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerPhone: event.target.value }))} aria-invalid={!!eventFieldErrors["event-organizer-phone"]} aria-describedby={eventFieldErrors["event-organizer-phone"] ? getFieldErrorId("event-organizer-phone") : undefined} />{eventFieldErrors["event-organizer-phone"] ? <p id={getFieldErrorId("event-organizer-phone")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-organizer-phone"]}</p> : null}</div>
                         </div>
                       </fieldset>
                     </fieldset>
@@ -666,8 +801,8 @@ export function Suggest() {
                     <fieldset>
                       <legend className="sr-only">Submitter Information</legend>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <div><Label htmlFor="event-submitter-name">Your name</Label><Input id="event-submitter-name" value={eventForm.submitterName} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterName: event.target.value }))} required /></div>
-                        <div><Label htmlFor="event-submitter-email">Your email</Label><Input id="event-submitter-email" type="email" value={eventForm.submitterEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} required /></div>
+                        <div><Label htmlFor="event-submitter-name">Your name</Label><Input id="event-submitter-name" value={eventForm.submitterName} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterName: event.target.value }))} aria-invalid={!!eventFieldErrors["event-submitter-name"]} aria-describedby={eventFieldErrors["event-submitter-name"] ? getFieldErrorId("event-submitter-name") : undefined} required />{eventFieldErrors["event-submitter-name"] ? <p id={getFieldErrorId("event-submitter-name")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-submitter-name"]}</p> : null}</div>
+                        <div><Label htmlFor="event-submitter-email">Your email</Label><Input id="event-submitter-email" type="email" value={eventForm.submitterEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} aria-invalid={!!eventFieldErrors["event-submitter-email"]} aria-describedby={eventFieldErrors["event-submitter-email"] ? getFieldErrorId("event-submitter-email") : undefined} required />{eventFieldErrors["event-submitter-email"] ? <p id={getFieldErrorId("event-submitter-email")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-submitter-email"]}</p> : null}</div>
                       </div>
                       <div><Label htmlFor="event-connection">Your connection to this event</Label><Textarea id="event-connection" value={eventForm.submitterConnection} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} /></div>
                     </fieldset>

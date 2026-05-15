@@ -1,12 +1,25 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
+import { Link, useNavigate } from "react-router";
 import { Clock, MapPin } from "lucide-react";
 import { ImageWithFallback } from "../ui/image-with-fallback";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../ScrollReveal";
 import { listPublishedEvents, mapEventToEventItem } from "../../data/portalApi";
 import type { EventItem } from "../../types/home";
 
+const CARD_INTERACTIVE_ELEMENT_SELECTOR = "a, button, input, select, textarea, [role='button'], [role='menuitem']";
+
+function isInteractiveCardElement(target: EventTarget | null) {
+  return target instanceof Element && target.closest(CARD_INTERACTIVE_ELEMENT_SELECTOR) !== null;
+}
+
 export function EventsSection() {
+  const navigate = useNavigate();
   const [events, setEvents] = useState<EventItem[]>([]);
 
   useEffect(() => {
@@ -27,6 +40,26 @@ export function EventsSection() {
       cancelled = true;
     };
   }, []);
+
+  const handleEventCardClick = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>, detailHref: string | null) => {
+      if (!detailHref) return;
+      if (isInteractiveCardElement(event.target)) return;
+      navigate(detailHref);
+    },
+    [navigate],
+  );
+
+  const handleEventCardKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>, detailHref: string | null) => {
+      if (!detailHref) return;
+      if (event.currentTarget !== event.target) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      navigate(detailHref);
+    },
+    [navigate],
+  );
 
   return (
     <section className="bg-[#E7D9C3]/30 py-24 relative" id="events">
@@ -60,7 +93,16 @@ export function EventsSection() {
                 <StaggerItem key={event.id ?? index} className="relative group">
                   <div className="absolute -left-[35px] sm:-left-[51px] top-1 w-6 h-6 rounded-full bg-[#F6F1E7] border-4 border-[#A7AE8A] group-hover:border-[#B36A4C] group-hover:scale-125 transition-all shadow-sm"></div>
 
-                  <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-[#E7D9C3] hover:border-[#A7AE8A] hover:shadow-md transition-all">
+                  <div
+                    role={detailHref ? "link" : undefined}
+                    tabIndex={detailHref ? 0 : undefined}
+                    aria-label={detailHref ? `Open event details: ${event.title}` : undefined}
+                    onClick={(event) => handleEventCardClick(event, detailHref)}
+                    onKeyDown={(event) => handleEventCardKeyDown(event, detailHref)}
+                    className={`flex flex-col lg:flex-row gap-6 lg:gap-10 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-[#E7D9C3] hover:border-[#A7AE8A] hover:shadow-md transition-all ${
+                      detailHref ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B36A4C]/40" : ""
+                    }`}
+                  >
                     <div className="flex-grow flex flex-col justify-center">
                       <div className="flex items-center gap-4 mb-4">
                         <span className="bg-[#B36A4C]/10 text-[#B36A4C] font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider">

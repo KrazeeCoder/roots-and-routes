@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
 import { Trees, Menu, X } from "lucide-react";
 import { RESOURCE_CATEGORIES } from "./constants/resourceCategories";
+import { trapFocus } from "../utils/accessibility";
 
 const navItems = [
   { name: "Resource Hub", href: "/directory", isRoute: true },
@@ -13,6 +14,9 @@ const navItems = [
 
 export function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const wasMenuOpenRef = useRef(false);
 
   const toggleMenu = () => setIsMenuOpen((open) => !open);
 
@@ -22,6 +26,19 @@ export function Layout() {
   useEffect(() => {
     if (location.hash) return;
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.hash]);
+
+  useEffect(() => {
+    if (location.hash) return;
+    const frame = window.requestAnimationFrame(() => {
+      const main = document.getElementById("main-content");
+      const heading = main?.querySelector("h1") as HTMLElement | null;
+      const focusTarget = heading ?? main;
+      focusTarget?.focus({ preventScroll: true });
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
   }, [location.pathname, location.hash]);
 
   useEffect(() => {
@@ -49,6 +66,31 @@ export function Layout() {
     return () => {
       document.body.style.overflow = "";
     };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (!isMenuOpen || !mobileMenuRef.current) return;
+
+    const cleanupFocusTrap = trapFocus(mobileMenuRef.current);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      cleanupFocusTrap();
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (wasMenuOpenRef.current && !isMenuOpen) {
+      menuButtonRef.current?.focus();
+    }
+    wasMenuOpenRef.current = isMenuOpen;
   }, [isMenuOpen]);
 
   const isNavActive = (href: string) => {
@@ -112,9 +154,11 @@ export function Layout() {
 
             <div className="flex md:hidden items-center">
               <button
+                ref={menuButtonRef}
                 onClick={toggleMenu}
                 aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
                 aria-expanded={isMenuOpen}
+                aria-controls="mobile-navigation"
                 className="text-[#334233] hover:text-[#B36A4C] focus:outline-none"
               >
                 <Menu className="h-6 w-6" />
@@ -140,6 +184,8 @@ export function Layout() {
           }`}
         />
         <div
+          id="mobile-navigation"
+          ref={mobileMenuRef}
           role="navigation"
           aria-label="Mobile navigation"
           className={`absolute top-0 right-0 h-full w-[min(85vw,22rem)] bg-[#F6F1E7] border-l border-[#E7D9C3] shadow-2xl transition-transform duration-300 ease-out ${
@@ -200,7 +246,7 @@ export function Layout() {
         </div>
       </div>
 
-      <main className="flex-grow" role="main" id="main-content">
+      <main className="flex-grow" role="main" id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
 

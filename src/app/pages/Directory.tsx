@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, useRef } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useState, useMemo, useEffect, useRef, type KeyboardEvent, type MouseEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { Search, MapPin, Filter, X, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
@@ -42,6 +42,7 @@ function truncateDescription(value: string, maxLength = 180) {
 }
 
 export function Directory() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryParam = searchParams.get("q") ?? "";
   const categoryParam = normalizeCategoryParam(searchParams.get("category"));
@@ -175,6 +176,19 @@ export function Directory() {
   }, [activeCategory, appliedQuery, minRating]);
   const commitMinRating = (rating: number) => {
     setMinRating(rating);
+  };
+
+  const handleResourceCardNavigate = (
+    event: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>,
+    entryId: string,
+  ) => {
+    const target = event.target as HTMLElement;
+    const isInteractiveElement = target.closest(
+      "a, button, input, select, textarea, label, [role='button'], [role='slider']",
+    );
+
+    if (isInteractiveElement) return;
+    navigate(`/resources/${entryId}`);
   };
 
   return (
@@ -521,17 +535,26 @@ export function Directory() {
                       key={entry.id}
                       initial={false}
                       transition={{ layout: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } }}
-                      className="group flex flex-col bg-white rounded-3xl border border-[#E7D9C3] shadow-sm hover:border-[#A7AE8A] hover:shadow-md transition-all overflow-hidden"
+                      className="group flex flex-col bg-white rounded-3xl border border-[#E7D9C3] shadow-sm hover:border-[#A7AE8A] hover:shadow-md transition-all overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B36A4C]"
+                      role="link"
+                      tabIndex={0}
+                      onClick={(event) => handleResourceCardNavigate(event, entry.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleResourceCardNavigate(event, entry.id);
+                        }
+                      }}
                     >
                       {entry.image && (
-                        <Link to={`/resources/${entry.id}`} className="h-40 overflow-hidden flex-shrink-0 relative block">
+                        <div className="h-40 overflow-hidden flex-shrink-0 relative block">
                           <ImageWithFallback
                             src={entry.image}
                             alt={entry.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/30 to-transparent" />
-                        </Link>
+                        </div>
                       )}
 
                       <div className="p-6 flex flex-col flex-grow">
@@ -543,11 +566,9 @@ export function Directory() {
                           </span>
                         </div>
 
-                        <Link to={`/resources/${entry.id}`}>
-                          <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] mb-2 group-hover:text-[#B36A4C] transition-colors">
-                            {entry.name}
-                          </h3>
-                        </Link>
+                        <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] mb-2 group-hover:text-[#B36A4C] transition-colors">
+                          {entry.name}
+                        </h3>
 
                         <p className="text-[#5B473A] text-sm leading-relaxed mb-4">
                           {truncateDescription(entry.description)}
@@ -583,12 +604,9 @@ export function Directory() {
                           </div>
                         </div>
 
-                        <Link
-                          to={`/resources/${entry.id}`}
-                          className="inline-flex items-center gap-2 text-sm font-semibold text-[#334233] hover:text-[#B36A4C] transition-colors"
-                        >
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#334233] group-hover:text-[#B36A4C] transition-colors">
                           View Details <ChevronRight className="w-4 h-4" />
-                        </Link>
+                        </span>
                       </div>
                     </motion.div>
                   ))}
