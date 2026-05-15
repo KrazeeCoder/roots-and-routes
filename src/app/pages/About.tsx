@@ -106,8 +106,7 @@ export function About() {
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
               <p className="text-[#A7AE8A] text-lg font-light leading-relaxed mb-8 max-w-2xl">
-                Roots & Routes began with a few neighbors trading local tips, and our volunteer crew still keeps that spirit alive by linking Bothell residents to reliable support, events, and each other.
-                We aim to make it easier to connect with help, spark new friendships, and keep our neighborhoods thriving.
+                Learn about our mission, community impact, and how we connect Bothell residents.
               </p>
             </ScrollReveal>
             <ScrollReveal delay={0.2}>
@@ -137,7 +136,7 @@ export function About() {
       </section>
 
       <ScrollReveal>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="rounded-2xl border border-[#B36A4C]/40 bg-[#B36A4C]/10 p-5 sm:p-6">
             <h2 className="text-lg sm:text-xl font-semibold text-[#334233]">TSA Compliance Statement</h2>
             <p className="mt-2 text-sm sm:text-base text-[#5B473A] leading-relaxed">
@@ -149,27 +148,27 @@ export function About() {
       </ScrollReveal>
 
       {/* Our Story */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <ScrollReveal>
-          <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
+          <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233] mb-4">
             Our story
           </h2>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
-          <p className="text-[#5B473A] text-lg font-light leading-relaxed mb-12 max-w-4xl">
+          <p className="text-[#5B473A] text-base font-light leading-relaxed mb-8 max-w-4xl">
             Our team started by providing essential resources for people without proper financial aid in Bothell, focusing on connecting neighbors with the support they needed most.
             As we grew, we realized the broader potential of a comprehensive community hub that could serve all residents of Bothell, not just those facing financial challenges.
             Today, Roots & Routes is a central resource in Bothell for community programs, events, services, and neighbor-led support that strengthens our entire community.
           </p>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <ScrollReveal delay={0.2}>
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <HeartPulse className="w-8 h-8" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-3">
+                <HeartPulse className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-semibold text-[#334233] mb-2">Support First</h3>
+              <h3 className="text-lg font-semibold text-[#334233] mb-2">Support First</h3>
               <p className="text-[#5B473A] text-sm leading-relaxed">
                 We began by addressing immediate needs, providing resources and aid to those who needed it most in our community.
               </p>
@@ -177,10 +176,10 @@ export function About() {
           </ScrollReveal>
           <ScrollReveal delay={0.3}>
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <Layers className="w-8 h-8" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-3">
+                <Layers className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-semibold text-[#334233] mb-2">Growing Together</h3>
+              <h3 className="text-lg font-semibold text-[#334233] mb-2">Growing Together</h3>
               <p className="text-[#5B473A] text-sm leading-relaxed">
                 From targeted support to comprehensive community resources, we've expanded to serve all Bothell residents.
               </p>
@@ -188,10 +187,10 @@ export function About() {
           </ScrollReveal>
           <ScrollReveal delay={0.4}>
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <MapPin className="w-8 h-8" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-3">
+                <MapPin className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-semibold text-[#334233] mb-2">Bothell Focused</h3>
+              <h3 className="text-lg font-semibold text-[#334233] mb-2">Bothell Focused</h3>
               <p className="text-[#5B473A] text-sm leading-relaxed">
                 Deeply rooted in Bothell, we provide resources and connections that are specifically tailored to our local community.
               </p>
@@ -200,100 +199,38 @@ export function About() {
         </div>
       </section>
 
-      {/* Values */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <ScrollReveal>
-          <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
-            Our values
-          </h2>
-        </ScrollReveal>
-        <ScrollReveal delay={0.1}>
-          <p className="text-[#5B473A] text-lg font-light leading-relaxed mb-12">
-            We keep people at the center, treat every question with care, and stay transparent so neighbors can trust the paths we share.
-          </p>
-        </ScrollReveal>
-
-        <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StaggerItem>
-            <Card className="border-[#E7D9C3] bg-white shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#A7AE8A]/20">
-                    <Users className="w-5 h-5 text-[#334233]" />
-                  </div>
-                  Community First
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-[#5B473A]">
-                We prioritize local voices, lived experience, and practical support that helps people on their journey.
-              </CardContent>
-            </Card>
-          </StaggerItem>
-          <StaggerItem>
-            <Card className="border-[#E7D9C3] bg-white shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#A7AE8A]/20">
-                    <HeartPulse className="w-5 h-5 text-[#334233]" />
-                  </div>
-                  Open & Inclusive
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-[#5B473A]">
-                We welcome contributions from any neighbor and aim to represent the full diversity of our community.
-              </CardContent>
-            </Card>
-          </StaggerItem>
-          <StaggerItem>
-            <Card className="border-[#E7D9C3] bg-white shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#A7AE8A]/20">
-                    <Layers className="w-5 h-5 text-[#334233]" />
-                  </div>
-                  Practical Impact
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-[#5B473A]">
-                Every listing and event is chosen to help people find their way, stay grounded, and build lasting connections.
-              </CardContent>
-            </Card>
-          </StaggerItem>
-        </StaggerGroup>
-      </section>
-
       {/* Impact metrics */}
-      <section className="bg-[#E7D9C3]/30 py-16">
+      <section className="bg-[#E7D9C3]/30 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
+            <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233] mb-4">
               Community impact
             </h2>
-            <p className="mb-6 text-sm text-[#6F7553]">
+            <p className="mb-4 text-sm text-[#6F7553]">
               Note: The community member counter is for TSA display purposes only and may not be factual.
             </p>
           </ScrollReveal>
-          <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <StaggerItem>
-              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                  <MapPin className="w-6 h-6" />
+              <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-3">
+                  <MapPin className="w-5 h-5" />
                 </div>
-                <div className="text-5xl font-bold text-[#334233]">
+                <div className="text-3xl font-bold text-[#334233]">
                   <CountUp end={27} />
                 </div>
-                <div className="mt-2 text-sm text-[#5B473A]">Resources listed in the hub</div>
+                <div className="mt-1 text-sm text-[#5B473A]">Resources listed in the hub</div>
               </div>
             </StaggerItem>
             <StaggerItem>
-              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                  <Users className="w-6 h-6" />
+              <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-3">
+                  <Users className="w-5 h-5" />
                 </div>
-                <div className="text-5xl font-bold text-[#334233]">
+                <div className="text-3xl font-bold text-[#334233]">
                   <CountUp end={150} />
                 </div>
-                <div className="mt-2 text-sm text-[#5B473A]">Community members reached</div>
+                <div className="mt-1 text-sm text-[#5B473A]">Community members reached</div>
               </div>
             </StaggerItem>
           </StaggerGroup>
@@ -301,7 +238,7 @@ export function About() {
       </section>
 
       {/* How it works */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <ScrollReveal>
           <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
             How Roots & Routes works
@@ -346,7 +283,7 @@ export function About() {
       </section>
 
       {/* Our Contributors */}
-      <section className="bg-[#E7D9C3]/20 py-16">
+      <section className="bg-[#E7D9C3]/20 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
@@ -397,7 +334,7 @@ export function About() {
       </section>
 
       {/* Final CTA */}
-      <section className="relative bg-[#334233]/5 py-20 overflow-hidden">
+      <section className="relative bg-[#334233]/5 py-16 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none opacity-20">
           <TopoPattern />
         </div>
