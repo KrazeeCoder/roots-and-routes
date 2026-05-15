@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { HeartPulse, Layers, Users, MapPin, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
@@ -14,35 +14,14 @@ interface CountUpProps {
 
 function CountUp({ end, durationMs = 2000, suffix = "" }: CountUpProps) {
   const [value, setValue] = useState(0);
-  const [shouldAnimate, setShouldAnimate] = useState(false);
-  const ref = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
+    if (typeof window === "undefined") return;
 
-    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
-      setShouldAnimate(true);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(end);
       return;
     }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry?.isIntersecting) {
-          setShouldAnimate(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.35 },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!shouldAnimate) return;
 
     let frame = 0;
     const startedAt = performance.now();
@@ -58,10 +37,10 @@ function CountUp({ end, durationMs = 2000, suffix = "" }: CountUpProps) {
 
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
-  }, [durationMs, end, shouldAnimate]);
+  }, [durationMs, end]);
 
   return (
-    <span ref={ref}>
+    <span>
       {value.toLocaleString()}
       {suffix}
     </span>
