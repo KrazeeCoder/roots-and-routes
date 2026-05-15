@@ -38,7 +38,7 @@ export function HeroSection() {
       <div className="absolute inset-0 z-0 pointer-events-none text-[#5B473A]">
         <TopoPattern opacity={0.06} />
       </div>
-      
+
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           

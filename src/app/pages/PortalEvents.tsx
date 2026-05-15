@@ -656,7 +656,7 @@ export function PortalEvents() {
                     </p>
                     <p className="text-xs text-[#6F7553] mt-2">
                       Status: <span className="font-semibold">{event.status}</span>
-                      {event.is_spotlight ? " • Spotlighted" : ""}
+                      {event.is_spotlight ? " | Spotlighted" : ""}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

@@ -122,7 +122,7 @@ export function Portal() {
       <Card className="mt-8 border-[#E7D9C3]">
         <CardHeader>
           <CardTitle>Contributor account</CardTitle>
-          <CardDescription>Profile details currently attached to your account.</CardDescription>
+          <CardDescription>These are the profile details currently attached to your account.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>

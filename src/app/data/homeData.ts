@@ -300,7 +300,7 @@ export const homeTestimonials: HomepageTestimonial[] = [
     imageLicense: "Unsplash License",
   },
   {
-    quote: "This feels like a real community dashboard, not another static directory that is out of date in a month.",
+    quote: "This feels like a real community dashboard, not another static directory that's out of date in a month.",
     attribution: "Grant Holloway",
     role: "Local Mentor",
     image: "https://images.unsplash.com/photo-1546961329-78bef0414d7c?auto=format&fit=crop&w=900&q=80",
@@ -316,7 +316,7 @@ export const homeTestimonials: HomepageTestimonial[] = [
     imageLicense: "Unsplash License",
   },
   {
-    quote: "Signups for our teen workshops jumped after we posted once here instead of juggling multiple channels.",
+    quote: "Sign-ups for our teen workshops jumped after we posted here once instead of juggling multiple channels.",
     attribution: "Micah Bennett",
     role: "Youth Program Lead",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80",

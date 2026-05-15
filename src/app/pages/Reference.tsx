@@ -274,7 +274,7 @@ export function Reference() {
             </ScrollReveal>
             <ScrollReveal delay={0.15}>
               <p className="text-[#A7AE8A] text-lg font-light leading-relaxed">
-                Documentation of all educational resources, project logs, and third-party assets utilized in the development of Roots & Routes.
+                Documentation for all educational resources, project logs, and third-party assets used in the development of Roots & Routes.
               </p>
             </ScrollReveal>
           </div>
@@ -299,7 +299,7 @@ export function Reference() {
                   TSA Documents
                 </h2>
                 <p className="text-sm text-[#5B473A]">
-                  Embedded PDF references for judging and documentation review.
+                  These PDFs are embedded for judging and documentation review.
                 </p>
               </div>
             </ScrollReveal>
@@ -310,7 +310,7 @@ export function Reference() {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
                   <div>
                     <h3 className="text-xl font-semibold text-[#334233]">Copyright Checklist</h3>
-                    <p className="text-sm text-[#5B473A] mt-1">Completed PDF checklist for copyright compliance.</p>
+                    <p className="text-sm text-[#5B473A] mt-1">This is the completed PDF checklist for copyright compliance.</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <a
@@ -346,7 +346,7 @@ export function Reference() {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
                   <div>
                     <h3 className="text-xl font-semibold text-[#334233]">Work Log</h3>
-                    <p className="text-sm text-[#5B473A] mt-1">Completed plan of work log for this project entry.</p>
+                    <p className="text-sm text-[#5B473A] mt-1">This is the completed work log for this project entry.</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <a
@@ -390,7 +390,7 @@ export function Reference() {
                 </h2>
                 <div className="prose prose-stone max-w-none text-[#5B473A] font-light leading-relaxed">
                   <p>
-                    This website utilizes <strong>React</strong> with <strong>Vite</strong>, a modern build tool optimized for speed and developer experience.
+                    This website uses <strong>React</strong> with <strong>Vite</strong>, a modern build tool optimized for speed and developer experience.
                     On top of this, the site leverages <strong>Tailwind CSS</strong> for utility-first styling and <strong>Supabase</strong> for a robust
                     backend infrastructure including database management and authentication.
                   </p>

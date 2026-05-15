@@ -607,7 +607,7 @@ export function PortalResources() {
                     <p className="text-sm text-[#5B473A] line-clamp-2">{resource.description}</p>
                     <p className="text-xs text-[#6F7553] mt-2">
                       Status: <span className="font-semibold">{resource.status}</span>
-                      {resource.is_spotlight ? " • Spotlighted" : ""}
+                      {resource.is_spotlight ? " | Spotlighted" : ""}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

@@ -83,7 +83,7 @@ export function EventsSection() {
         </ScrollReveal>
 
         {events.length === 0 ? (
-          <p className="text-sm text-[#5B473A]">No published events yet.</p>
+          <p className="text-sm text-[#5B473A]">There are no published events yet.</p>
         ) : (
           <StaggerGroup className="relative border-l-2 border-[#A7AE8A]/50 pl-6 sm:pl-10 space-y-12 ml-4 sm:ml-6">
             {events.slice(0, 5).map((event, index) => {

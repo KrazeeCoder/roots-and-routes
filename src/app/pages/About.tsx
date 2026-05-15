@@ -171,7 +171,7 @@ export function About() {
               Community impact
             </h2>
             <p className="mb-6 text-sm text-[#6F7553]">
-              Note: The community member counter is for TSA display purposes only and may not be factual.
+              Note: The community member counter is for TSA display purposes only and is not intended as a factual metric.
             </p>
           </ScrollReveal>
           <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-6">

@@ -212,7 +212,7 @@ export function ContributorLogin() {
             Moderators and approved contributors manage official local resources and events. Public browsing and public proposal forms remain open for everyone.
           </p>
           <p className="mt-3 text-[#000000] max-w-2xl mx-auto">
-            Note for TSA Judges: Please use the "Demo Credentials" on the right to access a pre-approved contributor account or moderator account for evaluation. 
+            Note for TSA judges: Please use the "Demo Credentials" on the right to access a pre-approved contributor or moderator account for evaluation.
           </p>
         </div>
 

@@ -35,7 +35,7 @@ export function SpotlightSection() {
 
   return (
     <section className="bg-[#F6F1E7] py-20 relative" id="spotlights" ref={sectionRef}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div className="max-w-2xl">
             <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-4">
@@ -53,7 +53,7 @@ export function SpotlightSection() {
 
         {spotlightStrip.length === 0 ? (
           <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-[#5B473A]">
-            No highlights yet.
+            There are no highlights yet.
           </div>
         ) : (
           <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
