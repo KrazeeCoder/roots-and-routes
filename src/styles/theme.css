@@ -191,7 +191,7 @@
 
 @layer utilities {
   .org-logo-marquee-track {
-    animation: org-logo-marquee 35s linear infinite;
+    animation: org-logo-marquee 50s linear infinite;
   }
 
   .org-logo-marquee-track.is-paused {

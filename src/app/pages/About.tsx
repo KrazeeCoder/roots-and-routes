@@ -179,7 +179,6 @@ export function About() {
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
           <p className="text-[#5B473A] text-base font-light leading-relaxed mb-8">
-          <p className="text-[#5B473A] text-base font-light leading-relaxed mb-8">
             Our team started by providing essential resources for people without proper financial aid in Bothell, focusing on connecting neighbors with the support they needed most.
             As we grew, we realized the broader potential of a comprehensive community hub that could serve all residents of Bothell, not just those facing financial challenges.
             Today, Roots & Routes is a central resource in Bothell for community programs, events, services, and neighbor-led support that strengthens our entire community.

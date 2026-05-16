@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
-import { Trees, Menu, X } from "lucide-react";
+import { Trees } from "lucide-react";
 import { RESOURCE_CATEGORIES } from "./constants/resourceCategories";
 import { trapFocus } from "../utils/accessibility";
 
@@ -159,9 +159,25 @@ export function Layout() {
                 aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
                 aria-expanded={isMenuOpen}
                 aria-controls="mobile-navigation"
-                className="text-[#334233] hover:text-[#B36A4C] focus:outline-none"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md text-[#334233] transition-colors hover:text-[#B36A4C] focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2 focus:ring-offset-[#F6F1E7]"
               >
-                <Menu className="h-6 w-6" />
+                <span className="relative block h-5 w-6" aria-hidden="true">
+                  <span
+                    className={`absolute left-0 top-0.5 h-0.5 w-6 rounded-full bg-current transition-transform duration-300 ${
+                      isMenuOpen ? "translate-y-2 rotate-45" : ""
+                    }`}
+                  />
+                  <span
+                    className={`absolute left-0 top-2.5 h-0.5 w-6 rounded-full bg-current transition-opacity duration-200 ${
+                      isMenuOpen ? "opacity-0" : "opacity-100"
+                    }`}
+                  />
+                  <span
+                    className={`absolute left-0 top-4.5 h-0.5 w-6 rounded-full bg-current transition-transform duration-300 ${
+                      isMenuOpen ? "-translate-y-2 -rotate-45" : ""
+                    }`}
+                  />
+                </span>
               </button>
             </div>
           </div>
@@ -193,16 +209,8 @@ export function Layout() {
           }`}
         >
           <div className="h-full overflow-y-auto px-5 py-4">
-            <div className="mb-4 flex items-center justify-between border-b border-[#E7D9C3] pb-3">
+            <div className="mb-4 border-b border-[#E7D9C3] pb-3">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#6F7553]">Menu</span>
-              <button
-                type="button"
-                onClick={() => setIsMenuOpen(false)}
-                aria-label="Close navigation menu"
-                className="rounded-md p-1 text-[#334233] transition-colors hover:text-[#B36A4C] focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2 focus:ring-offset-[#F6F1E7]"
-              >
-                <X className="h-5 w-5" />
-              </button>
             </div>
 
             <div className="space-y-3">
