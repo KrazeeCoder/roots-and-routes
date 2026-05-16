@@ -1,9 +1,10 @@
 import { FormEvent, useMemo, useState } from "react";
-import { Search, ChevronDown, MapPin } from "lucide-react";
+import { Search, MapPin } from "lucide-react";
 import { TopoPattern } from "../TopoPattern";
 import { motion } from "motion/react";
-import { ImageWithFallback } from "../ui/image-with-fallback";
-import { useNavigate, Link } from "react-router";
+import { useNavigate } from "react-router";
+import { AnimatedUnderlineText } from "../ui/animated-underline-text";
+import { IsometricHeroCards } from "./IsometricHeroCards";
 
 type SearchTarget = "resources" | "events";
 
@@ -60,7 +61,16 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl lg:text-6xl font-bold text-[#334233] leading-[1.1] tracking-tight"
             >
-              Navigate your journey to <span className="text-[#B36A4C] italic pr-2">community roots.</span>
+              Navigate your journey to{" "}
+              <AnimatedUnderlineText
+                className="align-baseline whitespace-nowrap pb-6 pr-1"
+                textClassName="text-[#B36A4C] italic pr-2"
+                underlineClassName="text-[#B36A4C]/80"
+                underlineDuration={2.8}
+                underlineHoverDuration={1.6}
+              >
+                community roots.
+              </AnimatedUnderlineText>
             </motion.h1>
 
             <motion.p 
@@ -153,32 +163,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="lg:col-span-6 relative h-[360px] sm:h-[430px] lg:h-[470px] w-full mt-8 lg:mt-0"
           >
-            {/* Layered Cards and Shapes */}
-            <div className="absolute top-6 right-0 w-[90%] h-[88%] bg-[#E7D9C3] rounded-3xl rotate-2 shadow-sm border border-[#A7AE8A]/20"></div>
-            <div className="absolute top-0 right-3 w-[90%] h-[90%] bg-white rounded-3xl -rotate-2 shadow-lg overflow-hidden border border-[#E7D9C3]">
-              <ImageWithFallback 
-                src="https://images.unsplash.com/photo-1630123738777-fdd4f8b7d16b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYWNpZmljJTIwbm9ydGh3ZXN0JTIwdHJhaWx8ZW58MXx8fHwxNzczNzM0OTMyfDA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Pacific Northwest Trail" 
-                className="w-full h-full object-cover opacity-90"
-              />
-              {/* Overlay styling for natural texture */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/40 to-transparent"></div>
-              
-              {/* Overlay card */}
-              <Link to="/directory?category=Community%20Events" className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-[#E7D9C3] hover:bg-white hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-['Cormorant_Garamond',serif] text-lg sm:text-xl font-bold text-[#334233] group-hover:text-[#B36A4C] transition-colors">Bothell Community Trails</h3>
-                    <p className="text-sm text-[#6F7553] mt-1 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" /> 3.2 miles of connected paths
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-[#B36A4C]/10 flex items-center justify-center text-[#B36A4C] group-hover:bg-[#B36A4C] group-hover:text-white transition-all duration-300">
-                    <ChevronDown className="w-5 h-5 -rotate-90" />
-                  </div>
-                </div>
-              </Link>
-            </div>
+            <IsometricHeroCards />
           </motion.div>
         </div>
       </div>

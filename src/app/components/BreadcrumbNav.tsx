@@ -1,5 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router";
-import { Home } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -11,13 +12,31 @@ import {
 
 interface BreadcrumbNavProps {
   className?: string;
+  backTo?: string;
+  backLabel?: string;
+  sticky?: boolean;
+  darkSurfaceId?: string;
 }
 
-export function BreadcrumbNav({ className = "" }: BreadcrumbNavProps) {
+type BreadcrumbItemConfig = {
+  label: string;
+  href?: string;
+  current: boolean;
+};
+
+export function BreadcrumbNav({
+  className = "",
+  backTo,
+  backLabel,
+  sticky = false,
+  darkSurfaceId,
+}: BreadcrumbNavProps) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const stickyRef = useRef<HTMLDivElement | null>(null);
+  const [isOnDarkSurface, setIsOnDarkSurface] = useState(true);
 
-  const getBreadcrumbs = () => {
+  const getBreadcrumbs = (): BreadcrumbItemConfig[] => {
     const path = location.pathname;
     
     if (path === "/directory") {
@@ -72,7 +91,7 @@ export function BreadcrumbNav({ className = "" }: BreadcrumbNavProps) {
     }
     
     if (path === "/suggest") {
-      const items = [
+      const items: BreadcrumbItemConfig[] = [
         { label: "Suggest", current: false }
       ];
       
@@ -93,19 +112,60 @@ export function BreadcrumbNav({ className = "" }: BreadcrumbNavProps) {
   };
 
   const breadcrumbs = getBreadcrumbs();
+  const isDetailStickyNav = sticky && backTo && backLabel;
+
+  useEffect(() => {
+    if (!isDetailStickyNav || !darkSurfaceId) return;
+
+    let frameId: number | null = null;
+
+    const updateContrastMode = () => {
+      const navElement = stickyRef.current;
+      const darkSurface = document.getElementById(darkSurfaceId);
+      if (!navElement || !darkSurface) return;
+
+      const navRect = navElement.getBoundingClientRect();
+      const darkRect = darkSurface.getBoundingClientRect();
+      const navBaseline = navRect.bottom - 1;
+      const overlapsDark = navBaseline >= darkRect.top && navBaseline <= darkRect.bottom;
+      setIsOnDarkSurface(overlapsDark);
+    };
+
+    const onScrollOrResize = () => {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(updateContrastMode);
+    };
+
+    updateContrastMode();
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
+
+    return () => {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+    };
+  }, [darkSurfaceId, isDetailStickyNav]);
 
   if (breadcrumbs.length === 0) {
     return null;
   }
 
-  return (
-    <Breadcrumb className={`mb-6 px-4 sm:px-6 lg:px-8 ${className}`}>
-      <BreadcrumbList>
+  const stickyTextColor = isOnDarkSurface ? "text-[#F6F1E7]" : "text-[#334233]";
+  const stickyLinkTone = isOnDarkSurface ? "hover:text-white/80" : "hover:text-[#334233]/80";
+
+  const breadcrumbContent = (
+    <Breadcrumb className={className}>
+      <BreadcrumbList className={isDetailStickyNav ? stickyTextColor : "text-[#6F7553]"}>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
             <Link
               to="/"
-              className="flex items-center gap-1 hover:text-[#334233] transition-colors"
+              className={
+                isDetailStickyNav
+                  ? `flex items-center gap-1 transition-colors ${stickyLinkTone}`
+                  : "flex items-center gap-1 hover:text-[#334233] transition-colors"
+              }
               aria-label="Home"
             >
               <Home className="w-4 h-4" />
@@ -122,13 +182,27 @@ export function BreadcrumbNav({ className = "" }: BreadcrumbNavProps) {
                 <BreadcrumbLink asChild>
                   <Link
                     to={item.href}
-                    className="hover:text-[#334233] transition-colors"
+                    className={
+                      isDetailStickyNav
+                        ? `transition-colors ${stickyLinkTone}`
+                        : "hover:text-[#334233] transition-colors"
+                    }
                   >
                     {item.label}
                   </Link>
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage className={item.current ? "text-[#334233]" : "text-[#6F7553]"}>
+                <BreadcrumbPage
+                  className={
+                    isDetailStickyNav
+                      ? item.current
+                        ? "text-inherit"
+                        : "text-inherit/75"
+                      : item.current
+                        ? "text-[#334233]"
+                        : "text-[#6F7553]"
+                  }
+                >
                   {item.label}
                 </BreadcrumbPage>
               )}
@@ -137,5 +211,33 @@ export function BreadcrumbNav({ className = "" }: BreadcrumbNavProps) {
         ))}
       </BreadcrumbList>
     </Breadcrumb>
+  );
+
+  if (isDetailStickyNav) {
+    return (
+      <div ref={stickyRef} className="z-40 bg-transparent md:fixed md:top-20 md:left-0 md:right-0">
+        <div className="h-14 px-3 sm:px-4 lg:px-6 xl:px-8">
+          <div className={`flex h-full items-center justify-between gap-4 ${stickyTextColor}`}>
+            <Link
+              to={backTo}
+              className={`inline-flex items-center gap-1.5 rounded-md border border-current/20 px-2.5 py-1.5 text-sm font-medium transition-colors ${stickyLinkTone}`}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>{backLabel}</span>
+            </Link>
+
+            <div className="min-w-0 max-w-[60vw] overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex justify-end">{breadcrumbContent}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`mb-6 px-4 sm:px-6 lg:px-8 ${className}`}>
+      {breadcrumbContent}
+    </div>
   );
 }

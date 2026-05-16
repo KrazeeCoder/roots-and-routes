@@ -179,3 +179,39 @@
     line-height: 1.5;
   }
 }
+
+@keyframes org-logo-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@layer utilities {
+  .org-logo-marquee-track {
+    animation: org-logo-marquee 35s linear infinite;
+  }
+
+  .org-logo-marquee-track.is-paused {
+    animation-play-state: paused;
+  }
+
+  .org-logo-image {
+    filter: grayscale(1) saturate(0);
+    transition: filter 220ms ease, transform 220ms ease;
+  }
+
+  .org-logo-item:hover .org-logo-image,
+  .org-logo-item:focus-visible .org-logo-image {
+    filter: grayscale(0) saturate(1);
+    transform: scale(1.06);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .org-logo-marquee-track {
+      animation: none;
+    }
+  }
+}

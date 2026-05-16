@@ -30,6 +30,7 @@ const DEFAULT_EVENT_IMAGE = "https://res.cloudinary.com/demo/image/upload/f_auto
 const CARD_INTERACTIVE_ELEMENT_SELECTOR = "a, button, input, select, textarea, [role='button'], [role='menuitem']";
 
 type ViewMode = "list" | "map";
+type EventTimeframe = "upcoming" | "past";
 
 interface EventWithDistance extends EventItem {
   distanceMiles: number | null;
@@ -49,6 +50,38 @@ interface CalendarMenuProps {
   triggerVariant?: ComponentProps<typeof Button>["variant"];
   triggerSize?: ComponentProps<typeof Button>["size"];
   align?: "start" | "center" | "end";
+}
+
+function getEventStartsAtTimestamp(event: Pick<EventItem, "startsAt">) {
+  if (!event.startsAt) return null;
+  const startsAtMs = new Date(event.startsAt).getTime();
+  return Number.isFinite(startsAtMs) ? startsAtMs : null;
+}
+
+function filterEventsByTimeframe<T extends EventItem>(
+  events: T[],
+  timeframe: EventTimeframe,
+  now = new Date(),
+) {
+  const nowMs = now.getTime();
+  return events.filter((event) => {
+    const startsAtMs = getEventStartsAtTimestamp(event);
+    if (startsAtMs === null) return false;
+    return timeframe === "upcoming" ? startsAtMs >= nowMs : startsAtMs < nowMs;
+  });
+}
+
+function sortEventsByStartsAt<T extends EventItem>(
+  events: T[],
+  direction: "asc" | "desc",
+) {
+  return [...events].sort((a, b) => {
+    const aStartsAt = getEventStartsAtTimestamp(a);
+    const bStartsAt = getEventStartsAtTimestamp(b);
+    const aMs = aStartsAt ?? 0;
+    const bMs = bStartsAt ?? 0;
+    return direction === "asc" ? aMs - bMs : bMs - aMs;
+  });
 }
 
 function hasCoordinates(event: EventItem) {
@@ -331,6 +364,7 @@ export function Events() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [timeframeFilter, setTimeframeFilter] = useState<EventTimeframe>("upcoming");
   const [activeCenter, setActiveCenter] = useState<{ lat: number; lng: number; label: string } | null>(null);
   const [radiusMilesFilter, setRadiusMilesFilter] = useState<number>(25);
   const [locationQuery, setLocationQuery] = useState("");
@@ -407,8 +441,6 @@ export function Events() {
     };
   }, [isMapsLoaded]);
 
-  const featured = events[0];
-
   const eventsWithDistance = useMemo<EventWithDistance[]>(() => {
     const sourceEvents = eventsWithGeocodedCoords.length > 0 ? eventsWithGeocodedCoords : events;
     return sourceEvents.map((event) => {
@@ -428,10 +460,18 @@ export function Events() {
     });
   }, [activeCenter, events, eventsWithGeocodedCoords]);
 
-  const textMatchedEvents = useMemo<EventWithDistance[]>(() => {
-    if (!normalizedQuery) return eventsWithDistance;
+  const timeframeEvents = useMemo<EventWithDistance[]>(() => {
+    const filteredEvents = filterEventsByTimeframe(eventsWithDistance, timeframeFilter);
+    const direction = timeframeFilter === "upcoming" ? "asc" : "desc";
+    return sortEventsByStartsAt(filteredEvents, direction);
+  }, [eventsWithDistance, timeframeFilter]);
 
-    return eventsWithDistance.filter((event) => {
+  const featured = timeframeEvents[0];
+
+  const textMatchedEvents = useMemo<EventWithDistance[]>(() => {
+    if (!normalizedQuery) return timeframeEvents;
+
+    return timeframeEvents.filter((event) => {
       const haystack = [
         event.title,
         event.category,
@@ -443,7 +483,7 @@ export function Events() {
 
       return haystack.includes(normalizedQuery);
     });
-  }, [eventsWithDistance, normalizedQuery]);
+  }, [timeframeEvents, normalizedQuery]);
 
   const visibleEvents = useMemo<EventWithDistance[]>(() => {
     if (!activeCenter) return textMatchedEvents;
@@ -463,7 +503,7 @@ export function Events() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCenter, normalizedQuery, radiusMilesFilter]);
+  }, [activeCenter, normalizedQuery, radiusMilesFilter, timeframeFilter]);
 
   const mapEvents = useMemo(
     () => visibleEvents.filter((event) => hasCoordinates(event)),
@@ -851,10 +891,10 @@ export function Events() {
           <ScrollReveal>
             <div className="max-w-3xl">
               <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233] mb-3">
-                Upcoming Schedule
+                {timeframeFilter === "upcoming" ? "Upcoming Schedule" : "Past Events"}
               </h2>
               <p className="text-[#5B473A] text-base font-light leading-relaxed">
-                Switch between list and map view, then find events near your location or a ZIP code.
+                Switch between upcoming and past events, then use list/map view and nearby filters.
               </p>
             </div>
           </ScrollReveal>
@@ -916,6 +956,21 @@ export function Events() {
                 </Button>
 
                 <div className="flex flex-col gap-1">
+                  <Label htmlFor="events-timeframe" className="mb-0 text-xs text-[#6F7553]">
+                    Timeframe
+                  </Label>
+                  <select
+                    id="events-timeframe"
+                    value={timeframeFilter}
+                    onChange={(event) => setTimeframeFilter(event.target.value === "past" ? "past" : "upcoming")}
+                    className="h-10 rounded-md border border-[#D9C6A8] bg-[#F6F1E7] px-3 text-sm"
+                  >
+                    <option value="upcoming">Upcoming</option>
+                    <option value="past">Past</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1">
                   <Label htmlFor="events-radius" className="mb-0 text-xs text-[#6F7553]">
                     Radius
                   </Label>
@@ -947,7 +1002,7 @@ export function Events() {
                   Nearby search center: <span className="font-semibold text-[#334233]">{mapCenter.label}</span>
                 </p>
               ) : (
-                <p>Showing all published events.</p>
+                <p>Showing {timeframeFilter} published events.</p>
               )}
               {query ? (
                 <p className="mt-1 text-[#6F7553]">
@@ -1045,7 +1100,7 @@ export function Events() {
                 </GoogleMap>
                 {mapEvents.length === 0 ? (
                   <p className="border-t border-[#E7D9C3] p-4 text-sm text-[#5B473A]">
-                    No mappable events found for the current nearby filter.
+                    No mappable {timeframeFilter} events found for the current nearby filter.
                   </p>
                 ) : null}
                 </>
@@ -1058,10 +1113,12 @@ export function Events() {
           ) : visibleEvents.length === 0 ? (
             <p className="mt-10 text-[#5B473A]">
               {query
-                ? `No events match "${query}"${activeCenter ? " in this radius yet." : "."}`
+                ? `No ${timeframeFilter} events match "${query}"${activeCenter ? " in this radius yet." : "."}`
                 : activeCenter
-                  ? "No events found in this radius yet."
-                  : "No published events yet."}
+                  ? `No ${timeframeFilter} events found in this radius yet.`
+                  : timeframeFilter === "upcoming"
+                    ? "No upcoming events yet."
+                    : "No past events yet."}
             </p>
           ) : (
             <>
