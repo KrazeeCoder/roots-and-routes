@@ -351,9 +351,9 @@ export const homeTestimonials: HomepageTestimonial[] = [
     quote: "Publishing updates here cut our duplicate hotline calls because families can verify details themselves.",
     attribution: "Avery Collins",
     role: "Nonprofit Operations",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80",
-    imageSourceUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-    imageLicense: "Unsplash License",
+    image: "https://media.istockphoto.com/id/465479132/photo/business-woman-headshot-portrait.jpg?s=612x612&w=0&k=20&c=Otk0arj3yP8SWds4I_zgSxMdqyTZkuJjl6XCU0jNVtI=",
+    imageSourceUrl: "https://media.istockphoto.com/id/465479132/photo/business-woman-headshot-portrait.jpg?s=612x612&w=0&k=20&c=Otk0arj3yP8SWds4I_zgSxMdqyTZkuJjl6XCU0jNVtI=",
+    imageLicense: "iStock License",
   },
   {
     quote: "The design is simple enough for anyone in our household to use, including my grandparents.",
