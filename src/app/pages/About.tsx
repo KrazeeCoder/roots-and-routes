@@ -3,7 +3,6 @@ import { HeartPulse, Layers, Users, MapPin, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 
 interface CountUpProps {
@@ -134,7 +133,7 @@ export function About() {
           </h2>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
-          <p className="text-[#5B473A] text-base font-light leading-relaxed mb-8 max-w-4xl">
+          <p className="text-[#5B473A] text-base font-light leading-relaxed mb-8">
             Our team started by providing essential resources for people without proper financial aid in Bothell, focusing on connecting neighbors with the support they needed most.
             As we grew, we realized the broader potential of a comprehensive community hub that could serve all residents of Bothell, not just those facing financial challenges.
             Today, Roots & Routes is a central resource in Bothell for community programs, events, services, and neighbor-led support that strengthens our entire community.
@@ -216,99 +215,44 @@ export function About() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <ScrollReveal>
           <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
             How Roots & Routes works
           </h2>
+          <p className="text-[#5B473A] text-lg font-light leading-relaxed mb-10 max-w-3xl">
+            Our local hub is built around thoughtful review and contributor collaboration. Volunteers, organizations, and moderators work together to keep community listings accurate, useful, and easy to find.
+          </p>
         </ScrollReveal>
 
-        <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StaggerItem>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <Layers className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#334233] mb-2">Gather insights</h3>
-              <p className="text-sm text-[#5B473A]">
-                Residents can submit public resource and event proposals, while organizations can apply for contributor access to maintain official listings.
-              </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
+              <Layers className="w-6 h-6" />
             </div>
-          </StaggerItem>
-          <StaggerItem>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <Users className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#334233] mb-2">Review with care</h3>
-              <p className="text-sm text-[#5B473A]">
-                Moderators approve contributor accounts and review public proposals before those public submissions become official content.
-              </p>
-            </div>
-          </StaggerItem>
-          <StaggerItem>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <MapPin className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#334233] mb-2">Share with the community</h3>
-              <p className="text-sm text-[#5B473A]">
-                Approved contributors can publish resources and events directly, and moderator-approved public proposals appear alongside them on the live site.
-              </p>
-            </div>
-          </StaggerItem>
-        </StaggerGroup>
-      </section>
-
-      {/* Our Contributors */}
-      <section className="bg-[#E7D9C3]/20 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <h2 className="font-['Cormorant_Garamond',serif] text-4xl sm:text-5xl font-bold text-[#334233] mb-6">
-              Our contributors
-            </h2>
-            <p className="text-[#5B473A] text-lg font-light leading-relaxed mb-12 max-w-3xl">
-              Roots & Routes is powered by dedicated volunteers and community partners who believe in making local support accessible to everyone.
-              Our team includes moderators, content contributors, and technical volunteers working together to maintain this resource.
+            <h3 className="text-lg font-semibold text-[#334233] mb-2">Gather insights</h3>
+            <p className="text-sm text-[#5B473A]">
+              Residents can submit public resource and event proposals, while organizations can apply for contributor access to maintain official listings.
             </p>
-          </ScrollReveal>
-
-          <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <StaggerItem>
-              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                  <Users className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold text-[#334233] mb-2">Community Moderators</h3>
-                <p className="text-sm text-[#5B473A] leading-relaxed">
-                  Volunteer reviewers who ensure all content meets our standards for accuracy and helpfulness.
-                </p>
-              </div>
-            </StaggerItem>
-            <StaggerItem>
-              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                  <Layers className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold text-[#334233] mb-2">Content Contributors</h3>
-                <p className="text-sm text-[#5B473A] leading-relaxed">
-                  Local organizations and individuals who share information about their programs and services.
-                </p>
-              </div>
-            </StaggerItem>
-            <StaggerItem>
-              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-center shadow-sm hover:shadow-md transition-shadow">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                  <Sparkles className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-semibold text-[#334233] mb-2">Technical Volunteers</h3>
-                <p className="text-sm text-[#5B473A] leading-relaxed">
-                  Developers and designers who build and maintain the platform to keep it running smoothly.
-                </p>
-              </div>
-            </StaggerItem>
-          </StaggerGroup>
+          </div>
+          <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
+              <Users className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-semibold text-[#334233] mb-2">Review with care</h3>
+            <p className="text-sm text-[#5B473A]">
+              Moderators approve contributor accounts and review public proposals before those public submissions become official content.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
+              <MapPin className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-semibold text-[#334233] mb-2">Share with the community</h3>
+            <p className="text-sm text-[#5B473A]">
+              Approved contributors can publish resources and events directly, and moderator-approved public proposals appear alongside them on the live site.
+            </p>
+          </div>
         </div>
       </section>
 
