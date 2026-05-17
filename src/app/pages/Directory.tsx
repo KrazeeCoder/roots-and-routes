@@ -41,6 +41,36 @@ function truncateDescription(value: string, maxLength = 180) {
   return `${trimmed.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
+function hasTextValue(value: string | null | undefined) {
+  return (value ?? "").trim().length > 0;
+}
+
+function matchesHoursFilter(hours: string | undefined, selectedHours: string) {
+  if (!selectedHours) return true;
+  const normalized = (hours ?? "").toLowerCase();
+  if (!normalized) return false;
+
+  if (selectedHours === "weekdays") {
+    return /(mon|monday|tue|tues|tuesday|wed|wednesday|thu|thur|thurs|thursday|fri|friday|weekday)/.test(
+      normalized,
+    );
+  }
+
+  if (selectedHours === "weekends") {
+    return /(sat|saturday|sun|sunday|weekend)/.test(normalized);
+  }
+
+  if (selectedHours === "evenings") {
+    return /(evening|night|\b([5-9]|1[0-1])\s*(pm|p\.m\.)\b)/.test(normalized);
+  }
+
+  if (selectedHours === "24-7") {
+    return /(24\/7|24 hours|always open|open 24)/.test(normalized);
+  }
+
+  return true;
+}
+
 export function Directory() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -92,6 +122,10 @@ export function Directory() {
   useEffect(() => {
     setCurrentPage(1);
   }, [appliedQuery, activeCategory, minRating]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [hasWebsite, hasPhone, hasEmail, selectedHours]);
 
   useEffect(() => {
     let cancelled = false;
@@ -163,17 +197,53 @@ export function Directory() {
     [],
   );
 
-  const hasFilters = query.trim().length > 0 || activeCategory !== "All" || minRatingDraft > 0 || minRating > 0;
+  const visibleEntries = useMemo(() => {
+    const nextEntries = [...entries]
+      .filter((entry) => (hasWebsite ? hasTextValue(entry.website) : true))
+      .filter((entry) => (hasPhone ? hasTextValue(entry.phone) : true))
+      .filter((entry) => (hasEmail ? hasTextValue(entry.email) : true))
+      .filter((entry) => matchesHoursFilter(entry.hours, selectedHours));
+
+    if (sortBy === "name") {
+      nextEntries.sort((a, b) => a.name.localeCompare(b.name));
+      return nextEntries;
+    }
+
+    if (sortBy === "rating") {
+      nextEntries.sort((a, b) => {
+        const bRating = engagementByEntry[b.id]?.stats.averageRating ?? 0;
+        const aRating = engagementByEntry[a.id]?.stats.averageRating ?? 0;
+        if (bRating !== aRating) return bRating - aRating;
+        return a.name.localeCompare(b.name);
+      });
+      return nextEntries;
+    }
+
+    return nextEntries;
+  }, [entries, hasWebsite, hasPhone, hasEmail, selectedHours, sortBy, engagementByEntry]);
+
+  const hasAdvancedFilters =
+    hasWebsite === true || hasPhone === true || hasEmail === true || selectedHours !== "" || sortBy !== "relevance";
+  const hasFilters =
+    query.trim().length > 0 || activeCategory !== "All" || minRatingDraft > 0 || minRating > 0 || hasAdvancedFilters;
   const showSpinnerOverlay = loadingEntries && entries.length > 0;
+  const shownCount = hasAdvancedFilters ? visibleEntries.length : totalCount;
   const resultSummary = useMemo(() => {
     const parts = [
       appliedQuery.trim() ? `matching "${appliedQuery.trim()}"` : null,
       activeCategory !== "All" ? `in ${activeCategory}` : null,
       minRating > 0 ? `rated ${minRating.toFixed(1)}+` : null,
+      hasWebsite ? "with website" : null,
+      hasPhone ? "with phone" : null,
+      hasEmail ? "with email" : null,
+      selectedHours === "weekdays" ? "open weekdays" : null,
+      selectedHours === "weekends" ? "open weekends" : null,
+      selectedHours === "evenings" ? "open evenings" : null,
+      selectedHours === "24-7" ? "available 24/7" : null,
     ].filter(Boolean);
 
     return parts.length > 0 ? parts.join(", ") : "across all resources";
-  }, [activeCategory, appliedQuery, minRating]);
+  }, [activeCategory, appliedQuery, minRating, hasWebsite, hasPhone, hasEmail, selectedHours]);
   const commitMinRating = (rating: number) => {
     setMinRating(rating);
   };
@@ -466,17 +536,17 @@ export function Directory() {
                   <span>Showing</span>
                   <AnimatePresence mode="popLayout" initial={false}>
                     <motion.span
-                      key={`${totalCount}-${resultSummary}`}
+                      key={`${shownCount}-${resultSummary}`}
                       initial={{ opacity: 0, y: -8, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.96 }}
                       transition={{ duration: 0.18, ease: "easeOut" }}
                       className="inline-flex min-w-6 justify-center rounded-full bg-[#E7D9C3] px-2 py-0.5 font-semibold text-[#334233]"
                     >
-                      {totalCount}
+                      {shownCount}
                     </motion.span>
                   </AnimatePresence>
-                  <span>{totalCount === 1 ? "resource" : "resources"}</span>
+                  <span>{shownCount === 1 ? "resource" : "resources"}</span>
                 </span>{" "}
                 <span>{resultSummary}</span>
               </p>
@@ -490,6 +560,12 @@ export function Directory() {
                     setActiveCategory("All");
                     setMinRatingDraft(0);
                     setMinRating(0);
+                    setHasWebsite(null);
+                    setHasPhone(null);
+                    setHasEmail(null);
+                    setIsOpenNow(null);
+                    setSelectedHours("");
+                    setSortBy("relevance");
                     setCurrentPage(1);
                     scrollToResultsTop();
                   }}
@@ -517,7 +593,7 @@ export function Directory() {
                   <p className="text-lg font-medium text-[#334233] mb-1">We ran into a loading issue</p>
                   <p className="text-sm">{loadError}</p>
                 </motion.div>
-              ) : entries.length === 0 ? (
+              ) : visibleEntries.length === 0 ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24 text-[#6F7553]">
                   <Search className="w-12 h-12 mx-auto mb-4 opacity-30" />
                   <p className="text-lg font-medium text-[#334233] mb-1">No resources found</p>
@@ -529,7 +605,7 @@ export function Directory() {
                   className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${showSpinnerOverlay ? "pointer-events-none" : ""}`}
                   transition={{ layout: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } }}
                 >
-                  {entries.map((entry) => (
+                  {visibleEntries.map((entry) => (
                     <motion.div
                       layout="position"
                       key={entry.id}
