@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router";
-import { Trees } from "lucide-react";
+import { Trees, HelpCircle } from "lucide-react";
 import { RESOURCE_CATEGORIES } from "./constants/resourceCategories";
 import { trapFocus } from "../utils/accessibility";
 
@@ -137,6 +137,13 @@ export function Layout() {
 
             <div className="hidden md:flex items-center gap-3">
               <Link
+                to="/help"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#E7D9C3]/20 text-[#334233] hover:bg-[#E7D9C3]/40 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
+                aria-label="Help center"
+              >
+                <HelpCircle className="h-5 w-5" />
+              </Link>
+              <Link
                 to="/suggest"
                 className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-white bg-[#334233] hover:bg-[#B36A4C] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B36A4C] focus:ring-offset-[#F6F1E7]"
                 aria-label="Suggest a resource or event"
@@ -230,6 +237,15 @@ export function Layout() {
                   </Link>
                 );
               })}
+
+              <Link
+                to="/help"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-base font-medium text-[#334233] hover:text-[#B36A4C] transition-colors"
+                aria-label="Help center"
+              >
+                Help
+              </Link>
 
               <div className="pt-3 space-y-2">
                 <Link

@@ -8,6 +8,7 @@ import { Events } from "./pages/Events";
 import { Calendar } from "./pages/Calendar";
 import { Suggest } from "./pages/Suggest";
 import { About } from "./pages/About";
+import { Help } from "./pages/Help";
 import { ContributorLogin } from "./pages/ContributorLogin";
 import { ResetPassword } from "./pages/ResetPassword";
 import { Portal } from "./pages/Portal";
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "events/:eventId", Component: EventDetail },
       { path: "calendar", Component: Calendar },
       { path: "suggest", Component: Suggest },
+      { path: "help", Component: Help },
       { path: "about", Component: About },
       { path: "resources/:resourceId", Component: ResourceDetail },
       { path: "reference", Component: Reference },
