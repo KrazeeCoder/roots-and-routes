@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { CalendarDays, HelpCircle, Info, Mail, Search, Sparkles, UserPlus } from "lucide-react";
+import { CalendarDays, HelpCircle, Info, Mail, Search, Sparkles, UserPlus, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion";
@@ -135,40 +135,77 @@ export function Help() {
           <div className="w-full">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#B36A4C]">How to use the site</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-4xl">
-              Get support faster with a few simple steps.
+              Master each core feature of Roots & Routes.
             </h2>
             <p className="mt-4 text-base leading-7 text-[#5B473A]">
-              Whether you are looking for food support, events, or a way to share a new community service, the help center makes it easy to get started.
+              Explore detailed guides for searching resources, managing events, submitting new services, and becoming a community contributor.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233]">
                 <Search className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-[#334233]">Search for support</h3>
+              <h3 className="mt-5 text-lg font-semibold text-[#334233]">Search & Find Resources</h3>
               <p className="mt-3 text-sm leading-7 text-[#5B473A]">
-                Start with the search bar on the Directory page. Try words like ‘housing’, ‘counseling’, or ‘school supplies’ to narrow results.
+                Use keywords like 'food', 'housing', or 'mental health' to discover local support. Filter by category and location to find services near you quickly.
               </p>
+              <Link
+                to="/guide/search-resources"
+                className="mt-4 inline-flex items-center text-sm font-semibold text-[#B36A4C] hover:text-[#334233] transition-colors"
+              >
+                Read Full Guide
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
             </div>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233]">
                 <CalendarDays className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-[#334233]">Explore community events</h3>
+              <h3 className="mt-5 text-lg font-semibold text-[#334233]">Browse & Register for Events</h3>
               <p className="mt-3 text-sm leading-7 text-[#5B473A]">
-                Use the Events page to discover workshops, support groups, and gatherings. Click an event to view time, location, and registration details.
+                Explore upcoming workshops, support groups, and community gatherings. View detailed information, dates, times, and registration links for each event.
               </p>
+              <Link
+                to="/guide/browse-events"
+                className="mt-4 inline-flex items-center text-sm font-semibold text-[#B36A4C] hover:text-[#334233] transition-colors"
+              >
+                Read Full Guide
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
             </div>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233]">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-[#334233]">Share resources with the community</h3>
+              <h3 className="mt-5 text-lg font-semibold text-[#334233]">Submit New Resources</h3>
               <p className="mt-3 text-sm leading-7 text-[#5B473A]">
-                If you know a helpful program, add it using the Suggest page. Your submission helps others quickly find trusted local support.
+                Share a trusted local service or event with the community. Provide clear details and our team will review and publish your submission quickly.
               </p>
+              <Link
+                to="/guide/submit-resources"
+                className="mt-4 inline-flex items-center text-sm font-semibold text-[#B36A4C] hover:text-[#334233] transition-colors"
+              >
+                Read Full Guide
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </div>
+            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233]">
+                <UserPlus className="h-5 w-5" />
+              </div>
+              <h3 className="mt-5 text-lg font-semibold text-[#334233]">Become a Contributor</h3>
+              <p className="mt-3 text-sm leading-7 text-[#5B473A]">
+                Sign up to manage resource and event listings, track approvals, and help shape the community directory. Access the contributor portal anytime.
+              </p>
+              <Link
+                to="/guide/become-contributor"
+                className="mt-4 inline-flex items-center text-sm font-semibold text-[#B36A4C] hover:text-[#334233] transition-colors"
+              >
+                Read Full Guide
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>
