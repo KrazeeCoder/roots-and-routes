@@ -381,7 +381,7 @@ export function Directory() {
             </button>
 
             <div
-              className={`${isFilterOpen ? "block" : "hidden"} lg:block sticky top-24 bg-white rounded-2xl border border-[#E7D9C3] shadow-sm p-6`}
+              className={`${isFilterOpen ? "block" : "hidden"} lg:block sticky top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:overscroll-contain bg-white rounded-2xl border border-[#E7D9C3] shadow-sm p-6`}
             >
               <h2 className="text-xs font-bold uppercase tracking-wider text-[#6F7553] mb-5">Category</h2>
               <ul className="space-y-1.5">
