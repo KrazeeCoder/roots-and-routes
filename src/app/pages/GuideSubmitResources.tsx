@@ -59,382 +59,307 @@ export function GuideSubmitResources() {
       </section>
 
       {/* Main Content */}
-      <section className="relative pt-16 pb-16">
+      <section className="relative pt-16 pb-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Why Submit */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="mb-16"
-          >
-            <h2 className="text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233]">
-              Why Share a Resource?
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-[#5B473A]">
-              Your contribution helps build a stronger, more connected community.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            
+            {/* Sticky Sidebar Navigation */}
+            <div className="hidden lg:block lg:col-span-3">
+              <div className="sticky top-28 space-y-8">
+                <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>
+                  <nav className="space-y-4">
+                    {[
+                      { num: "01", label: "What You Can Submit" },
+                      { num: "02", label: "How to Submit" },
+                      { num: "03", label: "Review Process" },
+                      { num: "04", label: "Common Questions" },
+                    ].map((step) => (
+                      <div key={step.num} className="flex items-center gap-3 group">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E7D9C3] bg-[#F6F1E7] text-xs font-semibold text-[#334233] transition-colors group-hover:border-[#334233] group-hover:bg-[#334233] group-hover:text-white">
+                          {step.num}
+                        </span>
+                        <span className="text-sm font-medium text-[#5B473A] transition-colors group-hover:text-[#334233]">
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </nav>
+                </div>
 
-            <div className="mt-8 grid gap-4">
-              <div className="flex gap-4 items-start">
-                <div className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#B36A4C] text-white">
-                  <CheckCircle className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-[#334233]">Help people find support they need</p>
-                  <p className="text-sm text-[#5B473A]">Neighbors searching for resources will discover the service or event you recommend.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#B36A4C] text-white">
-                  <CheckCircle className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-[#334233]">Give the organization visibility</p>
-                  <p className="text-sm text-[#5B473A]">Local nonprofits, businesses, and agencies benefit from being featured in our directory.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#B36A4C] text-white">
-                  <CheckCircle className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-[#334233]">Strengthen Bothell's community network</p>
-                  <p className="text-sm text-[#5B473A]">Every submission makes Roots & Routes more complete and helpful for everyone.</p>
+                <div className="rounded-2xl border border-[#E7D9C3] bg-[#B36A4C]/10 p-6">
+                  <h4 className="text-base font-semibold text-[#334233]">Need custom support?</h4>
+                  <p className="mt-2 text-xs leading-relaxed text-[#5B473A]">
+                    If you have questions that aren't covered in this guide, our community team is here to assist.
+                  </p>
+                  <Link
+                    to="/contact"
+                    className="mt-4 inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-colors w-full"
+                  >
+                    Go to Contact Form
+                  </Link>
                 </div>
               </div>
             </div>
-          </motion.div>
 
-          {/* What You Can Submit */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
-            className="mb-16 rounded-2xl border border-[#E7D9C3] bg-white p-8 shadow-sm"
-          >
-            <h2 className="text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233]">
-              What Can You Submit?
-            </h2>
-            <p className="mt-4 text-base leading-8 text-[#5B473A]">
-              You can suggest either a Resource or an Event. Here's what we accept:
-            </p>
-
-            <div className="mt-8 grid gap-8 md:grid-cols-2">
-              <div>
-                <h3 className="text-xl font-semibold text-[#334233]">Resources</h3>
-                <p className="mt-3 text-sm text-[#5B473A]">
-                  Local organizations, services, or programs that offer ongoing support. Examples include:
-                </p>
-                <ul className="mt-4 space-y-2 text-sm text-[#5B473A]">
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Food pantries, meal programs</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Mental health or counseling services</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Housing or emergency assistance</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Job training or employment services</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Youth programs or tutoring</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Community centers or recreation facilities</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold text-[#334233]">Events</h3>
-                <p className="mt-3 text-sm text-[#5B473A]">
-                  One-time or recurring events happening in the community. Examples include:
-                </p>
-                <ul className="mt-4 space-y-2 text-sm text-[#5B473A]">
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Workshops and educational seminars</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Support group meetings</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Community celebrations or festivals</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Youth activities or sports leagues</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Classes or fitness sessions</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#B36A4C] font-bold">•</span>
-                    <span>Volunteer or service opportunities</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Step-by-Step */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-            className="mb-16"
-          >
-            <h2 className="text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233]">
-              How to Submit
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-[#5B473A]">
-              Follow these steps to submit a resource or event:
-            </p>
-
-            <div className="mt-8 space-y-6">
-              {/* Step 1 */}
-              <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6">
-                <div className="flex gap-4">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C] text-white font-semibold flex-shrink-0">
-                    1
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-[#334233]">Click "Submit Now"</h3>
-                    <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                      Visit the Suggest page from the main menu or the Help center. Choose whether you're submitting a Resource or an Event.
+            {/* Main Content Area */}
+            <div className="lg:col-span-9 space-y-16">
+              {/* Why Submit */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="border-b border-[#E7D9C3] pb-6 mb-8 flex items-start gap-4">
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">01</div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
+                      Why Share a Resource?
+                    </h2>
+                    <p className="mt-2 text-base text-[#5B473A]">
+                      Your contribution helps build a stronger, more connected community.
                     </p>
                   </div>
                 </div>
-              </div>
 
-              {/* Step 2 */}
-              <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6">
-                <div className="flex gap-4">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C] text-white font-semibold flex-shrink-0">
-                    2
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-[#334233]">Fill in Basic Information</h3>
-                    <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                      Enter the name, description, address, and contact details (phone/email/website). Be clear and specific so people understand what the organization or event offers.
+                <div className="space-y-4 rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)]">
+                  {[
+                    { title: "Help people find support they need", desc: "Neighbors searching for resources will discover the service or event you recommend." },
+                    { title: "Give the organization visibility", desc: "Local nonprofits, businesses, and agencies benefit from being featured in our directory." },
+                    { title: "Strengthen Bothell's community network", desc: "Every submission makes Roots & Routes more complete and helpful for everyone." },
+                  ].map((item) => (
+                    <div key={item.title} className="flex gap-4 p-4 rounded-2xl hover:bg-[#F6F1E7]/60 transition-colors duration-300">
+                      <div className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#E7D9C3] text-[#334233] shadow-sm">
+                        <CheckCircle className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold text-[#334233]">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-[#5B473A]">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* What You Can Submit */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="border-b border-[#E7D9C3] pb-6 mb-8 flex items-start gap-4">
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">02</div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
+                      What Can You Submit?
+                    </h2>
+                    <p className="mt-2 text-base text-[#5B473A]">
+                      You can suggest either a Resource or an Event. Here's what we accept:
                     </p>
-                    <div className="mt-3 text-xs font-semibold text-[#B36A4C]">Required fields:</div>
-                    <ul className="mt-2 space-y-1 text-sm text-[#5B473A]">
-                      <li>✓ Name of resource/event</li>
-                      <li>✓ Description of what it is and who it serves</li>
-                      <li>✓ Address or location</li>
-                      <li>✓ At least one contact method (phone, email, or website)</li>
+                  </div>
+                </div>
+
+                <div className="grid gap-8 lg:grid-cols-2">
+                  <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)] hover:-translate-y-1 hover:border-[#334233] transition-all duration-300">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#B36A4C]/10 text-[#B36A4C]">
+                      <FileText className="h-6 w-6" />
+                    </div>
+                    <h3 className="mt-6 text-xl font-semibold text-[#334233]">Resources</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">
+                      Local organizations, services, or programs that offer ongoing support.
+                    </p>
+                    <ul className="mt-6 space-y-3 text-sm text-[#5B473A]">
+                      {["Food pantries, meal programs", "Mental health or counseling services", "Housing or emergency assistance", "Job training or employment services", "Youth programs or tutoring", "Community centers or recreation facilities"].map((item) => (
+                        <li key={item} className="flex items-start gap-3">
+                          <CheckCircle className="h-4 w-4 text-[#B36A4C] mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)] hover:-translate-y-1 hover:border-[#334233] transition-all duration-300">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#B36A4C]/10 text-[#B36A4C]">
+                      <Clock className="h-6 w-6" />
+                    </div>
+                    <h3 className="mt-6 text-xl font-semibold text-[#334233]">Events</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">
+                      One-time or recurring events happening in the community.
+                    </p>
+                    <ul className="mt-6 space-y-3 text-sm text-[#5B473A]">
+                      {["Workshops and educational seminars", "Support group meetings", "Community celebrations or festivals", "Youth activities or sports leagues", "Classes or fitness sessions", "Volunteer or service opportunities"].map((item) => (
+                        <li key={item} className="flex items-start gap-3">
+                          <CheckCircle className="h-4 w-4 text-[#B36A4C] mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
-              {/* Step 3 */}
-              <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6">
-                <div className="flex gap-4">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C] text-white font-semibold flex-shrink-0">
-                    3
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-[#334233]">Add Details & Category</h3>
-                    <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                      For Resources: Select the category that best fits (Food Assistance, Health & Wellness, etc.), add hours of operation, and any tags that describe the service.
-                    </p>
-                    <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                      For Events: Add the date, time, duration, and specify if it's recurring or one-time.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 4 */}
-              <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6">
-                <div className="flex gap-4">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C] text-white font-semibold flex-shrink-0">
-                    4
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-[#334233]">Review & Submit</h3>
-                    <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                      Double-check all information for accuracy. Make sure contact details are correct so people can actually reach the organization. Then click Submit!
+              {/* Step-by-Step */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="border-b border-[#E7D9C3] pb-6 mb-8 flex items-start gap-4">
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">03</div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
+                      How to Submit
+                    </h2>
+                    <p className="mt-2 text-base text-[#5B473A]">
+                      Follow these steps to submit a resource or event:
                     </p>
                   </div>
                 </div>
-              </div>
 
-              {/* Step 5 */}
-              <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6">
-                <div className="flex gap-4">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C] text-white font-semibold flex-shrink-0">
-                    5
+                <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)] space-y-8">
+                  <h3 className="text-lg font-semibold text-[#334233]">The Submission Process:</h3>
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    {[
+                      { title: "Visit the Suggest Page", desc: "Choose whether you're submitting a Resource or an Event from the main menu or Help center." },
+                      { title: "Fill in Basic Information", desc: "Enter name, description, address, and contact details (phone/email/website)." },
+                      { title: "Add Details & Category", desc: "For Resources: select category, add hours, and tags. For Events: add date, time, and duration." },
+                      { title: "Review & Submit", desc: "Double-check all information for accuracy, then click Submit." },
+                      { title: "Team Review", desc: "Our community team verifies details and checks guidelines (3-7 business days)." },
+                      { title: "It Goes Live!", desc: "Once approved, your resource or event appears in the Directory and Events page." },
+                    ].map((item) => (
+                      <div key={item.title} className="flex gap-3">
+                        <CheckCircle className="h-5 w-5 text-[#B36A4C] mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-sm text-[#334233]">{item.title}</p>
+                          <p className="text-xs text-[#5B473A] mt-1 leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-[#334233]">Our Team Reviews Your Submission</h3>
-                    <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                      Your suggestion enters our moderation queue. Our community team will verify the details and check that the resource or event meets our guidelines. This typically takes 3-7 business days.
+
+                  <div className="rounded-2xl border border-[#B36A4C]/20 bg-[#B36A4C]/5 p-6 border-l-4 border-l-[#B36A4C]">
+                    <p className="text-sm leading-relaxed text-[#334233]">
+                      <strong className="text-[#B36A4C]">Pro Tip:</strong> Be specific and verify all contact information before submitting. Accurate details help people actually reach the organizations they need.
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
-              {/* Step 6 */}
-              <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6">
-                <div className="flex gap-4">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C] text-white font-semibold flex-shrink-0">
-                    6
+              {/* Timeline */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)]">
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-6 w-6 text-[#B36A4C]" />
+                    <h3 className="text-xl font-semibold text-[#334233]">What to Expect Timeline</h3>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-[#334233]">It Goes Live!</h3>
-                    <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                      Once approved, the resource or event appears in our Directory and Events page. It's now discoverable by everyone in the community!
+                  <div className="mt-6 space-y-3 text-sm">
+                    {[
+                      { time: "Immediately", desc: "You'll see a confirmation that your submission was received" },
+                      { time: "1-2 days", desc: "Our team begins verifying your information" },
+                      { time: "3-7 days", desc: "Your submission is approved and published to the directory" },
+                      { time: "Ongoing", desc: "Your resource or event is now discoverable and searchable" },
+                    ].map((item) => (
+                      <div key={item.time} className="flex gap-4">
+                        <div className="font-semibold text-[#B36A4C] w-24">{item.time}</div>
+                        <div className="text-[#5B473A]">{item.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Tips for Success */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="rounded-3xl border border-[#E7D9C3] bg-[#F6F1E7] p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)]">
+                  <h3 className="text-2xl font-semibold text-[#334233]">Tips for a Successful Submission</h3>
+                  <div className="mt-6 space-y-4">
+                    {[
+                      { title: "Be Specific", desc: "Don't just say 'community services.' Explain exactly what the organization does: 'provides free job training for adults over 55' is much more helpful than just 'job help.'" },
+                      { title: "Verify Contact Info", desc: "Double-check phone numbers, emails, and websites before submitting. Bad contact info hurts the organization and frustrates people trying to reach them." },
+                      { title: "Include Hours", desc: "For resources, always include hours of operation. If it's available 24/7 or by appointment only, say so. This helps people know when they can access the service." },
+                      { title: "Use Accurate Addresses", desc: "Make sure the address is where people should actually go. Don't use mailing addresses unless that's where services are provided." },
+                      { title: "For Events: Be Clear About Details", desc: "Include start time, end time, whether it's online or in-person, and if registration is required. The more details, the better!" },
+                    ].map((item) => (
+                      <div key={item.title} className="flex gap-3">
+                        <CheckCircle className="h-5 w-5 text-[#B36A4C] mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-sm text-[#334233]">{item.title}</p>
+                          <p className="text-xs text-[#5B473A] mt-1 leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* FAQ Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="border-b border-[#E7D9C3] pb-6 mb-8 flex items-start gap-4">
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">04</div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
+                      Common Questions
+                    </h2>
+                    <p className="mt-2 text-base text-[#5B473A]">
+                      Have questions about submitting resources or events? Find answers below.
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </motion.div>
 
-          {/* Timeline */}
+                <div className="space-y-6">
+                  {[
+                    { q: "Do I need to be a contributor to submit?", a: "No! Anyone can submit a resource or event. You don't need an account. However, if you represent the organization and want ongoing management access, you can apply to become a Contributor." },
+                    { q: "What if my submission is rejected?", a: "If your submission doesn't meet our guidelines, we'll let you know why. Common reasons include inaccurate information or the resource being outside our service area. You can revise and resubmit." },
+                    { q: "Can I update a listing after it's been published?", a: "If you're a Contributor for that organization, you can update listings anytime from the Portal. If you submitted it as a public user, contact our team at rootsandroutes.bothell@outlook.com to request updates." },
+                    { q: "Can I submit on behalf of someone else's organization?", a: "Yes, but the organization should ideally verify it. If you're submitting on behalf of an organization, make sure all details are accurate and authorized. For ongoing management, we recommend they apply to become a Contributor." },
+                    { q: "How do I know if something's already in the directory?", a: "Search the Directory first! If you find a duplicate, you can reach out to let us know. We combine duplicates to keep the directory clean and organized." },
+                  ].map((faq) => (
+                    <div key={faq.q} className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm hover:border-[#334233] transition-colors duration-300">
+                      <h4 className="font-semibold text-base text-[#334233]">{faq.q}</h4>
+                      <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+            </div>
+          </div>
+
+          {/* Bottom CTA */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-            className="mb-16 rounded-2xl border border-[#E7D9C3] bg-white p-8 shadow-sm"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="mt-20 text-center border-t border-[#E7D9C3] pt-12"
           >
-            <div className="flex items-center gap-3">
-              <Clock className="h-6 w-6 text-[#B36A4C]" />
-              <h3 className="text-xl font-semibold text-[#334233]">What to Expect Timeline</h3>
-            </div>
-            <div className="mt-6 space-y-3 text-sm">
-              <div className="flex gap-4">
-                <div className="font-semibold text-[#B36A4C] w-24">Immediately</div>
-                <div className="text-[#5B473A]">You'll see a confirmation that your submission was received</div>
-              </div>
-              <div className="flex gap-4">
-                <div className="font-semibold text-[#B36A4C] w-24">1-2 days</div>
-                <div className="text-[#5B473A]">Our team begins verifying your information</div>
-              </div>
-              <div className="flex gap-4">
-                <div className="font-semibold text-[#B36A4C] w-24">3-7 days</div>
-                <div className="text-[#5B473A]">Your submission is approved and published to the directory</div>
-              </div>
-              <div className="flex gap-4">
-                <div className="font-semibold text-[#B36A4C] w-24">Ongoing</div>
-                <div className="text-[#5B473A]">Your resource or event is now discoverable and searchable</div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Tips for Success */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
-            className="mb-16 rounded-2xl border border-[#E7D9C3] bg-[#F6F1E7] p-8"
-          >
-            <h3 className="text-2xl font-semibold text-[#334233]">Tips for a Successful Submission</h3>
-            <div className="mt-6 space-y-4">
-              <div>
-                <p className="font-semibold text-[#334233]">✓ Be Specific</p>
-                <p className="text-sm text-[#5B473A]">
-                  Don't just say "community services." Explain exactly what the organization does: "provides free job training for adults over 55" is much more helpful than just "job help."
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold text-[#334233]">✓ Verify Contact Info</p>
-                <p className="text-sm text-[#5B473A]">
-                  Double-check phone numbers, emails, and websites before submitting. Bad contact info hurts the organization and frustrates people trying to reach them.
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold text-[#334233]">✓ Include Hours</p>
-                <p className="text-sm text-[#5B473A]">
-                  For resources, always include hours of operation. If it's available 24/7 or by appointment only, say so. This helps people know when they can access the service.
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold text-[#334233]">✓ Use Accurate Addresses</p>
-                <p className="text-sm text-[#5B473A]">
-                  Make sure the address is where people should actually go. Don't use mailing addresses unless that's where services are provided.
-                </p>
-              </div>
-              <div>
-                <p className="font-semibold text-[#334233]">✓ For Events: Be Clear About Details</p>
-                <p className="text-sm text-[#5B473A]">
-                  Include start time, end time, whether it's online or in-person, and if registration is required. The more details, the better!
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* FAQ */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.5, ease: "easeOut" }}
-            className="rounded-2xl border border-[#E7D9C3] bg-white p-8 shadow-sm"
-          >
-            <h3 className="text-2xl font-semibold text-[#334233]">Common Questions</h3>
-            <div className="mt-8 space-y-6">
-              <div>
-                <h4 className="font-semibold text-[#334233]">Do I need to be a contributor to submit?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  No! Anyone can submit a resource or event. You don't need an account. However, if you represent the organization and want ongoing management access, you can apply to become a Contributor.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-[#334233]">What if my submission is rejected?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  If your submission doesn't meet our guidelines, we'll let you know why. Common reasons include inaccurate information or the resource being outside our service area. You can revise and resubmit.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-[#334233]">Can I update a listing after it's been published?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  If you're a Contributor for that organization, you can update listings anytime from the Portal. If you submitted it as a public user, contact our team at rootsandroutes.bothell@outlook.com to request updates.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-[#334233]">Can I submit on behalf of someone else's organization?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  Yes, but the organization should ideally verify it. If you're submitting on behalf of an organization, make sure all details are accurate and authorized. For ongoing management, we recommend they apply to become a Contributor.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-[#334233]">How do I know if something's already in the directory?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  Search the Directory first! If you find a duplicate, you can reach out to let us know. We combine duplicates to keep the directory clean and organized.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.6, ease: "easeOut" }}
-            className="mt-16 text-center"
-          >
+            <h3 className="text-2xl font-semibold font-['Cormorant_Garamond',serif] text-[#334233] mb-4">
+              Ready to share a resource?
+            </h3>
+            <p className="text-sm text-[#5B473A] mb-8 max-w-md mx-auto">
+              Help your community discover local services and events by submitting them to our directory.
+            </p>
             <Link
               to="/suggest"
-              className="inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-colors"
+              className="inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-all duration-300 hover:shadow-lg"
             >
               Submit a Resource or Event
               <ArrowRight className="ml-2 h-5 w-5" />

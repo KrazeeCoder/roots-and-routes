@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowLeft, ArrowRight, Search, Filter, MapPin, Clock, Star, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, Search, Filter, MapPin, Clock, Star, CheckCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 
@@ -59,256 +59,257 @@ export function GuideSearchResources() {
       </section>
 
       {/* Main Content */}
-      <section className="relative pt-16 pb-16">
+      <section className="relative pt-16 pb-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Step 1 */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="mb-20"
-          >
-            <div className="flex items-end gap-4 mb-8">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-[#B36A4C] to-[#934a3f] text-white font-bold text-lg">
-                1
-              </div>
-              <h2 className="text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233]">
-                Choose Your Search Method
-              </h2>
-            </div>
-            <p className="text-lg leading-8 text-[#5B473A] mb-8">
-              The Directory offers two ways to find what you need. Use the search bar for keywords, or browse by category.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             
-            <div className="grid gap-8 lg:grid-cols-2">
-              <div className="rounded-2xl border-2 border-[#B36A4C]/30 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-[#B36A4C]/10 text-[#B36A4C]">
-                  <Search className="h-6 w-6" />
+            {/* Sticky Sidebar Navigation */}
+            <div className="hidden lg:block lg:col-span-3">
+              <div className="sticky top-28 space-y-8">
+                <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>
+                  <nav className="space-y-4">
+                    {[
+                      { num: "01", label: "Choose Search Method" },
+                      { num: "02", label: "Filter & Refine" },
+                      { num: "03", label: "Review & Connect" },
+                      { num: "04", label: "Common Questions" },
+                    ].map((step) => (
+                      <div key={step.num} className="flex items-center gap-3 group">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E7D9C3] bg-[#F6F1E7] text-xs font-semibold text-[#334233] transition-colors group-hover:border-[#334233] group-hover:bg-[#334233] group-hover:text-white">
+                          {step.num}
+                        </span>
+                        <span className="text-sm font-medium text-[#5B473A] transition-colors group-hover:text-[#334233]">
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </nav>
                 </div>
-                <h3 className="mt-6 text-xl font-semibold text-[#334233]">Keyword Search</h3>
-                <p className="mt-3 text-base leading-7 text-[#5B473A]">
-                  Type what you're looking for directly into the search box. Try specific terms like:
-                </p>
-                <ul className="mt-6 space-y-3 text-sm text-[#5B473A]">
-                  <li className="flex items-start gap-3">
-                    <span className="mt-1.5 h-2 w-2 rounded-full bg-[#B36A4C] flex-shrink-0"></span>
-                    <span><strong>"Food pantry"</strong> for emergency food assistance</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-1.5 h-2 w-2 rounded-full bg-[#B36A4C] flex-shrink-0"></span>
-                    <span><strong>"Mental health"</strong> for counseling services</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-1.5 h-2 w-2 rounded-full bg-[#B36A4C] flex-shrink-0"></span>
-                    <span><strong>"Job training"</strong> for employment assistance</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-1.5 h-2 w-2 rounded-full bg-[#B36A4C] flex-shrink-0"></span>
-                    <span><strong>"Rent assistance"</strong> for housing support</span>
-                  </li>
-                </ul>
-              </div>
 
-              <div className="rounded-2xl border-2 border-[#B36A4C]/30 bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-[#B36A4C]/10 text-[#B36A4C]">
-                  <Filter className="h-6 w-6" />
+                <div className="rounded-2xl border border-[#E7D9C3] bg-[#B36A4C]/10 p-6">
+                  <h4 className="text-base font-semibold text-[#334233]">Need custom support?</h4>
+                  <p className="mt-2 text-xs leading-relaxed text-[#5B473A]">
+                    If you have questions that aren't covered in this guide, our community team is here to assist.
+                  </p>
+                  <Link
+                    to="/contact"
+                    className="mt-4 inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-colors w-full"
+                  >
+                    Go to Contact Form
+                  </Link>
                 </div>
-                <h3 className="mt-6 text-xl font-semibold text-[#334233]">Browse by Category</h3>
-                <p className="mt-3 text-base leading-7 text-[#5B473A]">
-                  Click on a category to see all resources in that area:
-                </p>
-                <ul className="mt-6 space-y-2 text-sm text-[#5B473A]">
-                  <li className="flex items-start gap-3">
-                    <span className="text-[#B36A4C] font-bold text-lg leading-none mt-0.5">▸</span>
-                    <span>Food Assistance</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[#B36A4C] font-bold text-lg leading-none mt-0.5">▸</span>
-                    <span>Health & Wellness</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[#B36A4C] font-bold text-lg leading-none mt-0.5">▸</span>
-                    <span>Housing Support</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[#B36A4C] font-bold text-lg leading-none mt-0.5">▸</span>
-                    <span>Youth Programs & Job Help</span>
-                  </li>
-                </ul>
               </div>
             </div>
-          </motion.div>
 
-          {/* Step 2 */}
+            {/* Main Content Area */}
+            <div className="lg:col-span-9 space-y-16">
+              
+              {/* Step 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="border-b border-[#E7D9C3] pb-6 mb-8 flex items-start gap-4">
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">01</div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
+                      Choose Your Search Method
+                    </h2>
+                    <p className="mt-2 text-base text-[#5B473A]">
+                      The Directory offers two ways to find what you need. Use the search bar for keywords, or browse by category.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-8 lg:grid-cols-2">
+                  <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)] hover:-translate-y-1 hover:border-[#334233] transition-all duration-300">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#B36A4C]/10 text-[#B36A4C]">
+                      <Search className="h-6 w-6" />
+                    </div>
+                    <h3 className="mt-6 text-xl font-semibold text-[#334233]">Keyword Search</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">
+                      Type what you're looking for directly into the search box. Try specific terms like:
+                    </p>
+                    <ul className="mt-6 space-y-3 text-sm text-[#5B473A]">
+                      {[
+                        { term: "Food pantry", desc: "for emergency food assistance" },
+                        { term: "Mental health", desc: "for counseling services" },
+                        { term: "Job training", desc: "for employment assistance" },
+                        { term: "Rent assistance", desc: "for housing support" },
+                      ].map((item) => (
+                        <li key={item.term} className="flex items-start gap-3">
+                          <CheckCircle className="h-4 w-4 text-[#B36A4C] mt-0.5 flex-shrink-0" />
+                          <span><strong>"{item.term}"</strong> {item.desc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)] hover:-translate-y-1 hover:border-[#334233] transition-all duration-300">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#B36A4C]/10 text-[#B36A4C]">
+                      <Filter className="h-6 w-6" />
+                    </div>
+                    <h3 className="mt-6 text-xl font-semibold text-[#334233]">Browse by Category</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">
+                      Click on a category card to see all resources in that specific domain:
+                    </p>
+                    <ul className="mt-6 space-y-3 text-sm text-[#5B473A]">
+                      {["Food Assistance", "Health & Wellness", "Housing Support", "Youth Programs & Job Help"].map((cat) => (
+                        <li key={cat} className="flex items-center gap-3">
+                          <span className="text-[#B36A4C] text-lg leading-none">▸</span>
+                          <span className="font-medium text-[#334233]">{cat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Step 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="border-b border-[#E7D9C3] pb-6 mb-8 flex items-start gap-4">
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">02</div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
+                      Filter & Refine Your Results
+                    </h2>
+                    <p className="mt-2 text-base text-[#5B473A]">
+                      Use filters to narrow down results to exactly what you need. You can combine multiple filters at once.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)]">
+                  {[
+                    { icon: MapPin, title: "Location & Distance", desc: "Filter by distance radius (e.g., \"within 2 miles\") to see services close to you. Resources are sorted by distance automatically." },
+                    { icon: Clock, title: "Hours of Operation", desc: "Filter by when you can access the service: weekdays, evenings, weekends, or open today. Perfect if you need same-day support." },
+                    { icon: Star, title: "Community Ratings", desc: "Filter by star rating (4+ stars, 5 stars) to find highly-rated services in your area. Ratings come from real community members." },
+                  ].map((filter) => {
+                    const FilterIcon = filter.icon;
+                    return (
+                      <div key={filter.title} className="flex gap-4 p-4 rounded-2xl hover:bg-[#F6F1E7]/60 transition-colors duration-300">
+                        <div className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#E7D9C3] text-[#334233] shadow-sm">
+                          <FilterIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-semibold text-[#334233]">{filter.title}</h3>
+                          <p className="mt-2 text-sm leading-relaxed text-[#5B473A]">{filter.desc}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* Step 3 */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="border-b border-[#E7D9C3] pb-6 mb-8 flex items-start gap-4">
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">03</div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
+                      Review & Connect
+                    </h2>
+                    <p className="mt-2 text-base text-[#5B473A]">
+                      Once you find a resource, click to view full details and connect with them.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)] space-y-8">
+                  <h3 className="text-lg font-semibold text-[#334233]">On the Resource Detail Page, You'll Find:</h3>
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    {[
+                      { title: "Full Description", desc: "What the organization does and who they serve" },
+                      { title: "Hours & Location", desc: "When they're open and where to find them on a map" },
+                      { title: "Contact Information", desc: "Phone number, email, and website with direct links" },
+                      { title: "Community Ratings & Reviews", desc: "See what others in your community have experienced" },
+                      { title: "Quick Actions", desc: "Call, email, or visit their website directly" },
+                    ].map((item) => (
+                      <div key={item.title} className="flex gap-3">
+                        <CheckCircle className="h-5 w-5 text-[#B36A4C] mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-semibold text-sm text-[#334233]">{item.title}</p>
+                          <p className="text-xs text-[#5B473A] mt-1 leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="rounded-2xl border border-[#B36A4C]/20 bg-[#B36A4C]/5 p-6 border-l-4 border-l-[#B36A4C]">
+                    <p className="text-sm leading-relaxed text-[#334233]">
+                      <strong className="text-[#B36A4C]">Pro Tip:</strong> You can save your favorite resources by clicking the heart icon. Sign in to access your saved list anytime from your account.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* FAQ Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+              >
+                <div className="border-b border-[#E7D9C3] pb-6 mb-8 flex items-start gap-4">
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">04</div>
+                  <div>
+                    <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
+                      Common Questions
+                    </h2>
+                    <p className="mt-2 text-base text-[#5B473A]">
+                      Have questions about the Directory? Find answers to frequently asked questions below.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {[
+                    { q: "What if I don't know what to search for?", a: "Start with general keywords like 'help,' 'support,' or 'assistance.' You can also browse by category cards to explore what's available. If you'd like personalized guidance, feel free to use our Contact Form." },
+                    { q: "Are all resources free?", a: "Most resources in our directory are free or low-cost. Check the resource details for pricing information, or contact the organization directly to confirm cost." },
+                    { q: "Can I trust the information in the Directory?", a: "Yes. All resources in the Directory have been verified by our community team. Ratings and reviews come from real community members. Always verify contact details by visiting the resource's website or calling directly." },
+                    { q: "What if a resource's information is outdated or incorrect?", a: "Let us know! Send us a quick note through our Contact Form with the resource name and what needs updating. We'll investigate and make corrections quickly." },
+                  ].map((faq) => (
+                    <div key={faq.q} className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm hover:border-[#334233] transition-colors duration-300">
+                      <h4 className="font-semibold text-base text-[#334233]">{faq.q}</h4>
+                      <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+            </div>
+          </div>
+
+          {/* Bottom CTA */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
-            className="mb-16"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="mt-20 text-center border-t border-[#E7D9C3] pt-12"
           >
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C] text-white font-semibold">
-              2
-            </div>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233]">
-              Filter & Refine Your Results
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-[#5B473A]">
-              Use filters to narrow down results to exactly what you need. You can combine multiple filters at once.
+            <h3 className="text-2xl font-semibold font-['Cormorant_Garamond',serif] text-[#334233] mb-4">
+              Ready to find support?
+            </h3>
+            <p className="text-sm text-[#5B473A] mb-8 max-w-md mx-auto">
+              Jump straight to the resource directory and apply filters to find nearby community organizations.
             </p>
-            
-            <div className="mt-8 space-y-4 rounded-2xl border border-[#E7D9C3] bg-white p-8 shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#E7D9C3] text-[#334233]">
-                  <MapPin className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-[#334233]">Location & Distance</h3>
-                  <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                    Filter by distance radius (e.g., "within 2 miles") to see services close to you. Resources are sorted by distance automatically.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#E7D9C3] text-[#334233]">
-                  <Clock className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-[#334233]">Hours of Operation</h3>
-                  <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                    Filter by when you can access the service: weekdays, evenings, weekends, or open today. Perfect if you need same-day support.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="mt-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#E7D9C3] text-[#334233]">
-                  <Star className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-[#334233]">Community Ratings</h3>
-                  <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                    Filter by star rating (4+ stars, 5 stars) to find highly-rated services in your area. Ratings come from real community members.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Step 3 */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-            className="mb-16"
-          >
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C] text-white font-semibold">
-              3
-            </div>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233]">
-              Review & Connect
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-[#5B473A]">
-              Once you find a resource, click to view full details and connect with them.
-            </p>
-            
-            <div className="mt-8 rounded-2xl border border-[#E7D9C3] bg-white p-8 shadow-sm">
-              <h3 className="text-lg font-semibold text-[#334233]">On the Resource Detail Page, You'll Find:</h3>
-              <div className="mt-6 space-y-4">
-                <div className="flex gap-4">
-                  <div className="h-6 w-6 flex-shrink-0 rounded-full bg-[#B36A4C] text-sm flex items-center justify-center text-white font-semibold">✓</div>
-                  <div>
-                    <p className="font-semibold text-[#334233]">Full Description</p>
-                    <p className="text-sm text-[#5B473A]">What the organization does and who they serve</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="h-6 w-6 flex-shrink-0 rounded-full bg-[#B36A4C] text-sm flex items-center justify-center text-white font-semibold">✓</div>
-                  <div>
-                    <p className="font-semibold text-[#334233]">Hours & Location</p>
-                    <p className="text-sm text-[#5B473A]">When they're open and where to find them on a map</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="h-6 w-6 flex-shrink-0 rounded-full bg-[#B36A4C] text-sm flex items-center justify-center text-white font-semibold">✓</div>
-                  <div>
-                    <p className="font-semibold text-[#334233]">Contact Information</p>
-                    <p className="text-sm text-[#5B473A]">Phone number, email, and website with direct links</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="h-6 w-6 flex-shrink-0 rounded-full bg-[#B36A4C] text-sm flex items-center justify-center text-white font-semibold">✓</div>
-                  <div>
-                    <p className="font-semibold text-[#334233]">Community Ratings & Reviews</p>
-                    <p className="text-sm text-[#5B473A]">See what others in your community have experienced</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="h-6 w-6 flex-shrink-0 rounded-full bg-[#B36A4C] text-sm flex items-center justify-center text-white font-semibold">✓</div>
-                  <div>
-                    <p className="font-semibold text-[#334233]">Quick Actions</p>
-                    <p className="text-sm text-[#5B473A]">Call, email, or visit their website directly</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 rounded-lg bg-[#B36A4C]/10 p-4 border border-[#B36A4C]/20">
-                <p className="text-sm text-[#334233]">
-                  <strong>Pro Tip:</strong> You can save your favorite resources by clicking the heart icon. Sign in to access your saved list anytime from your account.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* FAQ Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-            className="mt-20 rounded-2xl border border-[#E7D9C3] bg-white p-8 shadow-sm"
-          >
-            <h3 className="text-2xl font-semibold text-[#334233]">Common Questions</h3>
-            <div className="mt-8 space-y-6">
-              <div>
-                <h4 className="font-semibold text-[#334233]">What if I don't know what to search for?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  Start with general keywords like "help," "support," or "assistance." You can also browse by category to explore what's available. If you'd like personalized guidance, reach out to our community team at rootsandroutes.bothell@outlook.com.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-[#334233]">Are all resources free?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  Most resources in our directory are free or low-cost. Check the resource details for pricing information, or contact the organization directly to confirm cost.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-[#334233]">Can I trust the information in the Directory?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  Yes. All resources in the Directory have been verified by our community team. Ratings and reviews come from real community members. Always verify contact details by visiting the resource's website or calling directly.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-[#334233]">What if a resource's information is outdated or incorrect?</h4>
-                <p className="mt-2 text-sm leading-7 text-[#5B473A]">
-                  Let us know! Send an email to rootsandroutes.bothell@outlook.com with the resource name and what needs updating. We'll investigate and make corrections quickly.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
-            className="mt-16 text-center"
-          >
             <Link
               to="/directory"
-              className="inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-colors"
+              className="inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-all duration-300 hover:shadow-lg"
             >
               Start Searching Now
               <ArrowRight className="ml-2 h-5 w-5" />
