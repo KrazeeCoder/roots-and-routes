@@ -235,17 +235,17 @@ export function Help() {
             </div>
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-[#334233]">Still need support?</h2>
             <p className="mt-4 text-sm leading-7 text-[#5B473A]">
-              Email our community team anytime for help using the site, reporting an issue, or sharing feedback about local services.
+              Send us a message through our interactive contact form. Our community team will review your inquiry and respond within 24-48 hours.
             </p>
-            <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white p-6">
-              <p className="text-sm font-semibold text-[#334233]">Contact support</p>
-              <a
-                href="mailto:rootsandroutes.bothell@outlook.com"
-                className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#B36A4C] hover:text-[#334233]"
+            <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white p-6 flex flex-col items-start">
+              <p className="text-sm font-semibold text-[#334233] mb-3">Get in touch</p>
+              <Link
+                to="/contact"
+                className="inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-colors"
               >
-                <Mail className="h-4 w-4" />
-                rootsandroutes.bothell@outlook.com
-              </a>
+                Go to Contact Form
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>

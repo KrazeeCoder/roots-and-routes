@@ -338,9 +338,9 @@ export function Layout() {
             <h3 className="font-semibold text-white mb-4 uppercase tracking-wider text-xs">Connect</h3>
             <ul className="space-y-3 text-sm" role="list">
               <li>
-                <a href="mailto:rootsandroutes.bothell@outlook.com" className="hover:text-white transition-colors">
+                <Link to="/contact" className="hover:text-white transition-colors">
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
                 <Link to="/suggest" className="hover:text-white transition-colors">
