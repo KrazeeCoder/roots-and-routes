@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../ScrollReveal";
+import { TiltCard } from "../ui/tilt-card";
 import {
   RESOURCE_CATEGORIES,
   RESOURCE_CATEGORY_META,
@@ -41,30 +42,32 @@ export function ResourcesSection() {
         <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" fast>
           {resourceHighlights.map((point, index) => (
             <StaggerItem key={`${point.category}-${index}`}>
-              <Link
-                to={`/directory?category=${encodeURIComponent(point.category)}`}
-                className="group relative bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg border border-[#A7AE8A]/30 hover:border-[#B36A4C] hover:shadow-2xl hover:bg-white transition-all duration-400 transform hover:-translate-y-2 overflow-hidden flex flex-col h-full"
-              >
-                {/* Enhanced decorative trail marker background accent */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#B36A4C]/15 to-[#334233]/10 rounded-bl-[120px] pointer-events-none transition-transform duration-400 group-hover:scale-125"></div>
-                
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E7D9C3] to-[#D4C9A8] flex items-center justify-center mb-5 text-[#334233] group-hover:from-[#B36A4C] group-hover:to-[#8B5543] group-hover:text-white transition-all duration-400 shadow-lg border border-[#A7AE8A]/20">
-                  <point.icon className="w-6 h-6" />
-                </div>
-                
-                <h3 className="text-xl font-['Cormorant_Garamond',serif] font-bold text-[#334233] mb-3 group-hover:text-[#B36A4C] transition-colors">
-                  {point.category}
-                </h3>
-                
-                <p className="text-[#5B473A] text-sm leading-relaxed mb-4">
-                  {point.desc}
-                </p>
+              <TiltCard scale={1.015} spotlight className="h-full rounded-3xl">
+                <Link
+                  to={`/directory?category=${encodeURIComponent(point.category)}`}
+                  className="group relative bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-lg border border-[#A7AE8A]/30 hover:border-[#B36A4C] hover:shadow-2xl hover:bg-white transition-all duration-400 transform hover:-translate-y-2 overflow-hidden flex flex-col h-full"
+                >
+                  {/* Enhanced decorative trail marker background accent */}
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#B36A4C]/15 to-[#334233]/10 rounded-bl-[120px] pointer-events-none transition-transform duration-400 group-hover:scale-125"></div>
+                  
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E7D9C3] to-[#D4C9A8] flex items-center justify-center mb-5 text-[#334233] group-hover:from-[#B36A4C] group-hover:to-[#8B5543] group-hover:text-white transition-all duration-400 shadow-lg border border-[#A7AE8A]/20">
+                    <point.icon className="w-6 h-6" />
+                  </div>
+                  
+                  <h3 className="text-xl font-['Cormorant_Garamond',serif] font-bold text-[#334233] mb-3 group-hover:text-[#B36A4C] transition-colors">
+                    {point.category}
+                  </h3>
+                  
+                  <p className="text-[#5B473A] text-sm leading-relaxed mb-4">
+                    {point.desc}
+                  </p>
 
-                {/* Enhanced arrow link */}
-                <div className="mt-auto flex items-center text-[#B36A4C] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-all duration-400 transform translate-y-2 group-hover:translate-y-0">
-                  Explore <span className="ml-2 inline-block transition-transform duration-400 group-hover:translate-x-2">{"->"}</span>
-                </div>
-              </Link>
+                  {/* Enhanced arrow link */}
+                  <div className="mt-auto flex items-center text-[#B36A4C] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-all duration-400 transform translate-y-2 group-hover:translate-y-0">
+                    Explore <span className="ml-2 inline-block transition-transform duration-400 group-hover:translate-x-2">{"->"}</span>
+                  </div>
+                </Link>
+              </TiltCard>
             </StaggerItem>
           ))}
         </StaggerGroup>

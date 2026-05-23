@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 import { ArrowLeft, Calendar, Clock, MapPin, User } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { BreadcrumbNav } from "../components/BreadcrumbNav";
@@ -7,6 +7,7 @@ import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { Button } from "../components/ui/button";
 import { getPublishedEventById } from "../data/portalApi";
 import type { EventRecord } from "../types/portal";
+import { EVENT_DETAIL_DEFAULT_NAV, resolveDetailNavigationState } from "../utils/detailNavigation";
 
 function formatDateRange(startsAt: string, endsAt: string | null) {
   const start = new Date(startsAt);
@@ -29,9 +30,11 @@ function formatDateRange(startsAt: string, endsAt: string | null) {
 
 export function EventDetail() {
   const { eventId } = useParams<{ eventId: string }>();
+  const location = useLocation();
   const [event, setEvent] = useState<EventRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const detailNavigation = resolveDetailNavigationState(location.state, EVENT_DETAIL_DEFAULT_NAV);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,8 +89,8 @@ export function EventDetail() {
             asChild
             className="h-11 rounded-xl bg-[#334233] px-4 text-sm font-semibold text-[#F6F1E7] hover:bg-[#B36A4C]"
           >
-            <Link to="/events" className="inline-flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" /> Back to Events
+            <Link to={detailNavigation.backTo} className="inline-flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" /> {detailNavigation.backLabel}
             </Link>
           </Button>
         </div>
@@ -100,7 +103,13 @@ export function EventDetail() {
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
       <div id="event-detail-dark-zone" className="bg-[#334233]">
-        <BreadcrumbNav sticky backTo="/events" backLabel="Back to Events" darkSurfaceId="event-detail-dark-zone" />
+        <BreadcrumbNav
+          sticky
+          backTo={detailNavigation.backTo}
+          backLabel={detailNavigation.backLabel}
+          breadcrumbLabel={detailNavigation.breadcrumbLabel}
+          darkSurfaceId="event-detail-dark-zone"
+        />
 
         <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-24 pb-22">
           <div className="absolute inset-0 pointer-events-none opacity-70">

@@ -11,6 +11,7 @@ import { ImageWithFallback } from "../ui/image-with-fallback";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../ScrollReveal";
 import { listPublishedEvents, mapEventToEventItem } from "../../data/portalApi";
 import type { EventItem } from "../../types/home";
+import { EVENT_DETAIL_FROM_HOME_NAV } from "../../utils/detailNavigation";
 
 const CARD_INTERACTIVE_ELEMENT_SELECTOR = "a, button, input, select, textarea, [role='button'], [role='menuitem']";
 
@@ -45,7 +46,7 @@ export function EventsSection() {
     (event: ReactMouseEvent<HTMLDivElement>, detailHref: string | null) => {
       if (!detailHref) return;
       if (isInteractiveCardElement(event.target)) return;
-      navigate(detailHref);
+      navigate(detailHref, { state: EVENT_DETAIL_FROM_HOME_NAV });
     },
     [navigate],
   );
@@ -56,7 +57,7 @@ export function EventsSection() {
       if (event.currentTarget !== event.target) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
-      navigate(detailHref);
+      navigate(detailHref, { state: EVENT_DETAIL_FROM_HOME_NAV });
     },
     [navigate],
   );
@@ -114,6 +115,7 @@ export function EventsSection() {
                       {detailHref ? (
                         <Link
                           to={detailHref}
+                          state={EVENT_DETAIL_FROM_HOME_NAV}
                           className="font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] mb-4 group-hover:text-[#B36A4C] transition-colors"
                         >
                           {event.title}
@@ -136,6 +138,7 @@ export function EventsSection() {
                       {detailHref ? (
                         <Link
                           to={detailHref}
+                          state={EVENT_DETAIL_FROM_HOME_NAV}
                           className="self-start text-[#334233] font-semibold text-sm border-b-2 border-transparent hover:border-[#B36A4C] transition-all pb-1"
                         >
                           RSVP & Details

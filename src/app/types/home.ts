@@ -26,6 +26,7 @@ export interface SpotlightItem {
   audience: string;
   location: string;
   image?: string | null;
+  updatedAt?: string;
   featured?: boolean;
 }
 

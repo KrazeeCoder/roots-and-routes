@@ -26,6 +26,7 @@ interface AnimatedUnderlineTextProps extends HTMLAttributes<HTMLElement> {
   underlineHoverPath?: string;
   underlineDuration?: number;
   underlineHoverDuration?: number;
+  disableHover?: boolean;
 }
 
 export function AnimatedUnderlineText({
@@ -39,6 +40,7 @@ export function AnimatedUnderlineText({
   underlineHoverPath = "M 6,9 Q 75,17 150,10 Q 225,3 294,11",
   underlineDuration = 1.2,
   underlineHoverDuration = 0.8,
+  disableHover = false,
   ...props
 }: AnimatedUnderlineTextProps) {
   const MotionTag = motion[as] as typeof motion.span;
@@ -48,6 +50,25 @@ export function AnimatedUnderlineText({
   const pathRef = useRef<SVGPathElement | null>(null);
   const [underlineWidth, setUnderlineWidth] = useState(0);
   const [pathLength, setPathLength] = useState(0);
+  const [shouldAnimateUnderline, setShouldAnimateUnderline] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (document.readyState === "complete") {
+      setShouldAnimateUnderline(true);
+      return;
+    }
+
+    const onWindowLoad = () => {
+      setShouldAnimateUnderline(true);
+    };
+
+    window.addEventListener("load", onWindowLoad, { once: true });
+    return () => {
+      window.removeEventListener("load", onWindowLoad);
+    };
+  }, []);
 
   useEffect(() => {
     const node = textRef.current;
@@ -102,22 +123,24 @@ export function AnimatedUnderlineText({
     );
   }, [underlineWidth, resolvedUnderlinePath]);
 
-  const pathVariants: Variants = {
-    hover: {
-      d: resolvedUnderlineHoverPath,
-      transition: {
-        duration: underlineHoverDuration,
-        ease: "easeInOut",
-      },
-    },
-  };
+  const pathVariants: Variants = disableHover
+    ? {}
+    : {
+        hover: {
+          d: resolvedUnderlineHoverPath,
+          transition: {
+            duration: underlineHoverDuration,
+            ease: "easeInOut",
+          },
+        },
+      };
 
   return (
     <WrapperTag
       className={cn("group relative inline-flex w-fit flex-col pb-4", className)}
       initial="hidden"
       animate="visible"
-      whileHover="hover"
+      whileHover={disableHover ? undefined : "hover"}
       {...props}
     >
       <MotionTag
@@ -155,12 +178,20 @@ export function AnimatedUnderlineText({
                 strokeDasharray: pathLength || 1,
                 strokeDashoffset: pathLength || 1,
               }}
-              animate={{
-                opacity: pathLength > 0 ? 1 : 0,
-                strokeDasharray: pathLength || 1,
-                strokeDashoffset: pathLength > 0 ? 0 : pathLength || 1,
-              }}
-              transition={{ duration: underlineDuration, ease: "easeInOut" }}
+              animate={shouldAnimateUnderline
+                ? {
+                    opacity: pathLength > 0 ? 1 : 0,
+                    strokeDasharray: pathLength || 1,
+                    strokeDashoffset: pathLength > 0 ? 0 : pathLength || 1,
+                  }
+                : {
+                    opacity: 0,
+                    strokeDasharray: pathLength || 1,
+                    strokeDashoffset: pathLength || 1,
+                  }}
+              transition={shouldAnimateUnderline
+                ? { duration: underlineDuration, ease: "easeInOut" }
+                : { duration: 0 }}
               variants={pathVariants}
             />
           </svg>

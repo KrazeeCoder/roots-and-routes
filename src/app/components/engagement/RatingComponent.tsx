@@ -21,6 +21,7 @@ interface RatingComponentProps {
   readonly?: boolean;
   size?: "sm" | "md" | "lg";
   showCount?: boolean;
+  display?: "default" | "compact";
   onRatingChange?: (newRating: number | null) => void | Promise<void>;
   itemLabel?: string;
 }
@@ -38,6 +39,7 @@ export function RatingComponent({
   readonly = false,
   size = "md",
   showCount = true,
+  display = "default",
   onRatingChange,
   itemLabel = "listing",
 }: RatingComponentProps) {
@@ -112,6 +114,104 @@ export function RatingComponent({
       setIsSubmitting(false);
     }
   };
+
+  if (display === "compact") {
+    return (
+      <>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#D8C7AD] bg-[#F8F1E6] px-2.5 py-1 text-xs font-semibold text-[#243224]">
+            <Star className="size-3.5 fill-[#B36A4C] text-[#B36A4C]" />
+            <span>{totalRatings === 0 ? "New" : averageRating.toFixed(1)}</span>
+            {showCount ? <span className="text-[#6F7553]">({totalRatings})</span> : null}
+          </div>
+          {!readonly ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={openDialog}
+              className="h-7 rounded-full border-[#D8C9AF] px-3 text-xs text-[#334233] hover:border-[#B36A4C] hover:text-[#B36A4C]"
+            >
+              Rate
+            </Button>
+          ) : null}
+        </div>
+
+        {error ? <p className="text-xs text-red-600">{error}</p> : null}
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="border-[#E7D9C3] bg-[#F6F1E7] text-[#334233]">
+            <DialogHeader>
+              <DialogTitle className="font-['Cormorant_Garamond',serif] text-2xl text-[#334233]">
+                Rate {itemLabel}
+              </DialogTitle>
+              <DialogDescription className="text-[#6F7553]">
+                Choose a score and share a short reason for your rating.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium text-[#334233]">Your score</p>
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: 5 }).map((_, index) => {
+                    const starValue = index + 1;
+                    const isFilled = starValue <= selectedRating;
+                    return (
+                      <button
+                        key={starValue}
+                        type="button"
+                        onClick={() => setSelectedRating(starValue)}
+                        className="transition-transform hover:scale-110"
+                        aria-label={`Rate ${starValue} out of 5`}
+                      >
+                        <Star
+                          className={`h-6 w-6 ${
+                            isFilled ? "fill-[#B36A4C] text-[#B36A4C]" : "text-[#D4C4B0]"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-sm font-medium text-[#334233]">Reason</p>
+                <Textarea
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  placeholder="Briefly explain your rating..."
+                  className="min-h-24 border-[#D8C9AF] bg-white text-[#334233] placeholder:text-[#8F8F7A]"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="border-[#D8C9AF] text-[#334233]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  void handleSubmitRating();
+                }}
+                disabled={isSubmitting}
+                className="bg-[#334233] text-white hover:bg-[#B36A4C]"
+              >
+                {isSubmitting ? "Submitting..." : "Submit Rating"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
 
   return (
     <div className="space-y-2">

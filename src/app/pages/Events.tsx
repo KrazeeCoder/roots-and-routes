@@ -21,6 +21,7 @@ import { EventListSkeleton } from "../components/ui/skeleton";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 import { listPublishedEvents, mapEventToEventItem } from "../data/portalApi";
 import type { EventItem } from "../types/home";
+import { EVENT_DETAIL_DEFAULT_NAV } from "../utils/detailNavigation";
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS, milesToMeters } from "../../utils/googleMaps";
 
 const bothellCenter = { lat: 47.7614, lng: -122.2052 };
@@ -666,7 +667,7 @@ export function Events() {
     (event: ReactMouseEvent<HTMLDivElement>, detailHref: string | null) => {
       if (!detailHref) return;
       if (isInteractiveCardElement(event.target)) return;
-      navigate(detailHref);
+      navigate(detailHref, { state: EVENT_DETAIL_DEFAULT_NAV });
     },
     [navigate],
   );
@@ -677,7 +678,7 @@ export function Events() {
       if (event.currentTarget !== event.target) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
-      navigate(detailHref);
+      navigate(detailHref, { state: EVENT_DETAIL_DEFAULT_NAV });
     },
     [navigate],
   );
@@ -796,6 +797,7 @@ export function Events() {
                   {featuredHref ? (
                     <Link
                       to={featuredHref}
+                      state={EVENT_DETAIL_DEFAULT_NAV}
                       className="block font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] hover:text-[#B36A4C] transition-colors"
                     >
                       {featured?.title ?? "No published event yet"}
@@ -833,7 +835,7 @@ export function Events() {
                   <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:gap-3">
                     {featuredHref ? (
                       <Button variant="default" className="w-full sm:w-auto" asChild>
-                        <Link to={featuredHref}>View Details</Link>
+                        <Link to={featuredHref} state={EVENT_DETAIL_DEFAULT_NAV}>View Details</Link>
                       </Button>
                     ) : (
                       <Button variant="default" className="w-full sm:w-auto">
@@ -1080,6 +1082,7 @@ export function Events() {
                         {selectedMarker.id ? (
                           <Link
                             to={`/events/${selectedMarker.id}`}
+                            state={EVENT_DETAIL_DEFAULT_NAV}
                             className="font-semibold hover:text-[#B36A4C] transition-colors"
                           >
                             {selectedMarker.title}
@@ -1155,7 +1158,11 @@ export function Events() {
                             <span className="px-2 py-1 rounded-full bg-[#B36A4C]/10 text-[#B36A4C] text-xs">{event.category}</span>
                           </div>
                           {detailHref ? (
-                            <Link to={detailHref} className="text-xl font-bold text-[#334233] mb-2 hover:text-[#B36A4C] transition-colors block">
+                            <Link
+                              to={detailHref}
+                              state={EVENT_DETAIL_DEFAULT_NAV}
+                              className="text-xl font-bold text-[#334233] mb-2 hover:text-[#B36A4C] transition-colors block"
+                            >
                               {event.title}
                             </Link>
                           ) : (
@@ -1191,7 +1198,7 @@ export function Events() {
                             ) : null}
                             {detailHref ? (
                               <Button variant="outline" size="sm" asChild>
-                                <Link to={detailHref}>View Details</Link>
+                                <Link to={detailHref} state={EVENT_DETAIL_DEFAULT_NAV}>View Details</Link>
                               </Button>
                             ) : (
                               <Button variant="outline" size="sm">

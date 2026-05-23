@@ -18,6 +18,7 @@ import { listDirectoryResourcesPage, mapResourceToDirectoryEntry } from "../data
 import type { DirectoryEntry } from "../types/home";
 import type { SpotlightEngagement } from "../types/engagement";
 import { getSpotlightEngagement } from "../../utils/engagementSupabase";
+import { RESOURCE_DETAIL_DEFAULT_NAV } from "../utils/detailNavigation";
 
 const PAGE_SIZE = 8;
 const STICKY_HEADER_OFFSET_PX = 112;
@@ -258,7 +259,7 @@ export function Directory() {
     );
 
     if (isInteractiveElement) return;
-    navigate(`/resources/${entryId}`);
+    navigate(`/resources/${entryId}`, { state: RESOURCE_DETAIL_DEFAULT_NAV });
   };
 
   return (
@@ -381,10 +382,10 @@ export function Directory() {
             </button>
 
             <div
-              className={`${isFilterOpen ? "block" : "hidden"} lg:block sticky top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:overscroll-contain bg-white rounded-2xl border border-[#E7D9C3] shadow-sm p-6`}
+              className={`${isFilterOpen ? "block" : "hidden"} lg:block bg-white rounded-2xl border border-[#E7D9C3] shadow-sm p-6`}
             >
               <h2 className="text-xs font-bold uppercase tracking-wider text-[#6F7553] mb-5">Category</h2>
-              <ul className="space-y-1.5">
+              <ul className="space-y-1">
                 {allCategories.map((category) => (
                   <li key={category}>
                     <button
@@ -393,7 +394,7 @@ export function Directory() {
                         setActiveCategory(category);
                         scrollToResultsTop();
                       }}
-                      className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
+                      className={`w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium leading-tight transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${
                         activeCategory === category
                           ? "bg-[#334233] text-white"
                           : "text-[#5B473A] hover:bg-[#E7D9C3]/50"
@@ -495,7 +496,7 @@ export function Directory() {
                 </div>
 
                 {/* Clear Filters */}
-                <div className="pt-4 border-t border-[#E7D9C3]">
+                <div className="py-4 border-y border-[#E7D9C3]">
                   <button
                     onClick={() => {
                       setHasWebsite(null);
@@ -512,7 +513,7 @@ export function Directory() {
                   </button>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-[#E7D9C3]">
+                <div className="pt-6">
                   <h2 className="text-xs font-bold uppercase tracking-wider text-[#6F7553] mb-3">Need Guidance?</h2>
                   <p className="text-sm text-[#5B473A] leading-relaxed mb-4">
                     Still not seeing what you need? Submit a resource proposal for moderator review.

@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Button } from "../components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
+import { TiltCard } from "../components/ui/tilt-card";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 
 interface CountUpProps {
@@ -261,42 +262,48 @@ export function About() {
 
           <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <StaggerItem>
-              <div className="relative overflow-hidden rounded-3xl border border-[#E7D9C3] bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-[#A7AE8A]/20 to-transparent" />
-                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233]">
-                  <MapPin className="w-5 h-5" />
+              <TiltCard scale={1.015} spotlight className="rounded-3xl">
+                <div className="relative overflow-hidden rounded-3xl border border-[#E7D9C3] bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-[#A7AE8A]/20 to-transparent" />
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#334233]">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div className="text-4xl font-bold text-[#334233]">
+                    <CountUp end={27} />
+                  </div>
+                  <div className="mt-1 text-sm text-[#5B473A]">Resources listed in the hub</div>
                 </div>
-                <div className="text-4xl font-bold text-[#334233]">
-                  <CountUp end={27} />
-                </div>
-                <div className="mt-1 text-sm text-[#5B473A]">Resources listed in the hub</div>
-              </div>
+              </TiltCard>
             </StaggerItem>
 
             <StaggerItem>
-              <div className="relative overflow-hidden rounded-3xl border border-[#E7D9C3] bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg lg:scale-[1.03] lg:shadow-xl lg:ring-1 lg:ring-[#B36A4C]/20">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-[#B36A4C]/20 to-transparent" />
-                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C]/15 text-[#8A4B32]">
-                  <Users className="w-5 h-5" />
+              <TiltCard scale={1.015} spotlight className="rounded-3xl">
+                <div className="relative overflow-hidden rounded-3xl border border-[#E7D9C3] bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg lg:scale-[1.03] lg:shadow-xl lg:ring-1 lg:ring-[#B36A4C]/20">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-[#B36A4C]/20 to-transparent" />
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#B36A4C]/15 text-[#8A4B32]">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div className="text-4xl font-bold text-[#334233]">
+                    <CountUp end={150} />
+                  </div>
+                  <div className="mt-1 text-sm text-[#5B473A]">Community members reached</div>
                 </div>
-                <div className="text-4xl font-bold text-[#334233]">
-                  <CountUp end={150} />
-                </div>
-                <div className="mt-1 text-sm text-[#5B473A]">Community members reached</div>
-              </div>
+              </TiltCard>
             </StaggerItem>
 
             <StaggerItem>
-              <div className="relative overflow-hidden rounded-3xl border border-[#E7D9C3] bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-[#6F7553]/18 to-transparent" />
-                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#6F7553]/15 text-[#4D523B]">
-                  <Layers className="w-5 h-5" />
+              <TiltCard scale={1.015} spotlight className="rounded-3xl">
+                <div className="relative overflow-hidden rounded-3xl border border-[#E7D9C3] bg-white/95 p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-[#6F7553]/18 to-transparent" />
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#6F7553]/15 text-[#4D523B]">
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <div className="text-4xl font-bold text-[#334233]">
+                    <CountUp end={COMMUNITY_ORGANIZATIONS.length} />
+                  </div>
+                  <div className="mt-1 text-sm text-[#5B473A]">Community organizations represented</div>
                 </div>
-                <div className="text-4xl font-bold text-[#334233]">
-                  <CountUp end={COMMUNITY_ORGANIZATIONS.length} />
-                </div>
-                <div className="mt-1 text-sm text-[#5B473A]">Community organizations represented</div>
-              </div>
+              </TiltCard>
             </StaggerItem>
           </StaggerGroup>
         </div>
@@ -359,37 +366,43 @@ export function About() {
 
         <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StaggerItem>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <Layers className="w-6 h-6" />
+            <TiltCard scale={1.012} className="rounded-3xl">
+              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
+                  <Layers className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#334233] mb-2">Gather insights</h3>
+                <p className="text-sm text-[#5B473A]">
+                  Residents can submit public resource and event proposals, while organizations can apply for contributor access to maintain official listings.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-[#334233] mb-2">Gather insights</h3>
-              <p className="text-sm text-[#5B473A]">
-                Residents can submit public resource and event proposals, while organizations can apply for contributor access to maintain official listings.
-              </p>
-            </div>
+            </TiltCard>
           </StaggerItem>
           <StaggerItem>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <Users className="w-6 h-6" />
+            <TiltCard scale={1.012} className="rounded-3xl">
+              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
+                  <Users className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#334233] mb-2">Review with care</h3>
+                <p className="text-sm text-[#5B473A]">
+                  Moderators approve contributor accounts and review public proposals before those public submissions become official content.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-[#334233] mb-2">Review with care</h3>
-              <p className="text-sm text-[#5B473A]">
-                Moderators approve contributor accounts and review public proposals before those public submissions become official content.
-              </p>
-            </div>
+            </TiltCard>
           </StaggerItem>
           <StaggerItem>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
-                <MapPin className="w-6 h-6" />
+            <TiltCard scale={1.012} className="rounded-3xl">
+              <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-[#A7AE8A]/20 text-[#334233] mb-4">
+                  <MapPin className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#334233] mb-2">Share with the community</h3>
+                <p className="text-sm text-[#5B473A]">
+                  Approved contributors can publish resources and events directly, and moderator-approved public proposals appear alongside them on the live site.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-[#334233] mb-2">Share with the community</h3>
-              <p className="text-sm text-[#5B473A]">
-                Approved contributors can publish resources and events directly, and moderator-approved public proposals appear alongside them on the live site.
-              </p>
-            </div>
+            </TiltCard>
           </StaggerItem>
         </StaggerGroup>
       </section>
@@ -425,16 +438,18 @@ export function About() {
                 </div>
               </div>
               <div className="flex items-center justify-center">
-                <div className="rounded-3xl border border-[#B36A4C]/40 bg-white p-10 shadow-xl">
-                  <div className="flex items-center gap-3 text-sm font-semibold text-[#334233] mb-4">
-                    <Sparkles className="w-5 h-5 text-[#B36A4C]" />
-                    <span>Community-driven pathway network</span>
+                <TiltCard scale={1.015} spotlight className="rounded-3xl">
+                  <div className="rounded-3xl border border-[#B36A4C]/40 bg-white p-10 shadow-xl">
+                    <div className="flex items-center gap-3 text-sm font-semibold text-[#334233] mb-4">
+                      <Sparkles className="w-5 h-5 text-[#B36A4C]" />
+                      <span>Community-driven pathway network</span>
+                    </div>
+                    <div className="text-2xl font-bold text-[#334233] mb-2">We're building something together.</div>
+                    <p className="text-sm text-[#5B473A] leading-relaxed">
+                      Join us in creating a more connected and supportive Bothell community.
+                    </p>
                   </div>
-                  <div className="text-2xl font-bold text-[#334233] mb-2">We're building something together.</div>
-                  <p className="text-sm text-[#5B473A] leading-relaxed">
-                    Join us in creating a more connected and supportive Bothell community.
-                  </p>
-                </div>
+                </TiltCard>
               </div>
             </div>
           </ScrollReveal>

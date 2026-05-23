@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 import { ArrowLeft, Clock, ExternalLink, Globe, Mail, MapPin, Phone, Tag, User } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
 import { BreadcrumbNav } from "../components/BreadcrumbNav";
@@ -10,6 +10,7 @@ import { EngagementButtons } from "../components/engagement/EngagementButtons";
 import { getPublishedResourceById } from "../data/portalApi";
 import type { ResourceRecord } from "../types/portal";
 import type { SpotlightEngagement } from "../types/engagement";
+import { RESOURCE_DETAIL_DEFAULT_NAV, resolveDetailNavigationState } from "../utils/detailNavigation";
 import { getSpotlightEngagement, incrementViewCount } from "../../utils/engagementSupabase";
 
 function normalizeWebsite(url: string) {
@@ -34,10 +35,12 @@ function normalizeEmail(email: string) {
 
 export function ResourceDetail() {
   const { resourceId } = useParams<{ resourceId: string }>();
+  const location = useLocation();
   const [resource, setResource] = useState<ResourceRecord | null>(null);
   const [engagement, setEngagement] = useState<SpotlightEngagement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const detailNavigation = resolveDetailNavigationState(location.state, RESOURCE_DETAIL_DEFAULT_NAV);
 
   useEffect(() => {
     let cancelled = false;
@@ -131,8 +134,8 @@ export function ResourceDetail() {
             asChild
             className="h-11 rounded-xl bg-[#334233] px-4 text-sm font-semibold text-[#F6F1E7] hover:bg-[#B36A4C]"
           >
-            <Link to="/directory" className="inline-flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" /> Back to Resources
+            <Link to={detailNavigation.backTo} className="inline-flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" /> {detailNavigation.backLabel}
             </Link>
           </Button>
         </div>
@@ -143,7 +146,13 @@ export function ResourceDetail() {
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
       <div id="resource-detail-dark-zone" className="bg-[#334233]">
-        <BreadcrumbNav sticky backTo="/directory" backLabel="Back to Resources" darkSurfaceId="resource-detail-dark-zone" />
+        <BreadcrumbNav
+          sticky
+          backTo={detailNavigation.backTo}
+          backLabel={detailNavigation.backLabel}
+          breadcrumbLabel={detailNavigation.breadcrumbLabel}
+          darkSurfaceId="resource-detail-dark-zone"
+        />
 
         <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-24 pb-24">
           <div className="absolute inset-0 pointer-events-none opacity-70">

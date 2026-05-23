@@ -14,6 +14,7 @@ interface BreadcrumbNavProps {
   className?: string;
   backTo?: string;
   backLabel?: string;
+  breadcrumbLabel?: string;
   sticky?: boolean;
   darkSurfaceId?: string;
 }
@@ -28,6 +29,7 @@ export function BreadcrumbNav({
   className = "",
   backTo,
   backLabel,
+  breadcrumbLabel,
   sticky = false,
   darkSurfaceId,
 }: BreadcrumbNavProps) {
@@ -46,8 +48,9 @@ export function BreadcrumbNav({
     }
     
     if (path.startsWith("/resources/")) {
+      const parentHref = backTo && backTo !== path ? backTo : "/directory";
       return [
-        { label: "Resource Hub", href: "/directory", current: false },
+        { label: breadcrumbLabel ?? "Resource Hub", href: parentHref, current: false },
         { label: "Resource Details", current: true }
       ];
     }
@@ -59,8 +62,9 @@ export function BreadcrumbNav({
     }
     
     if (path.startsWith("/events/")) {
+      const parentHref = backTo && backTo !== path ? backTo : "/events";
       return [
-        { label: "Events", href: "/events", current: false },
+        { label: breadcrumbLabel ?? "Events", href: parentHref, current: false },
         { label: "Event Details", current: true }
       ];
     }

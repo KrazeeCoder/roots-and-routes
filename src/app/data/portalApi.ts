@@ -295,8 +295,21 @@ export async function listSpotlightItems(): Promise<SpotlightItem[]> {
     audience: resource.posted_by_name?.trim() || "Community Contributor",
     location: resource.address,
     image: resource.image_url,
+    updatedAt: resource.updated_at,
     featured: index === 0,
   }));
+}
+
+export async function listSpotlightEvents(): Promise<EventRecord[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("status", "published")
+    .eq("is_spotlight", true)
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+  return ((data ?? []) as EventRecord[]).map(withResolvedEventImage);
 }
 
 export async function listPortalResources(

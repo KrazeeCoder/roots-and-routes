@@ -3,9 +3,11 @@ import { ArrowRight, MapPin, Users } from "lucide-react";
 import { Link } from "react-router";
 import { motion, useInView } from "motion/react";
 import { ImageWithFallback } from "../ui/image-with-fallback";
+import { TiltCard } from "../ui/tilt-card";
 import { ScrollReveal, variants } from "../ScrollReveal";
 import { listSpotlightItems } from "../../data/portalApi";
 import type { SpotlightItem } from "../../types/home";
+import { RESOURCE_DETAIL_FROM_HOME_NAV } from "../../utils/detailNavigation";
 
 export function SpotlightSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -65,52 +67,60 @@ export function SpotlightSection() {
                   initial="hidden"
                   animate={inView ? "visible" : "hidden"}
                   transition={{ duration: 0.6, delay: 0.12 + idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className="group min-w-[86%] sm:min-w-[68%] md:min-w-0 snap-start flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm border border-[#E7D9C3] hover:border-[#A7AE8A] hover:shadow-md transition-all h-full"
+                  className="group min-w-[86%] sm:min-w-[68%] md:min-w-0 snap-start h-full"
                 >
-                  <div className="relative h-56 sm:h-60 overflow-hidden">
-                    {item.image ? (
-                      <ImageWithFallback
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-[#E7D9C3]/70 flex items-center justify-center">
-                        <span className="font-['Cormorant_Garamond',serif] text-4xl text-[#A7AE8A]">R&R</span>
-                      </div>
-                    )}
-                    <div className="absolute top-4 left-4 bg-[#B36A4C] text-[#F6F1E7] text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full">
-                      {item.category}
-                    </div>
-                  </div>
-
-                  <div className="p-6 flex flex-col flex-grow bg-white">
-                    <Link
-                      to={`/resources/${item.id}`}
-                      className="font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] mb-3 leading-tight hover:text-[#B36A4C] transition-colors"
-                    >
-                      {item.title}
-                    </Link>
-                    <p className="text-[#5B473A] leading-relaxed mb-5 line-clamp-3 flex-grow">
-                      {item.description}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-[#6F7553] mb-6">
-                      <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4" /> {item.audience}
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4" /> {item.location}
+                  <TiltCard
+                    scale={1.015}
+                    spotlight
+                    className="flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm border border-[#E7D9C3] hover:border-[#A7AE8A] hover:shadow-md transition-all h-full"
+                  >
+                    <div className="relative h-56 sm:h-60 overflow-hidden">
+                      {item.image ? (
+                        <ImageWithFallback
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#E7D9C3]/70 flex items-center justify-center">
+                          <span className="font-['Cormorant_Garamond',serif] text-4xl text-[#A7AE8A]">R&R</span>
+                        </div>
+                      )}
+                      <div className="absolute top-4 left-4 bg-[#B36A4C] text-[#F6F1E7] text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full">
+                        {item.category}
                       </div>
                     </div>
 
-                    <Link
-                      to={`/resources/${item.id}`}
-                      className="self-start inline-flex items-center justify-center px-6 py-2.5 border border-[#334233] text-sm font-semibold rounded-xl text-[#334233] hover:bg-[#334233] hover:text-[#F6F1E7] transition-colors"
-                    >
-                      Learn More
-                    </Link>
-                  </div>
+                    <div className="p-6 flex flex-col flex-grow bg-white">
+                      <Link
+                        to={`/resources/${item.id}`}
+                        state={RESOURCE_DETAIL_FROM_HOME_NAV}
+                        className="font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] mb-3 leading-tight hover:text-[#B36A4C] transition-colors"
+                      >
+                        {item.title}
+                      </Link>
+                      <p className="text-[#5B473A] leading-relaxed mb-5 line-clamp-3 flex-grow">
+                        {item.description}
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-[#6F7553] mb-6">
+                        <div className="flex items-center gap-1.5">
+                          <Users className="w-4 h-4" /> {item.audience}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4" /> {item.location}
+                        </div>
+                      </div>
+
+                      <Link
+                        to={`/resources/${item.id}`}
+                        state={RESOURCE_DETAIL_FROM_HOME_NAV}
+                        className="self-start inline-flex items-center justify-center px-6 py-2.5 border border-[#334233] text-sm font-semibold rounded-xl text-[#334233] hover:bg-[#334233] hover:text-[#F6F1E7] transition-colors"
+                      >
+                        Learn More
+                      </Link>
+                    </div>
+                  </TiltCard>
                 </motion.article>
               ))}
             </div>

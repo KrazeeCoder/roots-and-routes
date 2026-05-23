@@ -22,6 +22,7 @@ import { CalendarSkeleton } from "../components/ui/skeleton";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 import { listPublishedEvents, mapEventToEventItem } from "../data/portalApi";
 import type { EventItem } from "../types/home";
+import { EVENT_DETAIL_FROM_CALENDAR_NAV } from "../utils/detailNavigation";
 
 interface EventWithDate extends EventItem {
   parsedDate: Date | null;
@@ -323,6 +324,7 @@ export function Calendar() {
                               {detailHref ? (
                                 <Link
                                   to={detailHref}
+                                  state={EVENT_DETAIL_FROM_CALENDAR_NAV}
                                   className="mt-3 block font-semibold text-lg text-[#334233] hover:text-[#B36A4C] transition-colors"
                                 >
                                   {event.title}
@@ -343,7 +345,7 @@ export function Calendar() {
                               {detailHref ? (
                                 <div className="mt-4">
                                   <Button variant="default" size="sm" className="bg-[#B36A4C] hover:bg-[#8A6F5A] text-white" asChild>
-                                    <Link to={detailHref}>View Details</Link>
+                                    <Link to={detailHref} state={EVENT_DETAIL_FROM_CALENDAR_NAV}>View Details</Link>
                                   </Button>
                                 </div>
                               ) : null}

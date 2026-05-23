@@ -7,6 +7,7 @@ import {
   HERO_ISOMETRIC_CARDS,
   type HeroIsometricCard,
 } from "../../data/heroIsometricCards";
+import { EVENT_DETAIL_FROM_HOME_NAV, RESOURCE_DETAIL_FROM_HOME_NAV } from "../../utils/detailNavigation";
 
 const DESKTOP_ROTATE_Y = 16;
 const DESKTOP_SKEW_Y = -1;
@@ -35,6 +36,10 @@ function getMobileTransform(depth: number) {
 
 function getKindLabel(card: HeroIsometricCard) {
   return card.kind === "event" ? "Event" : "Resource";
+}
+
+function getCardDetailState(card: HeroIsometricCard) {
+  return card.kind === "event" ? EVENT_DETAIL_FROM_HOME_NAV : RESOURCE_DETAIL_FROM_HOME_NAV;
 }
 
 export function IsometricHeroCards() {
@@ -171,6 +176,7 @@ export function IsometricHeroCards() {
                   cardRefs.current[index] = element;
                 }}
                 to={card.href}
+                state={getCardDetailState(card)}
                 className={`absolute left-1/2 top-[50%] flex h-[250px] w-[220px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-black/20 shadow-[0_14px_26px_rgba(22,18,14,0.28)] focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2 ${
                   isActive ? "pointer-events-auto" : "pointer-events-none"
                 }`}
@@ -198,6 +204,7 @@ export function IsometricHeroCards() {
                   cardRefs.current[index] = element;
                 }}
                 to={card.href}
+                state={getCardDetailState(card)}
                 className="absolute left-0 top-0 flex h-[320px] w-[290px] flex-col overflow-hidden rounded-2xl border border-black/20 shadow-[0_14px_30px_rgba(25,20,15,0.3)] outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2 [will-change:transform]"
                 style={{ backgroundColor: card.accentColor, transform: getDesktopTransform(index, 0) }}
                 onFocus={() => animateDesktopStack(index)}
