@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { CalendarDays, HelpCircle, Info, Mail, Search, Sparkles, UserPlus } from "lucide-react";
+import { CalendarDays, HelpCircle, Info, Mail, Search, Sparkles, UserPlus, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion";
@@ -51,6 +51,29 @@ const faqItems = [
     question: "Where do I go if I want to manage my listing?",
     answer:
       "Use the Portal link at the top right to sign in. Approved contributors can update resources and events once their account is verified.",
+  },
+];
+
+const guideItems = [
+  {
+    title: "Search & Find Resources",
+    description: "Use keywords like 'food', 'housing', or 'mental health' to discover local support. Filter by category and location to find services near you quickly.",
+    href: "/guide/search-resources",
+  },
+  {
+    title: "Browse & Register for Events",
+    description: "Explore upcoming workshops, support groups, and community gatherings. View detailed information, dates, times, and registration links for each event.",
+    href: "/guide/browse-events",
+  },
+  {
+    title: "Submit New Resources",
+    description: "Share a trusted local service or event with the community. Provide clear details and our team will review and publish your submission quickly.",
+    href: "/guide/submit-resources",
+  },
+  {
+    title: "Become a Contributor",
+    description: "Sign up to manage resource and event listings, track approvals, and help shape the community directory. Access the contributor portal anytime.",
+    href: "/guide/become-contributor",
   },
 ];
 
@@ -116,13 +139,25 @@ export function Help() {
                 <Link
                   key={action.title}
                   to={action.href}
-                  className="group rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-[0_20px_45px_-18px_rgba(51,66,51,0.25)] transition duration-300 hover:-translate-y-1 hover:border-[#B36A4C]"
+                  className="group relative flex flex-col justify-between rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-[0_15px_35px_-12px_rgba(51,66,51,0.12)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#334233] hover:bg-[#F6F1E7] hover:shadow-[0_20px_40px_-12px_rgba(51,66,51,0.2)]"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233] shadow-sm transition-colors group-hover:bg-[#B36A4C] group-hover:text-white">
-                    <Icon className="h-6 w-6" />
+                  <div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233] shadow-sm transition-all duration-300 group-hover:bg-[#334233] group-hover:text-[#F6F1E7] group-hover:rotate-6">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <h2 className="mt-6 text-lg font-semibold text-[#334233] transition-colors duration-300">
+                      {action.title}
+                    </h2>
+                    <p className="mt-3 text-sm leading-relaxed text-[#5B473A]/90 transition-colors duration-300">
+                      {action.description}
+                    </p>
                   </div>
-                  <h2 className="mt-6 text-lg font-semibold text-[#334233]">{action.title}</h2>
-                  <p className="mt-3 text-sm leading-6 text-[#5B473A]/90">{action.description}</p>
+                  <div className="mt-6 flex items-center justify-between border-t border-[#E7D9C3] pt-4 opacity-85 group-hover:opacity-100 transition-all duration-300 group-hover:border-[#334233]/20">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] transition-colors duration-300 group-hover:text-[#334233]">
+                      Launch Tool
+                    </span>
+                    <ArrowRight className="h-4 w-4 text-[#B36A4C] transform -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-[#334233]" />
+                  </div>
                 </Link>
               );
             })}
@@ -135,41 +170,39 @@ export function Help() {
           <div className="w-full">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#B36A4C]">How to use the site</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-4xl">
-              Get support faster with a few simple steps.
+              Master each core feature of Roots & Routes.
             </h2>
             <p className="mt-4 text-base leading-7 text-[#5B473A]">
-              Whether you are looking for food support, events, or a way to share a new community service, the help center makes it easy to get started.
+              Explore detailed guides for searching resources, managing events, submitting new services, and becoming a community contributor.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233]">
-                <Search className="h-5 w-5" />
+          <div className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+            {guideItems.map((guide, index) => (
+              <div key={guide.title} className="group border-t border-[#D8C9AC] pt-8 flex flex-col justify-between h-full">
+                <div>
+                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none mb-6">
+                    {String(index + 1).padStart(2, "0")}
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#334233] leading-snug">
+                    {guide.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">
+                    {guide.description}
+                  </p>
+                </div>
+                <div className="mt-6">
+                  <Link
+                    to={guide.href}
+                    className="inline-flex items-center text-sm font-semibold text-[#B36A4C] transition-colors relative pb-1 group-hover:text-[#334233]"
+                  >
+                    <span>Read Full Guide</span>
+                    <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#B36A4C] origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100 group-hover:bg-[#334233]" />
+                  </Link>
+                </div>
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-[#334233]">Search for support</h3>
-              <p className="mt-3 text-sm leading-7 text-[#5B473A]">
-                Start with the search bar on the Directory page. Try words like ‘housing’, ‘counseling’, or ‘school supplies’ to narrow results.
-              </p>
-            </div>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233]">
-                <CalendarDays className="h-5 w-5" />
-              </div>
-              <h3 className="mt-5 text-xl font-semibold text-[#334233]">Explore community events</h3>
-              <p className="mt-3 text-sm leading-7 text-[#5B473A]">
-                Use the Events page to discover workshops, support groups, and gatherings. Click an event to view time, location, and registration details.
-              </p>
-            </div>
-            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
-              <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233]">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <h3 className="mt-5 text-xl font-semibold text-[#334233]">Share resources with the community</h3>
-              <p className="mt-3 text-sm leading-7 text-[#5B473A]">
-                If you know a helpful program, add it using the Suggest page. Your submission helps others quickly find trusted local support.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -198,17 +231,17 @@ export function Help() {
             </div>
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-[#334233]">Still need support?</h2>
             <p className="mt-4 text-sm leading-7 text-[#5B473A]">
-              Email our community team anytime for help using the site, reporting an issue, or sharing feedback about local services.
+              Send us a message through our interactive contact form. Our community team will review your inquiry and respond within 24-48 hours.
             </p>
-            <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white p-6">
-              <p className="text-sm font-semibold text-[#334233]">Contact support</p>
-              <a
-                href="mailto:rootsandroutes.bothell@outlook.com"
-                className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#B36A4C] hover:text-[#334233]"
+            <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white p-6 flex flex-col items-start">
+              <p className="text-sm font-semibold text-[#334233] mb-3">Get in touch</p>
+              <Link
+                to="/contact"
+                className="inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-colors"
               >
-                <Mail className="h-4 w-4" />
-                rootsandroutes.bothell@outlook.com
-              </a>
+                Go to Contact Form
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>

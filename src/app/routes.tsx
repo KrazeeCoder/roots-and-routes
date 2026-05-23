@@ -9,6 +9,11 @@ import { Calendar } from "./pages/Calendar";
 import { Suggest } from "./pages/Suggest";
 import { About } from "./pages/About";
 import { Help } from "./pages/Help";
+import { Contact } from "./pages/Contact";
+import { GuideSearchResources } from "./pages/GuideSearchResources";
+import { GuideBrowseEvents } from "./pages/GuideBrowseEvents";
+import { GuideSubmitResources } from "./pages/GuideSubmitResources";
+import { GuideBecomeContributor } from "./pages/GuideBecomeContributor";
 import { ContributorLogin } from "./pages/ContributorLogin";
 import { ResetPassword } from "./pages/ResetPassword";
 import { Portal } from "./pages/Portal";
@@ -34,6 +39,11 @@ export const router = createBrowserRouter([
       { path: "calendar", Component: Calendar },
       { path: "suggest", Component: Suggest },
       { path: "help", Component: Help },
+      { path: "contact", Component: Contact },
+      { path: "guide/search-resources", Component: GuideSearchResources },
+      { path: "guide/browse-events", Component: GuideBrowseEvents },
+      { path: "guide/submit-resources", Component: GuideSubmitResources },
+      { path: "guide/become-contributor", Component: GuideBecomeContributor },
       { path: "about", Component: About },
       { path: "resources/:resourceId", Component: ResourceDetail },
       { path: "reference", Component: Reference },
