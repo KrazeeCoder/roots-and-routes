@@ -2,6 +2,7 @@ import * as React from "react";
 import { ArrowRight, Star } from "lucide-react";
 
 import { cn } from "./utils";
+import { ImageWithFallback } from "./image-with-fallback";
 
 interface ProgressiveBlurProps {
   className?: string;
@@ -65,7 +66,7 @@ const ProgressiveBlurCard = React.forwardRef<HTMLDivElement, ProgressiveBlurCard
         {...props}
       >
         <div className="relative min-h-[12.5rem] flex-1 overflow-hidden text-left sm:min-h-[14rem] lg:min-h-0">
-          <img
+          <ImageWithFallback
             src={imageUrl}
             alt={title}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 group-focus-within:scale-110"

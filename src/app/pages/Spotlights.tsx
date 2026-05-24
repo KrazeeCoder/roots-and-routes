@@ -5,6 +5,7 @@ import { ArrowRight, BadgeCheck, CalendarDays, CalendarPlus, ChevronDown, Clock,
 import { motion, useReducedMotion } from "motion/react";
 import LightRays from "../components/ui/light-rays";
 import { TopoPattern } from "../components/TopoPattern";
+import { ImageWithFallback } from "../components/ui/image-with-fallback";
 import { listSpotlightEvents, listSpotlightItems } from "../data/portalApi";
 import { buildDisplayImageSet } from "../../utils/imageProxy";
 import { getSpotlightEngagement } from "../../utils/engagementSupabase";
@@ -317,7 +318,7 @@ function SceneSpotlightCard({
       className="group relative z-10 flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border border-[#DCCBB1] bg-white shadow-[0_12px_26px_rgba(29,42,29,0.11)] outline-none transition-shadow duration-300 will-change-transform hover:shadow-[0_20px_38px_rgba(29,42,29,0.16)] focus-visible:ring-2 focus-visible:ring-[#B86B4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4EFE4]"
     >
       <div className="relative aspect-[2.35/1] overflow-hidden bg-[#E7D9C3]">
-        <img
+        <ImageWithFallback
           src={scenicSrc}
           alt={item.title}
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 group-focus-within:scale-110"
@@ -518,7 +519,7 @@ function FeaturedEventCard({
         className="relative aspect-[2.35/1] w-full min-w-0 max-w-full overflow-hidden rounded-lg bg-[#E7D9C3] [clip-path:inset(0_round_0.5rem)] md:aspect-auto md:min-h-0"
         style={matchedColumnHeightStyle}
       >
-        <img
+        <ImageWithFallback
           src={eventImage}
           alt={event.title}
           className="block h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
