@@ -70,19 +70,23 @@ export function GuideSubmitResources() {
                   <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>
                   <nav className="space-y-4">
                     {[
-                      { num: "01", label: "What You Can Submit" },
-                      { num: "02", label: "How to Submit" },
-                      { num: "03", label: "Review Process" },
-                      { num: "04", label: "Common Questions" },
+                      { num: "01", label: "What You Can Submit", href: "#what-you-can-submit" },
+                      { num: "02", label: "How to Submit", href: "#how-to-submit" },
+                      { num: "03", label: "Review Process", href: "#review-process" },
+                      { num: "04", label: "Common Questions", href: "#common-questions" },
                     ].map((step) => (
-                      <div key={step.num} className="flex items-center gap-3 group">
+                      <a
+                        key={step.num}
+                        href={step.href}
+                        className="group flex items-center gap-3 rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#334233]/40"
+                      >
                         <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E7D9C3] bg-[#F6F1E7] text-xs font-semibold text-[#334233] transition-colors group-hover:border-[#334233] group-hover:bg-[#334233] group-hover:text-white">
                           {step.num}
                         </span>
                         <span className="text-sm font-medium text-[#5B473A] transition-colors group-hover:text-[#334233]">
                           {step.label}
                         </span>
-                      </div>
+                      </a>
                     ))}
                   </nav>
                 </div>
@@ -144,6 +148,8 @@ export function GuideSubmitResources() {
 
               {/* What You Can Submit */}
               <motion.div
+                id="what-you-can-submit"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -186,7 +192,7 @@ export function GuideSubmitResources() {
                     </div>
                     <h3 className="mt-6 text-xl font-semibold text-[#334233]">Events</h3>
                     <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">
-                      One-time or recurring events happening in the community.
+                      Community events with a specific date, time, and location.
                     </p>
                     <ul className="mt-6 space-y-3 text-sm text-[#5B473A]">
                       {["Workshops and educational seminars", "Support group meetings", "Community celebrations or festivals", "Youth activities or sports leagues", "Classes or fitness sessions", "Volunteer or service opportunities"].map((item) => (
@@ -202,6 +208,8 @@ export function GuideSubmitResources() {
 
               {/* Step-by-Step */}
               <motion.div
+                id="how-to-submit"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -225,9 +233,9 @@ export function GuideSubmitResources() {
                     {[
                       { title: "Visit the Suggest Page", desc: "Choose whether you're submitting a Resource or an Event from the main menu or Help center." },
                       { title: "Fill in Basic Information", desc: "Enter name, description, address, and contact details (phone/email/website)." },
-                      { title: "Add Details & Category", desc: "For Resources: select category, add hours, and tags. For Events: add date, time, and duration." },
+                      { title: "Add Details & Category", desc: "For Resources: select category, add hours, and tags. For Events: add category, start time, end time, and organizer details if available." },
                       { title: "Review & Submit", desc: "Double-check all information for accuracy, then click Submit." },
-                      { title: "Team Review", desc: "Our community team verifies details and checks guidelines (3-7 business days)." },
+                      { title: "Team Review", desc: "Your proposal enters moderator review before it appears publicly." },
                       { title: "It Goes Live!", desc: "Once approved, your resource or event appears in the Directory and Events page." },
                     ].map((item) => (
                       <div key={item.title} className="flex gap-3">
@@ -250,6 +258,8 @@ export function GuideSubmitResources() {
 
               {/* Timeline */}
               <motion.div
+                id="review-process"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -262,10 +272,10 @@ export function GuideSubmitResources() {
                   </div>
                   <div className="mt-6 space-y-3 text-sm">
                     {[
-                      { time: "Immediately", desc: "You'll see a confirmation that your submission was received" },
-                      { time: "1-2 days", desc: "Our team begins verifying your information" },
-                      { time: "3-7 days", desc: "Your submission is approved and published to the directory" },
-                      { time: "Ongoing", desc: "Your resource or event is now discoverable and searchable" },
+                      { time: "After submit", desc: "You see a confirmation that your proposal was received." },
+                      { time: "Pending review", desc: "Moderators review details and decide whether to approve or reject." },
+                      { time: "After approval", desc: "Approved proposals are published to the public Directory or Events page." },
+                      { time: "If updates are needed", desc: "Submit a corrected proposal or contact the team through the Contact page." },
                     ].map((item) => (
                       <div key={item.time} className="flex gap-4">
                         <div className="font-semibold text-[#B36A4C] w-24">{item.time}</div>
@@ -291,7 +301,7 @@ export function GuideSubmitResources() {
                       { title: "Verify Contact Info", desc: "Double-check phone numbers, emails, and websites before submitting. Bad contact info hurts the organization and frustrates people trying to reach them." },
                       { title: "Include Hours", desc: "For resources, always include hours of operation. If it's available 24/7 or by appointment only, say so. This helps people know when they can access the service." },
                       { title: "Use Accurate Addresses", desc: "Make sure the address is where people should actually go. Don't use mailing addresses unless that's where services are provided." },
-                      { title: "For Events: Be Clear About Details", desc: "Include start time, end time, whether it's online or in-person, and if registration is required. The more details, the better!" },
+                      { title: "For Events: Be Clear About Timing", desc: "Include start time and end time, plus clear location details so attendees can plan." },
                     ].map((item) => (
                       <div key={item.title} className="flex gap-3">
                         <CheckCircle className="h-5 w-5 text-[#B36A4C] mt-0.5 flex-shrink-0" />
@@ -307,6 +317,8 @@ export function GuideSubmitResources() {
 
               {/* FAQ Section */}
               <motion.div
+                id="common-questions"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -327,8 +339,8 @@ export function GuideSubmitResources() {
                 <div className="space-y-6">
                   {[
                     { q: "Do I need to be a contributor to submit?", a: "No! Anyone can submit a resource or event. You don't need an account. However, if you represent the organization and want ongoing management access, you can apply to become a Contributor." },
-                    { q: "What if my submission is rejected?", a: "If your submission doesn't meet our guidelines, we'll let you know why. Common reasons include inaccurate information or the resource being outside our service area. You can revise and resubmit." },
-                    { q: "Can I update a listing after it's been published?", a: "If you're a Contributor for that organization, you can update listings anytime from the Portal. If you submitted it as a public user, contact our team at rootsandroutes.bothell@outlook.com to request updates." },
+                    { q: "What happens after I submit?", a: "Your proposal stays pending until a moderator reviews it. It only appears publicly after approval." },
+                    { q: "Can I update a listing after it's been published?", a: "Approved contributors can manage their own portal listings directly. Public users should submit a corrected proposal or use the Contact page." },
                     { q: "Can I submit on behalf of someone else's organization?", a: "Yes, but the organization should ideally verify it. If you're submitting on behalf of an organization, make sure all details are accurate and authorized. For ongoing management, we recommend they apply to become a Contributor." },
                     { q: "How do I know if something's already in the directory?", a: "Search the Directory first! If you find a duplicate, you can reach out to let us know. We combine duplicates to keep the directory clean and organized." },
                   ].map((faq) => (

@@ -20,7 +20,7 @@ import type { SpotlightEngagement } from "../types/engagement";
 import { getSpotlightEngagement } from "../../utils/engagementSupabase";
 import { RESOURCE_DETAIL_DEFAULT_NAV } from "../utils/detailNavigation";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 9;
 const STICKY_HEADER_OFFSET_PX = 112;
 
 function normalizeCategoryParam(value: string | null) {
@@ -36,7 +36,7 @@ function getCategoryBadgeClassName(category: string) {
   return "bg-[#E7D9C3] text-[#5B473A] border-[#C2B99E]";
 }
 
-function truncateDescription(value: string, maxLength = 180) {
+function truncateDescription(value: string, maxLength = 125) {
   const trimmed = value.trim();
   if (trimmed.length <= maxLength) return trimmed;
   return `${trimmed.slice(0, maxLength - 1).trimEnd()}...`;
@@ -96,11 +96,9 @@ export function Directory() {
   const [hasEmail, setHasEmail] = useState<boolean | null>(null);
   const [isOpenNow, setIsOpenNow] = useState<boolean | null>(null);
   const [selectedHours, setSelectedHours] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"relevance" | "rating" | "name">("relevance");
+  const [sortBy, setSortBy] = useState<"rating" | "name">("rating");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
 
   const resultsTopRef = useRef<HTMLDivElement | null>(null);
 
@@ -126,7 +124,7 @@ export function Directory() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [hasWebsite, hasPhone, hasEmail, selectedHours]);
+  }, [hasWebsite, hasPhone, hasEmail, selectedHours, sortBy]);
 
   useEffect(() => {
     let cancelled = false;
@@ -136,15 +134,31 @@ export function Directory() {
       setLoadError(null);
 
       try {
-        const pageResult = await listDirectoryResourcesPage({
-          page: currentPage,
-          pageSize: PAGE_SIZE,
+        const firstPageResult = await listDirectoryResourcesPage({
+          page: 1,
+          pageSize: 100,
           query: appliedQuery,
           category: activeCategory === "All" ? null : activeCategory,
           minRating,
         });
-
-        const nextEntries = pageResult.resources.map(mapResourceToDirectoryEntry);
+        const additionalPagePromises: Promise<Awaited<ReturnType<typeof listDirectoryResourcesPage>>>[] = [];
+        for (let page = 2; page <= firstPageResult.totalPages; page += 1) {
+          additionalPagePromises.push(
+            listDirectoryResourcesPage({
+              page,
+              pageSize: 100,
+              query: appliedQuery,
+              category: activeCategory === "All" ? null : activeCategory,
+              minRating,
+            }),
+          );
+        }
+        const additionalPages = await Promise.all(additionalPagePromises);
+        const allResources = [
+          ...firstPageResult.resources,
+          ...additionalPages.flatMap((pageResult) => pageResult.resources),
+        ];
+        const nextEntries = allResources.map(mapResourceToDirectoryEntry);
 
         const engagementRows = await Promise.all(
           nextEntries.map(async (entry) => {
@@ -156,15 +170,11 @@ export function Directory() {
         if (cancelled) return;
         setEntries(nextEntries);
         setEngagementByEntry(Object.fromEntries(engagementRows));
-        setTotalCount(pageResult.totalCount);
-        setTotalPages(pageResult.totalPages);
       } catch (error) {
         console.error("Could not load directory resources", error);
         if (cancelled) return;
         setEntries([]);
         setEngagementByEntry({});
-        setTotalCount(0);
-        setTotalPages(0);
         setLoadError("Could not load resources right now. Please try again.");
       } finally {
         if (!cancelled) setLoadingEntries(false);
@@ -175,7 +185,7 @@ export function Directory() {
     return () => {
       cancelled = true;
     };
-  }, [currentPage, appliedQuery, activeCategory, minRating]);
+  }, [appliedQuery, activeCategory, minRating]);
 
   const refreshEntryEngagement = async (entryId: string) => {
     try {
@@ -223,12 +233,32 @@ export function Directory() {
     return nextEntries;
   }, [entries, hasWebsite, hasPhone, hasEmail, selectedHours, sortBy, engagementByEntry]);
 
+  const totalCount = visibleEntries.length;
+  const totalPages = totalCount > 0 ? Math.ceil(totalCount / PAGE_SIZE) : 0;
+
+  useEffect(() => {
+    if (totalPages === 0) {
+      if (currentPage !== 1) setCurrentPage(1);
+      return;
+    }
+
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const pagedEntries = useMemo(() => {
+    const safePage = totalPages === 0 ? 1 : Math.min(currentPage, totalPages);
+    const start = (safePage - 1) * PAGE_SIZE;
+    return visibleEntries.slice(start, start + PAGE_SIZE);
+  }, [visibleEntries, currentPage, totalPages]);
+
   const hasAdvancedFilters =
-    hasWebsite === true || hasPhone === true || hasEmail === true || selectedHours !== "" || sortBy !== "relevance";
+    hasWebsite === true || hasPhone === true || hasEmail === true || selectedHours !== "";
   const hasFilters =
     query.trim().length > 0 || activeCategory !== "All" || minRatingDraft > 0 || minRating > 0 || hasAdvancedFilters;
-  const showSpinnerOverlay = loadingEntries && entries.length > 0;
-  const shownCount = hasAdvancedFilters ? visibleEntries.length : totalCount;
+  const showSpinnerOverlay = loadingEntries;
+  const shownCount = totalCount;
   const resultSummary = useMemo(() => {
     const parts = [
       appliedQuery.trim() ? `matching "${appliedQuery.trim()}"` : null,
@@ -436,10 +466,9 @@ export function Directory() {
                   <h3 className="text-xs font-semibold text-[#6F7553] mb-2">Sort By</h3>
                   <select
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as "relevance" | "rating" | "name")}
+                    onChange={(e) => setSortBy(e.target.value as "rating" | "name")}
                     className="w-full px-3 py-2 border border-[#E7D9C3] rounded-lg text-sm focus:outline-none focus:border-[#B36A4C]"
                   >
-                    <option value="relevance">Relevance</option>
                     <option value="rating">Highest Rated</option>
                     <option value="name">Name (A-Z)</option>
                   </select>
@@ -504,7 +533,7 @@ export function Directory() {
                       setHasEmail(null);
                       setIsOpenNow(null);
                       setSelectedHours("");
-                      setSortBy("relevance");
+                      setSortBy("rating");
                       scrollToResultsTop();
                     }}
                     className="w-full text-center px-3 py-2 text-sm text-[#B36A4C] hover:text-[#334233] transition-colors"
@@ -566,7 +595,7 @@ export function Directory() {
                     setHasEmail(null);
                     setIsOpenNow(null);
                     setSelectedHours("");
-                    setSortBy("relevance");
+                    setSortBy("rating");
                     setCurrentPage(1);
                     scrollToResultsTop();
                   }}
@@ -579,12 +608,15 @@ export function Directory() {
 
             <div className="relative">
               {showSpinnerOverlay && (
-                <div className="absolute inset-0 z-20 bg-[#F6F1E7]/75 backdrop-blur-[1px] rounded-2xl flex items-center justify-center">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 border border-[#E7D9C3] text-[#334233]">
-                    <Loader2 className="h-4 w-4 animate-spin text-[#B36A4C]" />
-                    <span className="text-sm font-medium">Loading resources...</span>
+                <>
+                  <div className="absolute inset-0 z-20 bg-[#F6F1E7]/80 backdrop-blur-[2px] rounded-2xl" />
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                    <div className="inline-flex items-center gap-2 rounded-lg bg-white/95 px-4 py-2 border border-[#D8CCB5] shadow-md text-[#334233]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[#B36A4C]" />
+                      <span className="text-sm font-semibold">Loading resources...</span>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {loadingEntries && entries.length === 0 ? (
@@ -594,7 +626,7 @@ export function Directory() {
                   <p className="text-lg font-medium text-[#334233] mb-1">We ran into a loading issue</p>
                   <p className="text-sm">{loadError}</p>
                 </motion.div>
-              ) : visibleEntries.length === 0 ? (
+              ) : totalCount === 0 ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24 text-[#6F7553]">
                   <Search className="w-12 h-12 mx-auto mb-4 opacity-30" />
                   <p className="text-lg font-medium text-[#334233] mb-1">No resources found</p>
@@ -603,10 +635,10 @@ export function Directory() {
               ) : (
                 <motion.div
                   layout
-                  className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${showSpinnerOverlay ? "pointer-events-none" : ""}`}
+                  className={`grid grid-cols-1 gap-5 md:grid-cols-2 lg:gap-6 2xl:grid-cols-3 ${showSpinnerOverlay ? "pointer-events-none" : ""}`}
                   transition={{ layout: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } }}
                 >
-                  {visibleEntries.map((entry) => (
+                  {pagedEntries.map((entry) => (
                     <motion.div
                       layout="position"
                       key={entry.id}
@@ -624,7 +656,7 @@ export function Directory() {
                       }}
                     >
                       {entry.image && (
-                        <div className="h-40 overflow-hidden flex-shrink-0 relative block">
+                        <div className="h-36 overflow-hidden flex-shrink-0 relative block">
                           <ImageWithFallback
                             src={entry.image}
                             alt={entry.name}
@@ -634,8 +666,8 @@ export function Directory() {
                         </div>
                       )}
 
-                      <div className="p-6 flex flex-col flex-grow">
-                        <div className="mb-3">
+                      <div className="p-5 flex flex-col flex-grow">
+                        <div className="mb-2">
                           <span
                             className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getCategoryBadgeClassName(entry.category)}`}
                           >
@@ -643,7 +675,7 @@ export function Directory() {
                           </span>
                         </div>
 
-                        <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] mb-2 group-hover:text-[#B36A4C] transition-colors">
+                        <h3 className="font-['Cormorant_Garamond',serif] text-xl font-bold text-[#334233] mb-1.5 group-hover:text-[#B36A4C] transition-colors">
                           {entry.name}
                         </h3>
 
@@ -651,39 +683,41 @@ export function Directory() {
                           {truncateDescription(entry.description)}
                         </p>
 
-                        {entry.postedByName ? (
-                          <p className="text-xs text-[#6F7553] mb-4">Posted by {entry.postedByName}</p>
-                        ) : null}
+                        <div className="mt-auto">
+                          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#334233] group-hover:text-[#B36A4C] transition-colors">
+                            View Details <ChevronRight className="w-4 h-4" />
+                          </span>
 
-                        <div className="mb-5 border-t border-[#E7D9C3] pt-4">
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                            <RatingComponent
-                              spotlightId={entry.id}
-                              currentRating={engagementByEntry[entry.id]?.userEngagement.userRating ?? null}
-                              averageRating={engagementByEntry[entry.id]?.stats.averageRating ?? 0}
-                              totalRatings={engagementByEntry[entry.id]?.stats.totalRatings ?? 0}
-                              size="sm"
-                              showCount={false}
-                              itemLabel={entry.name}
-                              onRatingChange={() => refreshEntryEngagement(entry.id)}
-                            />
-                            {engagementByEntry[entry.id] ? (
-                              <EngagementButtons
-                                spotlightId={entry.id}
-                                engagement={engagementByEntry[entry.id]}
-                                onUpdate={(nextEngagement) =>
-                                  setEngagementByEntry((prev) => ({ ...prev, [entry.id]: nextEngagement }))
-                                }
-                                compact={true}
-                                itemLabel={entry.name}
-                              />
+                          <div className="mt-3 border-t border-[#E7D9C3] pt-3">
+                            {entry.postedByName ? (
+                              <p className="text-xs text-[#6F7553] mb-2">Posted by {entry.postedByName}</p>
                             ) : null}
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                              <RatingComponent
+                                spotlightId={entry.id}
+                                currentRating={engagementByEntry[entry.id]?.userEngagement.userRating ?? null}
+                                averageRating={engagementByEntry[entry.id]?.stats.averageRating ?? 0}
+                                totalRatings={engagementByEntry[entry.id]?.stats.totalRatings ?? 0}
+                                readonly={true}
+                                size="sm"
+                                showCount={false}
+                                itemLabel={entry.name}
+                                onRatingChange={() => refreshEntryEngagement(entry.id)}
+                              />
+                              {engagementByEntry[entry.id] ? (
+                                <EngagementButtons
+                                  spotlightId={entry.id}
+                                  engagement={engagementByEntry[entry.id]}
+                                  onUpdate={(nextEngagement) =>
+                                    setEngagementByEntry((prev) => ({ ...prev, [entry.id]: nextEngagement }))
+                                  }
+                                  compact={true}
+                                  itemLabel={entry.name}
+                                />
+                              ) : null}
+                            </div>
                           </div>
                         </div>
-
-                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#334233] group-hover:text-[#B36A4C] transition-colors">
-                          View Details <ChevronRight className="w-4 h-4" />
-                        </span>
                       </div>
                     </motion.div>
                   ))}

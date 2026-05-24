@@ -14,6 +14,7 @@ const navItems = [
 
 export function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [guideScrollProgress, setGuideScrollProgress] = useState(0);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const wasMenuOpenRef = useRef(false);
@@ -22,6 +23,7 @@ export function Layout() {
 
   const location = useLocation();
   const currentPath = location.pathname;
+  const isGuidePage = currentPath.startsWith("/guide/");
 
   useEffect(() => {
     if (location.hash) return;
@@ -92,6 +94,53 @@ export function Layout() {
     }
     wasMenuOpenRef.current = isMenuOpen;
   }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (!isGuidePage) {
+      setGuideScrollProgress(0);
+      return;
+    }
+
+    let animationFrame = 0;
+    const updateProgress = () => {
+      const mainContent = document.getElementById("main-content");
+      if (!mainContent) {
+        setGuideScrollProgress(0);
+        return;
+      }
+
+      const mainTop = mainContent.offsetTop;
+      const maxScrollableDistance = Math.max(mainContent.offsetHeight - window.innerHeight, 0);
+      if (maxScrollableDistance === 0) {
+        setGuideScrollProgress(1);
+        return;
+      }
+
+      const scrolledDistance = window.scrollY - mainTop;
+      const progress = Math.min(Math.max(scrolledDistance / maxScrollableDistance, 0), 1);
+      setGuideScrollProgress(progress);
+    };
+
+    const scheduleUpdate = () => {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = 0;
+        updateProgress();
+      });
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
+  }, [isGuidePage, location.pathname, location.hash]);
 
   const isNavActive = (href: string) => {
     if (href === "/events") return currentPath === "/events" || currentPath.startsWith("/events/");
@@ -189,7 +238,17 @@ export function Layout() {
             </div>
           </div>
         </div>
-
+        {isGuidePage ? (
+          <div
+            aria-hidden="true"
+            className="h-0.5 w-full bg-[#334233]/10"
+          >
+            <div
+              className="h-full origin-left bg-[#B36A4C]/70 transition-transform duration-100 ease-linear"
+              style={{ transform: `scaleX(${guideScrollProgress})` }}
+            />
+          </div>
+        ) : null}
       </header>
 
       <div

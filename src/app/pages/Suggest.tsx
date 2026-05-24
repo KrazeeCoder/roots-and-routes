@@ -560,7 +560,7 @@ export function Suggest() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
-      <section className="relative overflow-hidden bg-[#334233] pb-28 pt-20 text-[#F6F1E7]">
+      <section className="relative overflow-hidden bg-[#334233] pb-16 pt-20 text-[#F6F1E7]">
         <div className="absolute inset-0 pointer-events-none opacity-70"><TopoPattern opacity={0.12} /></div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#334233]/75 via-[#334233]/45 to-transparent" />
 
@@ -596,6 +596,12 @@ export function Suggest() {
               </div>
             </ScrollReveal>
           </div>
+        </div>
+
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none text-[#F6F1E7]">
+          <svg viewBox="0 0 1440 56" fill="none" preserveAspectRatio="none" className="w-full h-14">
+            <path d="M0,0 Q360,56 720,28 T1440,0 V56 H0 Z" fill="currentColor" />
+          </svg>
         </div>
       </section>
 

@@ -26,7 +26,7 @@ import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS, milesToMeters } from "
 
 const bothellCenter = { lat: 47.7614, lng: -122.2052 };
 const radiusOptions = [1, 5, 10, 25] as const;
-const EVENTS_PER_PAGE = 3;
+const EVENTS_PER_PAGE = 6;
 const DEFAULT_EVENT_IMAGE = "https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,w_1280/sample.jpg";
 const CARD_INTERACTIVE_ELEMENT_SELECTOR = "a, button, input, select, textarea, [role='button'], [role='menuitem']";
 
@@ -1143,7 +1143,7 @@ export function Events() {
                       aria-label={detailHref ? `Open event details: ${event.title}` : undefined}
                       onClick={(event) => handleEventCardClick(event, detailHref)}
                       onKeyDown={(event) => handleEventCardKeyDown(event, detailHref)}
-                      className={`rounded-2xl border shadow-sm p-5 transition-all ${
+                      className={`rounded-2xl border shadow-sm p-4 sm:p-5 lg:p-4 transition-all ${
                         isSelectedCard
                           ? "bg-[#FFF8EE] border-[#B36A4C] ring-2 ring-[#B36A4C]/20"
                           : "bg-white border-[#E7D9C3] hover:border-[#B36A4C] hover:shadow-md"
@@ -1151,7 +1151,7 @@ export function Events() {
                         detailHref ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B36A4C]/40" : ""
                       }`}
                     >
-                      <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                      <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-5">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 text-xs font-semibold text-[#334233]/80 mb-2">
                             <span className="px-2 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A] text-xs">{event.date}</span>
@@ -1184,7 +1184,7 @@ export function Events() {
                           {event.postedByName ? (
                             <p className="text-xs text-[#6F7553] mb-3">Posted by {event.postedByName}</p>
                           ) : null}
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex flex-wrap gap-3 lg:hidden">
                             {canShowOnMap && event.id ? (
                               <Button
                                 type="button"
@@ -1208,13 +1208,43 @@ export function Events() {
                             <CalendarMenu payload={eventCalendar} triggerVariant="outline" triggerSize="sm" />
                           </div>
                         </div>
-                        <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden flex-shrink-0 relative">
-                          <ImageWithFallback
-                            src={event.image?.trim() ? event.image : DEFAULT_EVENT_IMAGE}
-                            alt={event.title}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/60 via-transparent" />
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-shrink-0">
+                          <div className="w-full sm:w-48 lg:w-52 h-32 lg:h-28 rounded-xl overflow-hidden relative">
+                            <ImageWithFallback
+                              src={event.image?.trim() ? event.image : DEFAULT_EVENT_IMAGE}
+                              alt={event.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/60 via-transparent" />
+                          </div>
+                          <div className="hidden lg:flex lg:w-[170px] lg:flex-col lg:gap-2">
+                            {canShowOnMap && event.id ? (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => showEventOnMap(event.id as string)}
+                                className={`w-full justify-center ${isSelectedCard ? "border border-[#B36A4C]/35" : ""}`}
+                              >
+                                Show on map
+                              </Button>
+                            ) : null}
+                            {detailHref ? (
+                              <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+                                <Link to={detailHref} state={EVENT_DETAIL_DEFAULT_NAV}>View Details</Link>
+                              </Button>
+                            ) : (
+                              <Button variant="outline" size="sm" className="w-full justify-center">
+                                View Details
+                              </Button>
+                            )}
+                            <CalendarMenu
+                              payload={eventCalendar}
+                              triggerVariant="outline"
+                              triggerSize="sm"
+                              triggerClassName="w-full justify-between"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

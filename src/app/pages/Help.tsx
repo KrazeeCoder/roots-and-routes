@@ -1,46 +1,20 @@
 import { Link } from "react-router";
-import { CalendarDays, HelpCircle, Info, Mail, Search, Sparkles, UserPlus, ArrowRight } from "lucide-react";
+import { HelpCircle, Info, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion";
-
-const quickActions = [
-  {
-    title: "Search the directory",
-    description: "Find local services, programs, and support by category, keyword, or location.",
-    href: "/directory",
-    icon: Search,
-  },
-  {
-    title: "Browse community events",
-    description: "Explore upcoming local events and workshops for families, seniors, and neighbors.",
-    href: "/events",
-    icon: CalendarDays,
-  },
-  {
-    title: "Suggest a new resource",
-    description: "Share a trusted local service or event so our directory keeps growing.",
-    href: "/suggest",
-    icon: Sparkles,
-  },
-  {
-    title: "Open the contributor portal",
-    description: "Manage your resource or event listings, and track approvals for your submissions.",
-    href: "/contributor-login",
-    icon: UserPlus,
-  },
-];
+import { ServiceCard } from "../components/ui/service-card";
 
 const faqItems = [
   {
     question: "How do I find help near me?",
     answer:
-      "Use the Directory search bar to enter your need, such as ‘food pantry’, ‘rent help’, or ‘mental health’. You can also filter by category and location to see the closest local services.",
+      "Use the Directory search bar to enter your need, such as 'food pantry', 'rent help', or 'mental health'. You can also filter by category, rating, contact details, and availability.",
   },
   {
     question: "Can I see only events happening this week?",
     answer:
-      "Yes. On the Events page, the calendar and list view show upcoming community gatherings. Use the date filters to narrow results to the next few days or this week.",
+      "Use the Events page to switch between upcoming and past events, then narrow by location and radius. For a date-by-date view, open the Full Community Calendar.",
   },
   {
     question: "What should I include when suggesting a resource?",
@@ -57,23 +31,38 @@ const faqItems = [
 const guideItems = [
   {
     title: "Search & Find Resources",
-    description: "Use keywords like 'food', 'housing', or 'mental health' to discover local support. Filter by category and location to find services near you quickly.",
+    description: "Find local services, programs, and support by category, keyword, or location",
     href: "/guide/search-resources",
+    imgSrc: "/help_page_svgs/search.svg",
+    imgAlt: "Magnifying glass and folder icon",
+    imgClassName: "w-28 h-28 sm:w-32 sm:h-32 -right-3 -bottom-3",
+    variant: "default" as const,
   },
   {
-    title: "Browse & Register for Events",
-    description: "Explore upcoming workshops, support groups, and community gatherings. View detailed information, dates, times, and registration links for each event.",
+    title: "Browse Community Events",
+    description: "Explore upcoming local events and workshops for families, seniors, and neighbors",
     href: "/guide/browse-events",
+    imgSrc: "/help_page_svgs/calendar.svg",
+    imgAlt: "Calendar and checklist icon",
+    imgClassName: "w-28 h-28 sm:w-32 sm:h-32 -right-2 -bottom-2",
+    variant: "gray" as const,
   },
   {
     title: "Submit New Resources",
-    description: "Share a trusted local service or event with the community. Provide clear details and our team will review and publish your submission quickly.",
+    description: "Share a trusted local service or event so our directory keeps growing",
     href: "/guide/submit-resources",
+    imgSrc: "/help_page_svgs/resources.svg",
+    imgAlt: "Resource card icon",
+    variant: "red" as const,
   },
   {
     title: "Become a Contributor",
-    description: "Sign up to manage resource and event listings, track approvals, and help shape the community directory. Access the contributor portal anytime.",
+    description: "Manage your resource or event listings, save drafts, and publish updates once your account is approved",
     href: "/guide/become-contributor",
+    imgSrc: "/help_page_svgs/contributor.svg",
+    imgAlt: "Person and shield icon",
+    imgClassName: "w-28 h-28 sm:w-32 sm:h-32 -right-3 -bottom-3",
+    variant: "blue" as const,
   },
 ];
 
@@ -105,7 +94,7 @@ export function Help() {
               className="mt-6 max-w-2xl text-lg leading-8 text-[#E7D9C3]/90"
             >
               This page helps you use Roots & Routes to explore resources, locate events, and submit community support.
-              Start with the quick actions below or jump to common questions.
+              Start with the guide cards below or jump to common questions.
             </motion.p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-4">
               <Link
@@ -123,45 +112,11 @@ export function Help() {
             </div>
           </div>
         </div>
-      </section>
 
-      <section className="relative pt-12 pb-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
-          >
-            {quickActions.map((action) => {
-              const Icon = action.icon;
-              return (
-                <Link
-                  key={action.title}
-                  to={action.href}
-                  className="group relative flex flex-col justify-between rounded-3xl border border-[#E7D9C3] bg-white p-6 shadow-[0_15px_35px_-12px_rgba(51,66,51,0.12)] transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#334233] hover:bg-[#F6F1E7] hover:shadow-[0_20px_40px_-12px_rgba(51,66,51,0.2)]"
-                >
-                  <div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E7D9C3] text-[#334233] shadow-sm transition-all duration-300 group-hover:bg-[#334233] group-hover:text-[#F6F1E7] group-hover:rotate-6">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <h2 className="mt-6 text-lg font-semibold text-[#334233] transition-colors duration-300">
-                      {action.title}
-                    </h2>
-                    <p className="mt-3 text-sm leading-relaxed text-[#5B473A]/90 transition-colors duration-300">
-                      {action.description}
-                    </p>
-                  </div>
-                  <div className="mt-6 flex items-center justify-between border-t border-[#E7D9C3] pt-4 opacity-85 group-hover:opacity-100 transition-all duration-300 group-hover:border-[#334233]/20">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] transition-colors duration-300 group-hover:text-[#334233]">
-                      Launch Tool
-                    </span>
-                    <ArrowRight className="h-4 w-4 text-[#B36A4C] transform -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-[#334233]" />
-                  </div>
-                </Link>
-              );
-            })}
-          </motion.div>
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none text-[#F6F1E7]">
+          <svg viewBox="0 0 1440 56" fill="none" preserveAspectRatio="none" className="w-full h-14">
+            <path d="M0,0 Q360,56 720,28 T1440,0 V56 H0 Z" fill="currentColor" />
+          </svg>
         </div>
       </section>
 
@@ -177,31 +132,19 @@ export function Help() {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {guideItems.map((guide, index) => (
-              <div key={guide.title} className="group border-t border-[#D8C9AC] pt-8 flex flex-col justify-between h-full">
-                <div>
-                  <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none mb-6">
-                    {String(index + 1).padStart(2, "0")}
-                  </div>
-                  <h3 className="text-xl font-semibold text-[#334233] leading-snug">
-                    {guide.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">
-                    {guide.description}
-                  </p>
-                </div>
-                <div className="mt-6">
-                  <Link
-                    to={guide.href}
-                    className="inline-flex items-center text-sm font-semibold text-[#B36A4C] transition-colors relative pb-1 group-hover:text-[#334233]"
-                  >
-                    <span>Read Full Guide</span>
-                    <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#B36A4C] origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100 group-hover:bg-[#334233]" />
-                  </Link>
-                </div>
-              </div>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2">
+            {guideItems.map((guide) => (
+              <ServiceCard
+                key={guide.title}
+                title={guide.title}
+                description={guide.description}
+                href={guide.href}
+                imgSrc={guide.imgSrc}
+                imgAlt={guide.imgAlt}
+                imgClassName={guide.imgClassName}
+                variant={guide.variant}
+                className="min-h-[180px]"
+              />
             ))}
           </div>
         </div>
@@ -231,7 +174,7 @@ export function Help() {
             </div>
             <h2 className="mt-6 text-3xl font-semibold tracking-tight text-[#334233]">Still need support?</h2>
             <p className="mt-4 text-sm leading-7 text-[#5B473A]">
-              Send us a message through our interactive contact form. Our community team will review your inquiry and respond within 24-48 hours.
+              Please send us a message through our interactive contact form, and our community team will review your inquiry and respond within 24-48 hours.
             </p>
             <div className="mt-8 rounded-3xl border border-[#E7D9C3] bg-white p-6 flex flex-col items-start">
               <p className="text-sm font-semibold text-[#334233] mb-3">Get in touch</p>
@@ -249,3 +192,4 @@ export function Help() {
     </div>
   );
 }
+

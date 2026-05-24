@@ -70,19 +70,23 @@ export function GuideSearchResources() {
                   <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>
                   <nav className="space-y-4">
                     {[
-                      { num: "01", label: "Choose Search Method" },
-                      { num: "02", label: "Filter & Refine" },
-                      { num: "03", label: "Review & Connect" },
-                      { num: "04", label: "Common Questions" },
+                      { num: "01", label: "Choose Search Method", href: "#choose-search-method" },
+                      { num: "02", label: "Filter & Refine", href: "#filter-refine" },
+                      { num: "03", label: "Review & Connect", href: "#review-connect" },
+                      { num: "04", label: "Common Questions", href: "#common-questions" },
                     ].map((step) => (
-                      <div key={step.num} className="flex items-center gap-3 group">
+                      <a
+                        key={step.num}
+                        href={step.href}
+                        className="group flex items-center gap-3 rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#334233]/40"
+                      >
                         <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E7D9C3] bg-[#F6F1E7] text-xs font-semibold text-[#334233] transition-colors group-hover:border-[#334233] group-hover:bg-[#334233] group-hover:text-white">
                           {step.num}
                         </span>
                         <span className="text-sm font-medium text-[#5B473A] transition-colors group-hover:text-[#334233]">
                           {step.label}
                         </span>
-                      </div>
+                      </a>
                     ))}
                   </nav>
                 </div>
@@ -107,6 +111,8 @@ export function GuideSearchResources() {
               
               {/* Step 1 */}
               <motion.div
+                id="choose-search-method"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -157,9 +163,9 @@ export function GuideSearchResources() {
                       Click on a category card to see all resources in that specific domain:
                     </p>
                     <ul className="mt-6 space-y-3 text-sm text-[#5B473A]">
-                      {["Food Assistance", "Health & Wellness", "Housing Support", "Youth Programs & Job Help"].map((cat) => (
+                      {["Food Assistance", "Health & Wellness", "Housing Support", "Youth Programs", "Job Help", "Community Events"].map((cat) => (
                         <li key={cat} className="flex items-center gap-3">
-                          <span className="text-[#B36A4C] text-lg leading-none">▸</span>
+                          <span className="text-[#B36A4C] text-lg leading-none">-</span>
                           <span className="font-medium text-[#334233]">{cat}</span>
                         </li>
                       ))}
@@ -170,6 +176,8 @@ export function GuideSearchResources() {
 
               {/* Step 2 */}
               <motion.div
+                id="filter-refine"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -189,9 +197,10 @@ export function GuideSearchResources() {
 
                 <div className="space-y-4 rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)]">
                   {[
-                    { icon: MapPin, title: "Location & Distance", desc: "Filter by distance radius (e.g., \"within 2 miles\") to see services close to you. Resources are sorted by distance automatically." },
-                    { icon: Clock, title: "Hours of Operation", desc: "Filter by when you can access the service: weekdays, evenings, weekends, or open today. Perfect if you need same-day support." },
-                    { icon: Star, title: "Community Ratings", desc: "Filter by star rating (4+ stars, 5 stars) to find highly-rated services in your area. Ratings come from real community members." },
+                    { icon: Filter, title: "Category + Keyword", desc: "Use category buttons with search terms to narrow the list quickly." },
+                    { icon: Clock, title: "Availability", desc: "Use the availability filter for weekdays, weekends, evenings, or 24/7 services." },
+                    { icon: Star, title: "Rating + Sort", desc: "Set a minimum rating, then sort by relevance, highest rated, or name." },
+                    { icon: MapPin, title: "Contact Filters", desc: "Limit results to listings with website, phone number, or email." },
                   ].map((filter) => {
                     const FilterIcon = filter.icon;
                     return (
@@ -211,6 +220,8 @@ export function GuideSearchResources() {
 
               {/* Step 3 */}
               <motion.div
+                id="review-connect"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -233,9 +244,9 @@ export function GuideSearchResources() {
                   <div className="grid gap-6 sm:grid-cols-2">
                     {[
                       { title: "Full Description", desc: "What the organization does and who they serve" },
-                      { title: "Hours & Location", desc: "When they're open and where to find them on a map" },
+                      { title: "Hours & Address", desc: "When they're open and where the service is located" },
                       { title: "Contact Information", desc: "Phone number, email, and website with direct links" },
-                      { title: "Community Ratings & Reviews", desc: "See what others in your community have experienced" },
+                      { title: "Community Ratings", desc: "View average ratings and add your own rating with a short reason" },
                       { title: "Quick Actions", desc: "Call, email, or visit their website directly" },
                     ].map((item) => (
                       <div key={item.title} className="flex gap-3">
@@ -250,7 +261,7 @@ export function GuideSearchResources() {
 
                   <div className="rounded-2xl border border-[#B36A4C]/20 bg-[#B36A4C]/5 p-6 border-l-4 border-l-[#B36A4C]">
                     <p className="text-sm leading-relaxed text-[#334233]">
-                      <strong className="text-[#B36A4C]">Pro Tip:</strong> You can save your favorite resources by clicking the heart icon. Sign in to access your saved list anytime from your account.
+                      <strong className="text-[#B36A4C]">Pro Tip:</strong> Use ratings and likes to share what was useful, and check contact details before you visit.
                     </p>
                   </div>
                 </div>
@@ -258,6 +269,8 @@ export function GuideSearchResources() {
 
               {/* FAQ Section */}
               <motion.div
+                id="common-questions"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -279,7 +292,7 @@ export function GuideSearchResources() {
                   {[
                     { q: "What if I don't know what to search for?", a: "Start with general keywords like 'help,' 'support,' or 'assistance.' You can also browse by category cards to explore what's available. If you'd like personalized guidance, feel free to use our Contact Form." },
                     { q: "Are all resources free?", a: "Most resources in our directory are free or low-cost. Check the resource details for pricing information, or contact the organization directly to confirm cost." },
-                    { q: "Can I trust the information in the Directory?", a: "Yes. All resources in the Directory have been verified by our community team. Ratings and reviews come from real community members. Always verify contact details by visiting the resource's website or calling directly." },
+                    { q: "Can I trust the information in the Directory?", a: "Listings come from approved contributors and moderator-approved public proposals. You should still confirm details directly with the organization before visiting." },
                     { q: "What if a resource's information is outdated or incorrect?", a: "Let us know! Send us a quick note through our Contact Form with the resource name and what needs updating. We'll investigate and make corrections quickly." },
                   ].map((faq) => (
                     <div key={faq.q} className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm hover:border-[#334233] transition-colors duration-300">
@@ -305,7 +318,7 @@ export function GuideSearchResources() {
               Ready to find support?
             </h3>
             <p className="text-sm text-[#5B473A] mb-8 max-w-md mx-auto">
-              Jump straight to the resource directory and apply filters to find nearby community organizations.
+              Jump straight to the resource directory and apply search and filters to narrow the organizations that fit your needs.
             </p>
             <Link
               to="/directory"
@@ -320,3 +333,5 @@ export function GuideSearchResources() {
     </div>
   );
 }
+
+

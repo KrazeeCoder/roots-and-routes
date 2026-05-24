@@ -126,6 +126,13 @@ function toTimestamp(value: string | undefined) {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
+function rotateItems<T>(items: T[], offset: number) {
+  if (items.length === 0) return [];
+  const normalizedOffset = ((offset % items.length) + items.length) % items.length;
+  if (normalizedOffset === 0) return items;
+  return [...items.slice(normalizedOffset), ...items.slice(0, normalizedOffset)];
+}
+
 function clampStarFill(value: number, starIndex: number) {
   const fill = (value - starIndex) * 100;
   return Math.max(0, Math.min(100, fill));
@@ -247,7 +254,7 @@ function ScenicFeaturedSpotlight({
       transition={{ duration: shouldReduceMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
       className="relative mx-auto max-w-5xl px-4 py-3 sm:px-6 lg:px-8"
     >
-      <div className="grid gap-5 lg:min-h-[17.25rem] lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch">
+      <div className="grid gap-5 lg:min-h-[17.25rem] lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-stretch lg:gap-x-8">
         <div className="flex h-full flex-col justify-start border-l-2 border-[#DCCBB1] pl-4 pt-1 lg:min-h-0">
           <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#C8BDA9] bg-[#F7F3EA] text-[#D08964] shadow-[0_6px_16px_rgba(36,50,36,0.08)]">
             <BadgeCheck className="size-5" />
@@ -370,7 +377,6 @@ function AddEventToCalendarMenu({
         onOpenChange(false);
       }
     };
-
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("keydown", handleEscape);
     return () => {
@@ -633,10 +639,18 @@ export function Spotlights() {
 
   const featuredEvents = useMemo(() => {
     const now = Date.now();
-    return spotlightEvents
+    const upcomingEvents = spotlightEvents
       .filter((event) => toTimestamp(event.starts_at) >= now)
-      .sort((a, b) => toTimestamp(a.starts_at) - toTimestamp(b.starts_at))
-      .slice(0, 2);
+      .sort((a, b) => toTimestamp(a.starts_at) - toTimestamp(b.starts_at));
+
+    if (upcomingEvents.length <= 2) {
+      return upcomingEvents;
+    }
+
+    // Rotate the featured list daily so the same two events are not always pinned.
+    const daySeed = Math.floor(now / (24 * 60 * 60 * 1000));
+    const rotationOffset = (daySeed % (upcomingEvents.length - 1)) + 1;
+    return rotateItems(upcomingEvents, rotationOffset).slice(0, 2);
   }, [spotlightEvents]);
 
   useEffect(() => {

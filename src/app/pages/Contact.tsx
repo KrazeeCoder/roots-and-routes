@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { Mail, Phone, MapPin, ArrowLeft, Send, CheckCircle2, MessageSquare, HelpCircle, Sparkles, Compass } from "lucide-react";
+import { Mail, Phone, MapPin, ArrowLeft, Send, CheckCircle2, MessageSquare, Sparkles, Compass } from "lucide-react";
 import { toast } from "sonner";
 import { TopoPattern } from "../components/TopoPattern";
 import { Button } from "../components/ui/button";
@@ -200,7 +200,7 @@ export function Contact() {
                             className={`mt-1.5 border-[#E7D9C3] focus:border-[#B36A4C] focus:ring-1 focus:ring-[#B36A4C] transition-all bg-white/80 ${
                               errors.name ? "border-red-400 focus:border-red-400 focus:ring-red-400" : ""
                             }`}
-                            placeholder="Alex Morgan"
+                            placeholder="Enter your full name"
                             aria-invalid={!!errors.name}
                             aria-describedby={errors.name ? getFieldErrorId("name") : undefined}
                             required
@@ -222,7 +222,7 @@ export function Contact() {
                             className={`mt-1.5 border-[#E7D9C3] focus:border-[#B36A4C] focus:ring-1 focus:ring-[#B36A4C] transition-all bg-white/80 ${
                               errors.email ? "border-red-400 focus:border-red-400 focus:ring-red-400" : ""
                             }`}
-                            placeholder="alex@example.com"
+                            placeholder="Enter your email address"
                             aria-invalid={!!errors.email}
                             aria-describedby={errors.email ? getFieldErrorId("email") : undefined}
                             required
@@ -268,7 +268,7 @@ export function Contact() {
                           className={`mt-1.5 border-[#E7D9C3] focus:border-[#B36A4C] focus:ring-1 focus:ring-[#B36A4C] transition-all bg-white/80 ${
                             errors.subject ? "border-red-400 focus:border-red-400 focus:ring-red-400" : ""
                           }`}
-                          placeholder="How can we help you?"
+                          placeholder="Briefly describe your inquiry"
                           aria-invalid={!!errors.subject}
                           aria-describedby={errors.subject ? getFieldErrorId("subject") : undefined}
                           required
@@ -289,7 +289,7 @@ export function Contact() {
                           className={`mt-1.5 border-[#E7D9C3] focus:border-[#B36A4C] focus:ring-1 focus:ring-[#B36A4C] transition-all bg-white/80 min-h-[160px] resize-y ${
                             errors.message ? "border-red-400 focus:border-red-400 focus:ring-red-400" : ""
                           }`}
-                          placeholder="Please provide details about your inquiry. If referring to a specific resource, please include its name..."
+                          placeholder="Provide the details of your inquiry, including any relevant context."
                           aria-invalid={!!errors.message}
                           aria-describedby={errors.message ? getFieldErrorId("message") : undefined}
                           required
@@ -419,9 +419,6 @@ export function Contact() {
             {/* Help / FAQ Redirect card */}
             <Card className="border-[#E7D9C3] bg-[#EEF4E4]/40 backdrop-blur-sm shadow-sm overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF4E4] text-[#334233] mb-4">
-                  <HelpCircle className="h-5 w-5 text-[#6F7553]" />
-                </div>
                 <h4 className="text-lg font-semibold text-[#334233] font-['Cormorant_Garamond',serif] mb-1">
                   Looking for Step-by-Step Help?
                 </h4>

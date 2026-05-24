@@ -162,7 +162,7 @@ export function HeroSection() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-6 relative h-[360px] sm:h-[430px] lg:h-[470px] w-full mt-8 lg:mt-0"
+            className="hidden lg:block lg:col-span-6 relative h-[360px] sm:h-[430px] lg:h-[470px] w-full mt-8 lg:mt-0"
           >
             <IsometricHeroCards />
           </motion.div>

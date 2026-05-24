@@ -36,7 +36,7 @@ export function GuideBecomeContributor() {
               transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
               className="mt-6 max-w-2xl text-lg leading-8 text-[#E7D9C3]/90"
             >
-              Represent your organization on Roots & Routes. Manage listings, track engagement, and help shape your community's resource network.
+              Represent your organization on Roots & Routes. Manage listings, publish approved updates, and help shape your community's resource network.
             </motion.p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
@@ -70,19 +70,23 @@ export function GuideBecomeContributor() {
                   <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>
                   <nav className="space-y-4">
                     {[
-                      { num: "01", label: "What is a Contributor" },
-                      { num: "02", label: "Benefits" },
-                      { num: "03", label: "How to Sign Up" },
-                      { num: "04", label: "Common Questions" },
+                      { num: "01", label: "What is a Contributor", href: "#what-is-a-contributor" },
+                      { num: "02", label: "Benefits", href: "#benefits" },
+                      { num: "03", label: "How to Sign Up", href: "#how-to-sign-up" },
+                      { num: "04", label: "Common Questions", href: "#common-questions" },
                     ].map((step) => (
-                      <div key={step.num} className="flex items-center gap-3 group">
+                      <a
+                        key={step.num}
+                        href={step.href}
+                        className="group flex items-center gap-3 rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#334233]/40"
+                      >
                         <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E7D9C3] bg-[#F6F1E7] text-xs font-semibold text-[#334233] transition-colors group-hover:border-[#334233] group-hover:bg-[#334233] group-hover:text-white">
                           {step.num}
                         </span>
                         <span className="text-sm font-medium text-[#5B473A] transition-colors group-hover:text-[#334233]">
                           {step.label}
                         </span>
-                      </div>
+                      </a>
                     ))}
                   </nav>
                 </div>
@@ -106,6 +110,8 @@ export function GuideBecomeContributor() {
             <div className="lg:col-span-9 space-y-16">
               {/* What is a Contributor */}
               <motion.div
+                id="what-is-a-contributor"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -148,10 +154,10 @@ export function GuideBecomeContributor() {
                     </div>
                     <h3 className="mt-6 text-xl font-semibold text-[#334233]">What You Get</h3>
                     <p className="mt-3 text-sm leading-relaxed text-[#5B473A]">
-                      Access to a special Portal for instant publishing and management.
+                      Access to a dedicated portal for listing management and publishing.
                     </p>
                     <ul className="mt-6 space-y-3 text-sm text-[#5B473A]">
-                      {["Instant publishing (no moderation delays)", "Manage multiple resources and events", "Edit and update listings anytime", "Access engagement analytics"].map((item) => (
+                      {["Publish approved contributor listings directly", "Manage multiple resources and events", "Edit and update listings anytime", "Review rating feedback for your resources"].map((item) => (
                         <li key={item} className="flex items-start gap-3">
                           <CheckCircle className="h-4 w-4 text-[#B36A4C] mt-0.5 flex-shrink-0" />
                           <span>{item}</span>
@@ -164,6 +170,8 @@ export function GuideBecomeContributor() {
 
               {/* Benefits */}
               <motion.div
+                id="benefits"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -176,7 +184,7 @@ export function GuideBecomeContributor() {
                       Why Become a Contributor?
                     </h2>
                     <p className="mt-2 text-base text-[#5B473A]">
-                      Gain instant publishing access and manage your organization's listings directly.
+                      Once approved, contributors can publish and manage their organization's listings directly.
                     </p>
                   </div>
                 </div>
@@ -184,8 +192,8 @@ export function GuideBecomeContributor() {
                 <div className="space-y-4 rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)]">
                   {[
                     { title: "Increase Your Visibility", desc: "When community members search for support, they'll find your organization. Being in a trusted, organized directory means more people discovering your services." },
-                    { title: "Stay Up-to-Date", desc: "Instantly update your hours, programs, services, or events. No waiting for moderation—changes go live immediately." },
-                    { title: "Understand Your Impact", desc: "Access engagement analytics to see how many people are viewing your listing, rating your services, and asking about your events." },
+                    { title: "Stay Up-to-Date", desc: "Update your hours, programs, services, or events from the portal so public listings stay current." },
+                    { title: "Learn From Resource Feedback", desc: "Open the Feedback view in the portal to read rating reasons left for resources you manage." },
                     { title: "Build Community Trust", desc: "Being part of a curated community resource directory adds legitimacy. People know that Roots & Routes verifies organizations." },
                     { title: "Manage Multiple Listings", desc: "If your organization runs multiple programs or operates from different locations, you can create and manage separate listings for each." },
                   ].map((item) => (
@@ -204,6 +212,8 @@ export function GuideBecomeContributor() {
 
               {/* Sign-Up Process */}
               <motion.div
+                id="how-to-sign-up"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -226,11 +236,11 @@ export function GuideBecomeContributor() {
                   <div className="grid gap-6 sm:grid-cols-2">
                     {[
                       { title: "Click Sign Up", desc: "Visit the Contributor Login page and click the sign-up link from the Help page or main menu." },
-                      { title: "Create Your Account", desc: "Enter your email address and create a secure password for the Contributor Portal." },
-                      { title: "Provide Organization Details", desc: "Tell us about your organization: name, type, your role, contact information, and description." },
-                      { title: "Submit for Approval", desc: "Submit your application. Our team reviews your information (2-5 business days)." },
+                      { title: "Create Your Account", desc: "Enter your organization name, contact details, and a secure password." },
+                      { title: "Provide Contributor Information", desc: "Add your name, phone, and email so moderators can review your request." },
+                      { title: "Submit for Approval", desc: "Submit your application for moderator review." },
                       { title: "Get Approved", desc: "Once approved, you'll receive an email confirmation and full Portal access." },
-                      { title: "Start Managing Listings", desc: "Log in to the Portal and start creating resources and events that go live immediately." },
+                      { title: "Start Managing Listings", desc: "Log in to the portal and create or update resources and events." },
                     ].map((item) => (
                       <div key={item.title} className="flex gap-3">
                         <CheckCircle className="h-5 w-5 text-[#B36A4C] mt-0.5 flex-shrink-0" />
@@ -270,42 +280,40 @@ export function GuideBecomeContributor() {
                     <div className="rounded-lg border border-[#E7D9C3] p-4">
                       <h3 className="font-semibold text-[#334233]">Manage Resources</h3>
                       <ul className="mt-3 space-y-2 text-sm text-[#5B473A]">
-                        <li>• Create new resources</li>
-                        <li>• Edit existing listings</li>
-                        <li>• Update descriptions and hours</li>
-                        <li>• Upload images</li>
-                        <li>• Publish or unpublish</li>
+                        <li>- Create new resources</li>
+                        <li>- Edit existing listings</li>
+                        <li>- Update descriptions, hours, and contact details</li>
+                        <li>- Add image URLs for listings</li>
+                        <li>- Publish listings or keep them as drafts</li>
                       </ul>
                     </div>
 
                     <div className="rounded-lg border border-[#E7D9C3] p-4">
                       <h3 className="font-semibold text-[#334233]">Manage Events</h3>
                       <ul className="mt-3 space-y-2 text-sm text-[#5B473A]">
-                        <li>• Create recurring or one-time events</li>
-                        <li>• Set date, time, and location</li>
-                        <li>• Add registration links</li>
-                        <li>• Edit event details</li>
-                        <li>• Archive past events</li>
+                        <li>- Create event listings with date, time, and location</li>
+                        <li>- Edit event details</li>
+                        <li>- Save drafts or publish ready events</li>
+                        <li>- Delete outdated events</li>
                       </ul>
                     </div>
 
                     <div className="rounded-lg border border-[#E7D9C3] p-4">
-                      <h3 className="font-semibold text-[#334233]">View Engagement</h3>
+                      <h3 className="font-semibold text-[#334233]">View Resource Feedback</h3>
                       <ul className="mt-3 space-y-2 text-sm text-[#5B473A]">
-                        <li>• See how many people viewed your listings</li>
-                        <li>• Track community ratings and reviews</li>
-                        <li>• Monitor engagement metrics</li>
-                        <li>• Identify trending interest areas</li>
+                        <li>- Open Feedback on each resource</li>
+                        <li>- Review community rating scores</li>
+                        <li>- Read written rating reasons</li>
                       </ul>
                     </div>
 
                     <div className="rounded-lg border border-[#E7D9C3] p-4">
-                      <h3 className="font-semibold text-[#334233]">Account Settings</h3>
+                      <h3 className="font-semibold text-[#334233]">Account Overview</h3>
                       <ul className="mt-3 space-y-2 text-sm text-[#5B473A]">
-                        <li>• Update your profile</li>
-                        <li>• Change your password</li>
-                        <li>• Manage organization info</li>
-                        <li>• View account status</li>
+                        <li>- View organization details</li>
+                        <li>- Check approval status</li>
+                        <li>- Confirm your contributor role</li>
+                        <li>- Use sign-in/reset pages for account access changes</li>
                       </ul>
                     </div>
                   </div>
@@ -348,6 +356,8 @@ export function GuideBecomeContributor() {
 
               {/* FAQ Section */}
               <motion.div
+                id="common-questions"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -367,10 +377,10 @@ export function GuideBecomeContributor() {
 
                 <div className="space-y-6">
                   {[
-                    { q: "How long does approval take?", a: "Usually 2-5 business days. We review each application to ensure it represents a legitimate organization. You'll receive an email when your account is approved." },
-                    { q: "What if my application is rejected?", a: "We'll send you an explanation. Common reasons include incomplete information or being outside our service area. You can reach out to rootsandroutes.bothell@outlook.com to discuss and reapply." },
-                    { q: "Can multiple people from my organization be Contributors?", a: "Yes. Each person creates their own account, but they all manage the same organization's listings. You can have multiple staff members accessing the Portal." },
-                    { q: "What if I move to a different organization?", a: "You can update your account to represent your new organization. Contact our team or use the account settings to change your organization affiliation." },
+                    { q: "How long does approval take?", a: "Approval timing can vary. Applications stay pending until a moderator reviews them, and you'll be notified when your status changes." },
+                    { q: "What if my application is rejected?", a: "Contact the community team to review next steps and what information to correct before reapplying." },
+                    { q: "Can multiple people from my organization be Contributors?", a: "Yes. Each person can create a contributor account. For coordinated access, your team should align with moderators on how listings are managed." },
+                    { q: "What if I move to a different organization?", a: "Contact the community team to request account updates. Organization changes are handled through moderation, not a self-serve portal setting." },
                     { q: "Is there a cost to be a Contributor?", a: "No! Contributor status is completely free. We created Roots & Routes to strengthen the community, not to generate revenue. It's our gift to the Bothell community." },
                     { q: "What if I have more questions?", a: "Email us at rootsandroutes.bothell@outlook.com with any questions about becoming a Contributor. We're here to help!" },
                   ].map((faq) => (
@@ -397,7 +407,7 @@ export function GuideBecomeContributor() {
               Ready to become a Contributor?
             </h3>
             <p className="text-sm text-[#5B473A] mb-8 max-w-md mx-auto">
-              Sign up to manage your organization's listings and get instant publishing access.
+              Apply for contributor access to manage your organization's listings once your account is approved.
             </p>
             <Link
               to="/contributor-login"
@@ -415,3 +425,4 @@ export function GuideBecomeContributor() {
     </div>
   );
 }
+

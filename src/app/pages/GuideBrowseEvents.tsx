@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowLeft, ArrowRight, CalendarDays, MapPin, Users, Clock, Ticket, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, MapPin, Users, Clock, CheckCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 
@@ -70,19 +70,23 @@ export function GuideBrowseEvents() {
                   <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>
                   <nav className="space-y-4">
                     {[
-                      { num: "01", label: "Choose Your View" },
-                      { num: "02", label: "Filter Events" },
-                      { num: "03", label: "Review Event Details" },
-                      { num: "04", label: "Common Questions" },
+                      { num: "01", label: "Choose Your View", href: "#choose-your-view" },
+                      { num: "02", label: "Filter Events", href: "#filter-events" },
+                      { num: "03", label: "Review Event Details", href: "#review-event-details" },
+                      { num: "04", label: "Common Questions", href: "#common-questions" },
                     ].map((step) => (
-                      <div key={step.num} className="flex items-center gap-3 group">
+                      <a
+                        key={step.num}
+                        href={step.href}
+                        className="group flex items-center gap-3 rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#334233]/40"
+                      >
                         <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E7D9C3] bg-[#F6F1E7] text-xs font-semibold text-[#334233] transition-colors group-hover:border-[#334233] group-hover:bg-[#334233] group-hover:text-white">
                           {step.num}
                         </span>
                         <span className="text-sm font-medium text-[#5B473A] transition-colors group-hover:text-[#334233]">
                           {step.label}
                         </span>
-                      </div>
+                      </a>
                     ))}
                   </nav>
                 </div>
@@ -107,6 +111,8 @@ export function GuideBrowseEvents() {
               
               {/* Step 1 */}
               <motion.div
+                id="choose-your-view"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -119,7 +125,7 @@ export function GuideBrowseEvents() {
                       Choose Your View
                     </h2>
                     <p className="mt-2 text-base text-[#5B473A]">
-                      The Events page offers three different ways to explore and filter events. Pick the view that works best for you.
+                      Use the Events page for list and map browsing, and use the separate Full Community Calendar page for a month-by-month date view.
                     </p>
                   </div>
                 </div>
@@ -129,9 +135,9 @@ export function GuideBrowseEvents() {
                     <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#E7D9C3] text-[#334233]">
                       <CalendarDays className="h-5 w-5" />
                     </div>
-                    <h3 className="mt-4 text-base font-semibold text-[#334233]">Calendar View</h3>
+                    <h3 className="mt-4 text-base font-semibold text-[#334233]">Full Community Calendar</h3>
                     <p className="mt-3 text-xs leading-relaxed text-[#5B473A]">
-                      See events laid out on a calendar. Perfect for planning ahead and finding events on specific dates. Click any date to see all events happening that day.
+                      Open the calendar page to browse by month and click a date to see everything scheduled that day.
                     </p>
                   </div>
 
@@ -159,6 +165,8 @@ export function GuideBrowseEvents() {
 
               {/* Step 2 */}
               <motion.div
+                id="filter-events"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -178,9 +186,9 @@ export function GuideBrowseEvents() {
 
                 <div className="space-y-4 rounded-3xl border border-[#E7D9C3] bg-white p-8 shadow-[0_15px_30px_-15px_rgba(51,66,51,0.06)]">
                   {[
-                    { icon: Clock, title: "Date & Time Range", desc: "Filter by dates to see events happening this week, this month, or within a specific date range you choose. Use the calendar picker to set your preferences." },
-                    { icon: MapPin, title: "Distance Radius", desc: "Filter by how far you're willing to travel (e.g., \"within 3 miles\"). Events are sorted by distance, showing the closest options first." },
-                    { icon: Ticket, title: "Event Type & Category", desc: "Filter by category (workshops, support groups, youth programs, etc.) to see events relevant to your interests." },
+                    { icon: Clock, title: "Timeframe", desc: "Switch between upcoming and past events to focus on what matters right now." },
+                    { icon: MapPin, title: "Nearby Search + Radius", desc: "Enter an address or ZIP (or use your current location), then filter by 1, 5, 10, or 25 miles." },
+                    { icon: CalendarDays, title: "View + Planning Tools", desc: "Toggle list/map, open markers on the map, and add events to your calendar from each event card." },
                   ].map((filter) => {
                     const FilterIcon = filter.icon;
                     return (
@@ -200,6 +208,8 @@ export function GuideBrowseEvents() {
 
               {/* Step 3 */}
               <motion.div
+                id="review-event-details"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -209,10 +219,10 @@ export function GuideBrowseEvents() {
                   <div className="text-5xl font-['Cormorant_Garamond',serif] font-light text-[#B36A4C] leading-none">03</div>
                   <div>
                     <h2 className="text-2xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] text-[#334233] sm:text-3xl">
-                      Review Event Details & Register
+                      Review Event Details & Plan Ahead
                     </h2>
                     <p className="mt-2 text-base text-[#5B473A]">
-                      Click on any event to see complete information and find registration or attendance options.
+                      Open any event card to review the details and use built-in planning tools.
                     </p>
                   </div>
                 </div>
@@ -222,11 +232,11 @@ export function GuideBrowseEvents() {
                   <div className="grid gap-6 sm:grid-cols-2">
                     {[
                       { title: "Event Title & Description", desc: "What the event is about and who it's for" },
-                      { title: "Date, Time & Duration", desc: "When the event starts, ends, and how long it lasts" },
-                      { title: "Location & Address", desc: "Where the event is happening, with distance from you" },
-                      { title: "Organizer Contact", desc: "Phone, email, or website to get more information" },
-                      { title: "Registration Link", desc: "Direct link to register online (if available)" },
-                      { title: "Map & Directions", desc: "See the location on a map and get driving directions" },
+                      { title: "Date & Time", desc: "When the event starts and (if available) ends" },
+                      { title: "Location", desc: "Where the event is happening, including distance when nearby search is active" },
+                      { title: "List + Map Views", desc: "Switch views and use \"Show on map\" to jump to a specific event marker" },
+                      { title: "Add to Calendar", desc: "Save events to Google, Yahoo, or Apple/Outlook (.ics) from each event card" },
+                      { title: "Event Detail Page", desc: "Open the full event page for complete date, time, and location information" },
                     ].map((item) => (
                       <div key={item.title} className="flex gap-3">
                         <CheckCircle className="h-5 w-5 text-[#B36A4C] mt-0.5 flex-shrink-0" />
@@ -240,7 +250,7 @@ export function GuideBrowseEvents() {
 
                   <div className="rounded-2xl border border-[#B36A4C]/20 bg-[#B36A4C]/5 p-6 border-l-4 border-l-[#B36A4C]">
                     <p className="text-sm leading-relaxed text-[#334233]">
-                      <strong className="text-[#B36A4C]">Pro Tip:</strong> If registration details aren't clear, contact the organizer directly using the phone or email provided. They'll be happy to answer questions about how to participate.
+                      <strong className="text-[#B36A4C]">Pro Tip:</strong> If you prefer planning by date, open the Full Community Calendar and select a day to see that day's events.
                     </p>
                   </div>
                 </div>
@@ -279,6 +289,8 @@ export function GuideBrowseEvents() {
 
               {/* FAQ Section */}
               <motion.div
+                id="common-questions"
+                className="scroll-mt-28"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -298,10 +310,10 @@ export function GuideBrowseEvents() {
 
                 <div className="space-y-6">
                   {[
-                    { q: "Do I have to register in advance?", a: "It depends on the event. Some require advance registration, while others are drop-in. Check the event details or contact the organizer to confirm. When in doubt, showing up early is a good idea." },
-                    { q: "Are events free?", a: "Most events are free or low-cost. The event details will specify if there's a cost. If pricing isn't listed, contact the organizer to ask." },
-                    { q: "What if I can't make an event I registered for?", a: "Contact the organizer as soon as possible to cancel your registration. This helps them plan better and opens a spot for someone else. Look for cancellation instructions in your registration confirmation." },
-                    { q: "Can I submit an event to the calendar?", a: "Yes! Use the 'Suggest' page to submit new events. Our community team will review and add it to the calendar if it meets our guidelines." },
+                    { q: "How do I find events near me?", a: "Use the location search box or 'Use my location' on the Events page, then choose a radius to limit results." },
+                    { q: "Can I view past events?", a: "Yes. Use the Timeframe filter and switch from 'Upcoming' to 'Past'." },
+                    { q: "Where is the calendar view?", a: "Use the 'Full Community Calendar' button to open /calendar for date-by-date browsing." },
+                    { q: "Can I submit an event to the calendar?", a: "Yes. Use the Suggest page to submit an event proposal. It appears publicly after moderator approval." },
                   ].map((faq) => (
                     <div key={faq.q} className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm hover:border-[#334233] transition-colors duration-300">
                       <h4 className="font-semibold text-base text-[#334233]">{faq.q}</h4>
@@ -326,7 +338,7 @@ export function GuideBrowseEvents() {
               Explore upcoming events
             </h3>
             <p className="text-sm text-[#5B473A] mb-8 max-w-md mx-auto">
-              Find workshops, community meals, and events on our interactive calendar or list view.
+              Find workshops, community meals, and neighborhood events from list/map browsing, then save them to your calendar.
             </p>
             <Link
               to="/events"
