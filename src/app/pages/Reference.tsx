@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { CheckCircle2, FileText, Link as LinkIcon, Code2, Globe, ShieldCheck, Sparkles } from "lucide-react";
 import {
   directoryEntries as seededDirectoryEntries,
@@ -7,7 +7,6 @@ import {
   homeTestimonials as seededHomeTestimonials,
 } from "../data/homeData";
 import { TopoPattern } from "../components/TopoPattern";
-import { ScrollReveal } from "../components/ScrollReveal";
 import { listPublishedEvents, listPublishedResources } from "../data/portalApi";
 
 
@@ -95,6 +94,10 @@ interface TestimonialImageCitation {
   label: string;
   sourceUrl: string;
   license: string;
+}
+
+function ScrollReveal({ children }: { children: ReactNode; delay?: number }) {
+  return <>{children}</>;
 }
 
 function ensureAbsoluteUrl(url: string) {
