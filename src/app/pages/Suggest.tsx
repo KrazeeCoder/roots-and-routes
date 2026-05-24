@@ -828,15 +828,15 @@ export function Suggest() {
               </CardHeader>
               <CardContent className="space-y-4 text-sm text-[#5B473A]">
                 <div className="flex gap-3">
-                  <ClipboardList className="mt-0.5 h-5 w-5 text-[#B36A4C]" />
+                  <ClipboardList className="mt-0.5 h-6 w-6 text-[#B36A4C]" />
                   <p><span className="font-semibold text-[#334233]">Public proposals:</span> Anyone can submit a resource or event, but it stays pending until a moderator reviews it.</p>
                 </div>
                 <div className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 text-[#B36A4C]" />
+                  <CheckCircle2 className="mt-0.5 h-6 w-6 text-[#B36A4C]" />
                   <p><span className="font-semibold text-[#334233]">Approved contributors:</span> Verified organizations can manage official resources and events directly in the portal.</p>
                 </div>
                 <div className="flex gap-3">
-                  <FileText className="mt-0.5 h-5 w-5 text-[#B36A4C]" />
+                  <FileText className="mt-0.5 h-6 w-6 text-[#B36A4C]" />
                   <p><span className="font-semibold text-[#334233]">Official content:</span> Only approved contributor content and moderator-approved public proposals appear on public pages.</p>
                 </div>
               </CardContent>
