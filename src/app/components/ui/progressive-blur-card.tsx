@@ -11,6 +11,7 @@ interface ProgressiveBlurProps {
 
 interface ProgressiveBlurCardProps extends React.HTMLAttributes<HTMLDivElement> {
   imageUrl: string;
+  fallbackImageUrl?: string;
   title: string;
   description?: string;
   averageRating?: number;
@@ -44,6 +45,7 @@ const ProgressiveBlurCard = React.forwardRef<HTMLDivElement, ProgressiveBlurCard
     {
       className,
       imageUrl,
+      fallbackImageUrl,
       title,
       description,
       averageRating = 0,
@@ -68,6 +70,7 @@ const ProgressiveBlurCard = React.forwardRef<HTMLDivElement, ProgressiveBlurCard
         <div className="relative min-h-[12.5rem] flex-1 overflow-hidden text-left sm:min-h-[14rem] lg:min-h-0">
           <ImageWithFallback
             src={imageUrl}
+            fallbackSrc={fallbackImageUrl}
             alt={title}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 group-focus-within:scale-110"
           />

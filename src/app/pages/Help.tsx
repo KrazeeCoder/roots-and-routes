@@ -26,6 +26,11 @@ const faqItems = [
     answer:
       "Use the Portal link at the top right to sign in. Approved contributors can update resources and events once their account is verified.",
   },
+  {
+    question: "How do I report outdated or incorrect information?",
+    answer:
+      "Use the Contact page to send the resource or event name and what needs to be updated. Our team reviews corrections to keep listings accurate.",
+  },
 ];
 
 const guideItems = [
@@ -154,7 +159,7 @@ export function Help() {
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[2rem] border border-[#E7D9C3] bg-white p-8 shadow-[0_20px_40px_-24px_rgba(51,66,51,0.35)]">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#B36A4C]">Frequently asked questions</p>
-            <div className="mt-6 space-y-4">
+            <div className="mt-4 space-y-4">
               <Accordion type="single" collapsible>
                 {faqItems.map((item) => (
                   <AccordionItem key={item.question} value={item.question}>
@@ -192,4 +197,3 @@ export function Help() {
     </div>
   );
 }
-

@@ -4,7 +4,9 @@ import { buildDisplayImageSet } from "../../../utils/imageProxy";
 const ERROR_IMG_SRC =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg=='
 
-interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
+interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+  fallbackSrc?: string | null;
+}
 
 export function ImageWithFallback(props: ImageWithFallbackProps) {
   const imageRef = React.useRef<HTMLImageElement>(null)
@@ -12,21 +14,26 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   const [currentSrc, setCurrentSrc] = useState<string | undefined>()
   const [disableSrcSet, setDisableSrcSet] = useState(false)
   const [didTryOriginalFallback, setDidTryOriginalFallback] = useState(false)
+  const [didTryConfiguredFallback, setDidTryConfiguredFallback] = useState(false)
 
-  const { src, alt, style, className, srcSet, sizes, ...rest } = props
+  const { src, alt, style, className, srcSet, sizes, fallbackSrc, ...rest } = props
   const originalSrc = typeof src === "string" ? src : undefined
   const transformed = buildDisplayImageSet(originalSrc)
+  const fallbackOriginalSrc = typeof fallbackSrc === "string" ? fallbackSrc : undefined
+  const transformedFallback = buildDisplayImageSet(fallbackOriginalSrc)
 
   const resolvedSrc = transformed?.src ?? originalSrc
   const resolvedSrcSet = srcSet ?? transformed?.srcSet ?? undefined
+  const resolvedFallbackSrc = transformedFallback?.src ?? fallbackOriginalSrc
   const resolvedSizes = sizes ?? (resolvedSrcSet ? "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" : undefined)
 
   useEffect(() => {
     setDidError(false)
     setDisableSrcSet(false)
     setDidTryOriginalFallback(false)
+    setDidTryConfiguredFallback(false)
     setCurrentSrc(resolvedSrc)
-  }, [resolvedSrc, originalSrc])
+  }, [resolvedSrc, originalSrc, resolvedFallbackSrc])
 
   const handleError = () => {
     if (!disableSrcSet && resolvedSrcSet) {
@@ -37,6 +44,12 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     if (!didTryOriginalFallback && originalSrc && currentSrc !== originalSrc) {
       setDidTryOriginalFallback(true)
       setCurrentSrc(originalSrc)
+      return
+    }
+    if (!didTryConfiguredFallback && resolvedFallbackSrc && currentSrc !== resolvedFallbackSrc) {
+      setDidTryConfiguredFallback(true)
+      setDisableSrcSet(true)
+      setCurrentSrc(resolvedFallbackSrc)
       return
     }
     setDidError(true)

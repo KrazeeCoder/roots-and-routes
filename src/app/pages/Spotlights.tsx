@@ -241,11 +241,8 @@ function ScenicFeaturedSpotlight({
     buildDisplayImageSet(item.image)?.src ??
     item.image ??
     FALLBACK_SPOTLIGHT_IMAGE;
-  const subtitle = item.subtitle?.trim() ?? "";
   const descriptiveSubtitle =
-    subtitle.length > 0 && subtitle.toLowerCase() !== "community spotlight"
-      ? subtitle
-      : "A handpicked local story with real programs, people, and places worth exploring this month.";
+    "Each month, our team selects one high-impact resource that is making a meaningful difference in the community.";
 
   return (
     <motion.section
@@ -273,6 +270,7 @@ function ScenicFeaturedSpotlight({
         <ProgressiveBlurCard
           className="mx-auto w-full"
           imageUrl={scenicSrc}
+          fallbackImageUrl={FALLBACK_SPOTLIGHT_IMAGE}
           title={item.title}
           description={item.description}
           averageRating={averageRating}
@@ -320,6 +318,7 @@ function SceneSpotlightCard({
       <div className="relative aspect-[2.35/1] overflow-hidden bg-[#E7D9C3]">
         <ImageWithFallback
           src={scenicSrc}
+          fallbackSrc={FALLBACK_SPOTLIGHT_IMAGE}
           alt={item.title}
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 group-focus-within:scale-110"
         />
@@ -521,6 +520,7 @@ function FeaturedEventCard({
       >
         <ImageWithFallback
           src={eventImage}
+          fallbackSrc={FALLBACK_SPOTLIGHT_IMAGE}
           alt={event.title}
           className="block h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
         />

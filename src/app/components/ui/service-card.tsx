@@ -52,12 +52,10 @@ const imageAnimation = {
 
 const arrowAnimation = {
   hover: {
-    x: 5,
+    x: [0, 5, 0, 5, 0],
     transition: {
-      duration: 0.3,
+      duration: 1.2,
       ease: "easeInOut",
-      repeat: Infinity,
-      repeatType: "reverse" as const,
     },
   },
 };
@@ -72,19 +70,20 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
         whileHover="hover"
         {...props}
       >
+        <Link
+          to={href}
+          aria-label={`Learn more about ${title}`}
+          className="absolute inset-0 z-20 rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B36A4C] focus-visible:ring-offset-2"
+        />
         <div className="relative z-10 flex flex-col h-full">
           <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight font-['Cormorant_Garamond',serif] leading-tight">{title}</h3>
           <p className="mt-3 max-w-[80%] text-sm leading-relaxed text-current/85">{description}</p>
-          <Link
-            to={href}
-            aria-label={`Learn more about ${title}`}
-            className="mt-auto flex items-center text-xs font-bold uppercase tracking-[0.18em] group-hover:underline"
-          >
+          <div className="mt-auto flex items-center text-xs font-bold uppercase tracking-[0.18em] group-hover:underline">
             LEARN MORE
             <motion.div variants={arrowAnimation}>
               <ArrowRight className="ml-2 h-4 w-4" />
             </motion.div>
-          </Link>
+          </div>
         </div>
 
         <motion.img
