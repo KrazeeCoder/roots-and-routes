@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
-import { Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { Pencil, PlusCircle, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -78,6 +78,33 @@ const defaultForm: ResourceFormState = {
 
 const contributorStatuses: ContentStatus[] = ["draft", "published"];
 const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected"];
+const RESOURCE_LIST_PAGE_SIZE = 6;
+const FEEDBACK_PAGE_SIZE = 5;
+type StatusFilter = "all" | ContentStatus;
+type ResourceSortOption = "updated_desc" | "updated_asc" | "name_asc" | "name_desc";
+type FeedbackSortOption = "recent_desc" | "recent_asc" | "rating_desc" | "rating_asc";
+type FeedbackRatingFilter = "all" | "1" | "2" | "3" | "4" | "5";
+const DROPDOWN_CONTROL_CLASS =
+  "h-10 w-full rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20";
+
+function getPaginationItems(currentPage: number, totalPages: number): Array<number | "ellipsis"> {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const items: Array<number | "ellipsis"> = [1];
+  const left = Math.max(2, currentPage - 1);
+  const right = Math.min(totalPages - 1, currentPage + 1);
+
+  if (left > 2) items.push("ellipsis");
+  for (let page = left; page <= right; page += 1) {
+    items.push(page);
+  }
+  if (right < totalPages - 1) items.push("ellipsis");
+  items.push(totalPages);
+
+  return items;
+}
 
 function normalizeHttpUrl(raw: string) {
   const trimmed = raw.trim();
@@ -185,6 +212,23 @@ function toErrorMessage(error: unknown, fallback: string) {
     return error.message;
   }
   return fallback;
+}
+
+function renderRatingStars(rating: number) {
+  const safeRating = Math.max(0, Math.min(5, Math.round(rating)));
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`${safeRating} out of 5 stars`}>
+      {Array.from({ length: 5 }, (_, index) => {
+        const filled = index < safeRating;
+        return (
+          <Star
+            key={`rating-star-${safeRating}-${index}`}
+            className={`h-4 w-4 ${filled ? "fill-amber-400 text-amber-500" : "fill-transparent text-[#C9B79D]"}`}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 interface ResourceFormFieldsProps {
@@ -340,7 +384,7 @@ function ResourceFormFields({
             onChange={(event) =>
               setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
             }
-            className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+            className="w-full h-9 rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20"
           >
             {statuses.map((status) => (
               <option key={status} value={status}>
@@ -401,6 +445,16 @@ export function PortalResources() {
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [feedbackItems, setFeedbackItems] = useState<ResourceRatingFeedback[]>([]);
   const [feedbackResourceName, setFeedbackResourceName] = useState("");
+  const [resourceSearch, setResourceSearch] = useState("");
+  const [resourceStatusFilter, setResourceStatusFilter] = useState<StatusFilter>("all");
+  const [resourceCategoryFilter, setResourceCategoryFilter] = useState("all");
+  const [resourceSort, setResourceSort] = useState<ResourceSortOption>("updated_desc");
+  const [resourcePage, setResourcePage] = useState(1);
+  const [feedbackSearch, setFeedbackSearch] = useState("");
+  const [feedbackRatingFilter, setFeedbackRatingFilter] = useState<FeedbackRatingFilter>("all");
+  const [feedbackSort, setFeedbackSort] = useState<FeedbackSortOption>("recent_desc");
+  const [feedbackPage, setFeedbackPage] = useState(1);
+  const feedbackScrollRef = useRef<HTMLDivElement | null>(null);
 
   const canModerate = isModerator(role);
   const statuses = canModerate ? moderatorStatuses : contributorStatuses;
@@ -425,13 +479,153 @@ export function PortalResources() {
     void loadResources();
   }, [role, user]);
 
-  const sortedResources = useMemo(
+  useEffect(() => {
+    setResourcePage(1);
+  }, [resourceSearch, resourceStatusFilter, resourceCategoryFilter, resourceSort]);
+
+  useEffect(() => {
+    setFeedbackPage(1);
+  }, [feedbackSearch, feedbackRatingFilter, feedbackSort]);
+
+  const resourceCategories = useMemo(
     () =>
-      [...resources].sort(
-        (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-      ),
+      Array.from(
+        new Set(
+          resources
+            .map((resource) => resource.category)
+            .filter((category): category is string => Boolean(category)),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
     [resources],
   );
+
+  const filteredAndSortedResources = useMemo(() => {
+    const query = resourceSearch.trim().toLowerCase();
+    const filtered = resources.filter((resource) => {
+      const matchesStatus = resourceStatusFilter === "all" || resource.status === resourceStatusFilter;
+      const matchesCategory = resourceCategoryFilter === "all" || resource.category === resourceCategoryFilter;
+      const matchesQuery = !query
+        || [
+          resource.name,
+          resource.category,
+          resource.description,
+          resource.address,
+          resource.status,
+          resource.tags.join(" "),
+        ].join(" ").toLowerCase().includes(query);
+      return matchesStatus && matchesCategory && matchesQuery;
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (resourceSort === "updated_desc") {
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+      if (resourceSort === "updated_asc") {
+        return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+      }
+      if (resourceSort === "name_asc") {
+        return a.name.localeCompare(b.name);
+      }
+      if (resourceSort === "name_desc") {
+        return b.name.localeCompare(a.name);
+      }
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+  }, [resources, resourceSearch, resourceStatusFilter, resourceCategoryFilter, resourceSort]);
+
+  const resourceTotalPages = Math.max(1, Math.ceil(filteredAndSortedResources.length / RESOURCE_LIST_PAGE_SIZE));
+  const safeResourcePage = Math.min(resourcePage, resourceTotalPages);
+
+  useEffect(() => {
+    if (resourcePage > resourceTotalPages) {
+      setResourcePage(resourceTotalPages);
+    }
+  }, [resourcePage, resourceTotalPages]);
+
+  const paginatedResources = useMemo(() => {
+    const start = (safeResourcePage - 1) * RESOURCE_LIST_PAGE_SIZE;
+    return filteredAndSortedResources.slice(start, start + RESOURCE_LIST_PAGE_SIZE);
+  }, [filteredAndSortedResources, safeResourcePage]);
+
+  const resourceStart = filteredAndSortedResources.length === 0
+    ? 0
+    : (safeResourcePage - 1) * RESOURCE_LIST_PAGE_SIZE + 1;
+  const resourceEnd = Math.min(
+    safeResourcePage * RESOURCE_LIST_PAGE_SIZE,
+    filteredAndSortedResources.length,
+  );
+
+  const filteredAndSortedFeedback = useMemo(() => {
+    const query = feedbackSearch.trim().toLowerCase();
+    const filtered = feedbackItems.filter((item) => {
+      const matchesRating = feedbackRatingFilter === "all" || String(item.rating) === feedbackRatingFilter;
+      const matchesQuery = !query
+        || [item.reason, `${item.rating}`, formatDateTime(item.updated_at)]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+      return matchesRating && matchesQuery;
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (feedbackSort === "recent_desc") {
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+      if (feedbackSort === "recent_asc") {
+        return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+      }
+      if (feedbackSort === "rating_desc") {
+        return b.rating - a.rating;
+      }
+      return a.rating - b.rating;
+    });
+  }, [feedbackItems, feedbackSearch, feedbackRatingFilter, feedbackSort]);
+
+  const feedbackTotalPages = Math.max(1, Math.ceil(filteredAndSortedFeedback.length / FEEDBACK_PAGE_SIZE));
+  const safeFeedbackPage = Math.min(feedbackPage, feedbackTotalPages);
+
+  useEffect(() => {
+    if (feedbackPage > feedbackTotalPages) {
+      setFeedbackPage(feedbackTotalPages);
+    }
+  }, [feedbackPage, feedbackTotalPages]);
+
+  const paginatedFeedback = useMemo(() => {
+    const start = (safeFeedbackPage - 1) * FEEDBACK_PAGE_SIZE;
+    return filteredAndSortedFeedback.slice(start, start + FEEDBACK_PAGE_SIZE);
+  }, [filteredAndSortedFeedback, safeFeedbackPage]);
+
+  const feedbackStart = filteredAndSortedFeedback.length === 0
+    ? 0
+    : (safeFeedbackPage - 1) * FEEDBACK_PAGE_SIZE + 1;
+  const feedbackEnd = Math.min(
+    safeFeedbackPage * FEEDBACK_PAGE_SIZE,
+    filteredAndSortedFeedback.length,
+  );
+
+  const scrollPageToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goToResourcePage = (nextPage: number) => {
+    const bounded = Math.max(1, Math.min(nextPage, resourceTotalPages));
+    if (bounded === resourcePage) return;
+    setResourcePage(bounded);
+    scrollPageToTop();
+  };
+
+  const goToFeedbackPage = (nextPage: number) => {
+    const bounded = Math.max(1, Math.min(nextPage, feedbackTotalPages));
+    if (bounded === feedbackPage) return;
+    setFeedbackPage(bounded);
+
+    const feedbackScroller = feedbackScrollRef.current;
+    if (feedbackScroller) {
+      feedbackScroller.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    scrollPageToTop();
+  };
 
   const closeEditDialog = () => {
     setEditOpen(false);
@@ -453,6 +647,10 @@ export function PortalResources() {
     setFeedbackError(null);
     setFeedbackItems([]);
     setFeedbackResourceName("");
+    setFeedbackSearch("");
+    setFeedbackRatingFilter("all");
+    setFeedbackSort("recent_desc");
+    setFeedbackPage(1);
   };
 
   const openFeedbackDialog = async (resource: ResourceRecord) => {
@@ -461,6 +659,10 @@ export function PortalResources() {
     setFeedbackError(null);
     setFeedbackItems([]);
     setFeedbackResourceName(resource.name);
+    setFeedbackSearch("");
+    setFeedbackRatingFilter("all");
+    setFeedbackSort("recent_desc");
+    setFeedbackPage(1);
 
     try {
       const data = await listResourceRatingFeedback(resource.id);
@@ -589,16 +791,87 @@ export function PortalResources() {
         <Card className="border-[#E7D9C3]">
           <CardHeader>
             <CardTitle>Your resource listings</CardTitle>
-            <CardDescription>Published listings are live right away for approved contributors.</CardDescription>
+            <CardDescription>
+              Published listings are live right away for approved contributors.
+              Use filters and sorting to quickly review listings and feedback.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <TableSkeleton rows={3} columns={4} /> : null}
             {!loading && listError ? <p className="text-sm text-red-600">{listError}</p> : null}
-            {!loading && sortedResources.length === 0 ? (
-              <p className="text-sm text-[#6F7553]">No resources yet. Create your first listing.</p>
+
+            {resources.length > 0 ? (
+              <div className="rounded-xl border border-[#E7D9C3] bg-white p-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="min-w-0 md:col-span-2">
+                    <Label htmlFor="resource-search">Search</Label>
+                    <Input
+                      id="resource-search"
+                      value={resourceSearch}
+                      onChange={(event) => setResourceSearch(event.target.value)}
+                      placeholder="Enter keywords"
+                      className="h-10 text-sm"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <Label htmlFor="resource-status-filter">Status</Label>
+                    <select
+                      id="resource-status-filter"
+                      value={resourceStatusFilter}
+                      onChange={(event) => setResourceStatusFilter(event.target.value as StatusFilter)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="all">All statuses</option>
+                      {statuses.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0">
+                    <Label htmlFor="resource-category-filter">Category</Label>
+                    <select
+                      id="resource-category-filter"
+                      value={resourceCategoryFilter}
+                      onChange={(event) => setResourceCategoryFilter(event.target.value)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="all">All categories</option>
+                      {resourceCategories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0">
+                    <Label htmlFor="resource-sort">Sort by</Label>
+                    <select
+                      id="resource-sort"
+                      value={resourceSort}
+                      onChange={(event) => setResourceSort(event.target.value as ResourceSortOption)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="updated_desc">Recently updated</option>
+                      <option value="updated_asc">Oldest updated</option>
+                      <option value="name_asc">Name A-Z</option>
+                      <option value="name_desc">Name Z-A</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             ) : null}
 
-            {sortedResources.map((resource) => (
+            {!loading && filteredAndSortedResources.length === 0 ? (
+              <p className="text-sm text-[#6F7553]">
+                {resources.length === 0
+                  ? "No resources yet. Create your first listing."
+                  : "No resources match the current filters."}
+              </p>
+            ) : null}
+
+            {paginatedResources.map((resource) => (
               <div key={resource.id} className="rounded-2xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -643,6 +916,51 @@ export function PortalResources() {
                 </div>
               </div>
             ))}
+
+            {!loading && filteredAndSortedResources.length > 0 ? (
+              <div className="flex flex-col gap-3 border-t border-[#E7D9C3] pt-4 text-sm text-[#5B473A] sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                  Showing {resourceStart}-{resourceEnd} of {filteredAndSortedResources.length} resources
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => goToResourcePage(safeResourcePage - 1)}
+                    disabled={safeResourcePage <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {getPaginationItems(safeResourcePage, resourceTotalPages).map((item, index) =>
+                      item === "ellipsis" ? (
+                        <span key={`resource-ellipsis-${index}`} className="px-2 text-xs text-[#6F7553]">
+                          ...
+                        </span>
+                      ) : (
+                        <Button
+                          key={`resource-page-${item}`}
+                          size="sm"
+                          variant={item === safeResourcePage ? "default" : "outline"}
+                          onClick={() => goToResourcePage(item)}
+                          className="min-w-8 px-2"
+                        >
+                          {item}
+                        </Button>
+                      ),
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => goToResourcePage(safeResourcePage + 1)}
+                    disabled={safeResourcePage >= resourceTotalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
@@ -711,23 +1029,75 @@ export function PortalResources() {
                 : "Feedback for this resource."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
+          <div ref={feedbackScrollRef} className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
             {feedbackLoading ? (
               <FormSkeleton />
             ) : null}
             {!feedbackLoading && feedbackError ? (
               <p className="text-sm text-red-600">{feedbackError}</p>
             ) : null}
-            {!feedbackLoading && !feedbackError && feedbackItems.length === 0 ? (
-              <p className="text-sm text-[#6F7553]">No rating feedback yet.</p>
+            {!feedbackLoading && !feedbackError && feedbackItems.length > 0 ? (
+              <div className="rounded-xl border border-[#E7D9C3] bg-white p-3">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div>
+                    <Label htmlFor="feedback-search">Search feedback</Label>
+                    <Input
+                      id="feedback-search"
+                      value={feedbackSearch}
+                      onChange={(event) => setFeedbackSearch(event.target.value)}
+                      placeholder="Enter keywords"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="feedback-rating-filter">Rating</Label>
+                    <select
+                      id="feedback-rating-filter"
+                      value={feedbackRatingFilter}
+                      onChange={(event) => setFeedbackRatingFilter(event.target.value as FeedbackRatingFilter)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="all">All ratings</option>
+                      <option value="5">5 stars</option>
+                      <option value="4">4 stars</option>
+                      <option value="3">3 stars</option>
+                      <option value="2">2 stars</option>
+                      <option value="1">1 star</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="feedback-sort">Sort by</Label>
+                    <select
+                      id="feedback-sort"
+                      value={feedbackSort}
+                      onChange={(event) => setFeedbackSort(event.target.value as FeedbackSortOption)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="recent_desc">Newest first</option>
+                      <option value="recent_asc">Oldest first</option>
+                      <option value="rating_desc">Highest rating</option>
+                      <option value="rating_asc">Lowest rating</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            {!feedbackLoading && !feedbackError && filteredAndSortedFeedback.length === 0 ? (
+              <p className="text-sm text-[#6F7553]">
+                {feedbackItems.length === 0
+                  ? "No rating feedback yet."
+                  : "No rating feedback matches the current filters."}
+              </p>
             ) : null}
             {!feedbackLoading && !feedbackError
-              ? feedbackItems.map((item, index) => (
+              ? paginatedFeedback.map((item, index) => (
                 <div
                   key={`${item.updated_at}-${index}`}
                   className="rounded-xl border border-[#E7D9C3] bg-[#F6F1E7] p-3"
                 >
-                  <p className="text-sm font-semibold text-[#334233]">{item.rating}/5</p>
+                  <div className="flex items-center gap-2">
+                    {renderRatingStars(item.rating)}
+                    <span className="text-xs font-medium text-[#5B473A]">{Math.round(item.rating)} stars</span>
+                  </div>
                   <p className="text-sm text-[#5B473A] mt-1">{item.reason}</p>
                   <p className="text-xs text-[#6F7553] mt-2">
                     Updated {formatDateTime(item.updated_at)}
@@ -735,6 +1105,50 @@ export function PortalResources() {
                 </div>
               ))
               : null}
+            {!feedbackLoading && !feedbackError && filteredAndSortedFeedback.length > 0 ? (
+              <div className="flex flex-col gap-3 border-t border-[#E7D9C3] pt-3 text-sm text-[#5B473A] sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                  Showing {feedbackStart}-{feedbackEnd} of {filteredAndSortedFeedback.length} feedback entries
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => goToFeedbackPage(safeFeedbackPage - 1)}
+                    disabled={safeFeedbackPage <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {getPaginationItems(safeFeedbackPage, feedbackTotalPages).map((item, index) =>
+                      item === "ellipsis" ? (
+                        <span key={`feedback-ellipsis-${index}`} className="px-2 text-xs text-[#6F7553]">
+                          ...
+                        </span>
+                      ) : (
+                        <Button
+                          key={`feedback-page-${item}`}
+                          size="sm"
+                          variant={item === safeFeedbackPage ? "default" : "outline"}
+                          onClick={() => goToFeedbackPage(item)}
+                          className="min-w-8 px-2"
+                        >
+                          {item}
+                        </Button>
+                      ),
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => goToFeedbackPage(safeFeedbackPage + 1)}
+                    disabled={safeFeedbackPage >= feedbackTotalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
           <div className="pt-2">
             <Button type="button" variant="outline" onClick={closeFeedbackDialog}>

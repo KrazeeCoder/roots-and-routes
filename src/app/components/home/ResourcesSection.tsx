@@ -63,8 +63,8 @@ export function ResourcesSection() {
                   </p>
 
                   {/* Enhanced arrow link */}
-                  <div className="mt-auto flex items-center text-[#B36A4C] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-all duration-400 transform translate-y-2 group-hover:translate-y-0">
-                    Explore <span className="ml-2 inline-block transition-transform duration-400 group-hover:translate-x-2">{"->"}</span>
+                  <div className="mt-auto flex items-center text-[#B36A4C] font-semibold text-sm">
+                    Explore Now <span className="ml-2 inline-block transition-transform duration-400 group-hover:translate-x-2">{"->"}</span>
                   </div>
                 </Link>
               </TiltCard>

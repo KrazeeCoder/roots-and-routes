@@ -61,6 +61,37 @@ const defaultForm: EventFormState = {
 
 const contributorStatuses: ContentStatus[] = ["draft", "published"];
 const moderatorStatuses: ContentStatus[] = ["draft", "pending", "published", "rejected"];
+const EVENT_LIST_PAGE_SIZE = 6;
+type StatusFilter = "all" | ContentStatus;
+type EventTimeFilter = "all" | "upcoming" | "past";
+type EventSortOption =
+  | "starts_soonest"
+  | "starts_latest"
+  | "updated_desc"
+  | "updated_asc"
+  | "title_asc"
+  | "title_desc";
+const DROPDOWN_CONTROL_CLASS =
+  "h-10 w-full rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20";
+
+function getPaginationItems(currentPage: number, totalPages: number): Array<number | "ellipsis"> {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const items: Array<number | "ellipsis"> = [1];
+  const left = Math.max(2, currentPage - 1);
+  const right = Math.min(totalPages - 1, currentPage + 1);
+
+  if (left > 2) items.push("ellipsis");
+  for (let page = left; page <= right; page += 1) {
+    items.push(page);
+  }
+  if (right < totalPages - 1) items.push("ellipsis");
+  items.push(totalPages);
+
+  return items;
+}
 
 function normalizeHttpUrl(raw: string) {
   const trimmed = raw.trim();
@@ -274,7 +305,7 @@ function EventFormFields({
             onChange={(event) =>
               setForm((prev) => ({ ...prev, status: event.target.value as ContentStatus }))
             }
-            className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+            className="w-full h-9 rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20"
           >
             {statuses.map((status) => (
               <option key={status} value={status}>
@@ -329,6 +360,12 @@ export function PortalEvents() {
   const [editError, setEditError] = useState<string | null>(null);
   const [editGeoNotice, setEditGeoNotice] = useState<string | null>(null);
   const [editOriginalLocation, setEditOriginalLocation] = useState<string | null>(null);
+  const [eventSearch, setEventSearch] = useState("");
+  const [eventStatusFilter, setEventStatusFilter] = useState<StatusFilter>("all");
+  const [eventCategoryFilter, setEventCategoryFilter] = useState("all");
+  const [eventTimeFilter, setEventTimeFilter] = useState<EventTimeFilter>("all");
+  const [eventSort, setEventSort] = useState<EventSortOption>("starts_soonest");
+  const [eventPage, setEventPage] = useState(1);
 
   const canModerate = isModerator(role);
   const statuses = canModerate ? moderatorStatuses : contributorStatuses;
@@ -353,10 +390,94 @@ export function PortalEvents() {
     void loadEvents();
   }, [role, user]);
 
-  const sortedEvents = useMemo(
-    () => [...events].sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()),
+  useEffect(() => {
+    setEventPage(1);
+  }, [eventSearch, eventStatusFilter, eventCategoryFilter, eventTimeFilter, eventSort]);
+
+  const eventCategories = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          events
+            .map((event) => event.category)
+            .filter((category): category is string => Boolean(category?.trim())),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
     [events],
   );
+
+  const filteredAndSortedEvents = useMemo(() => {
+    const query = eventSearch.trim().toLowerCase();
+    const now = Date.now();
+    const filtered = events.filter((event) => {
+      const startsAt = new Date(event.starts_at).getTime();
+      const matchesStatus = eventStatusFilter === "all" || event.status === eventStatusFilter;
+      const matchesCategory = eventCategoryFilter === "all" || (event.category ?? "") === eventCategoryFilter;
+      const matchesTime = eventTimeFilter === "all"
+        || (eventTimeFilter === "upcoming" ? startsAt >= now : startsAt < now);
+      const matchesQuery = !query
+        || [
+          event.title,
+          event.category ?? "",
+          event.location,
+          event.description ?? "",
+          event.status,
+        ].join(" ").toLowerCase().includes(query);
+      return matchesStatus && matchesCategory && matchesTime && matchesQuery;
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (eventSort === "starts_soonest") {
+        return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+      }
+      if (eventSort === "starts_latest") {
+        return new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime();
+      }
+      if (eventSort === "updated_desc") {
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+      if (eventSort === "updated_asc") {
+        return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+      }
+      if (eventSort === "title_asc") {
+        return a.title.localeCompare(b.title);
+      }
+      if (eventSort === "title_desc") {
+        return b.title.localeCompare(a.title);
+      }
+      return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+    });
+  }, [events, eventSearch, eventStatusFilter, eventCategoryFilter, eventTimeFilter, eventSort]);
+
+  const eventTotalPages = Math.max(1, Math.ceil(filteredAndSortedEvents.length / EVENT_LIST_PAGE_SIZE));
+  const safeEventPage = Math.min(eventPage, eventTotalPages);
+
+  useEffect(() => {
+    if (eventPage > eventTotalPages) {
+      setEventPage(eventTotalPages);
+    }
+  }, [eventPage, eventTotalPages]);
+
+  const paginatedEvents = useMemo(() => {
+    const start = (safeEventPage - 1) * EVENT_LIST_PAGE_SIZE;
+    return filteredAndSortedEvents.slice(start, start + EVENT_LIST_PAGE_SIZE);
+  }, [filteredAndSortedEvents, safeEventPage]);
+
+  const eventStart = filteredAndSortedEvents.length === 0
+    ? 0
+    : (safeEventPage - 1) * EVENT_LIST_PAGE_SIZE + 1;
+  const eventEnd = Math.min(safeEventPage * EVENT_LIST_PAGE_SIZE, filteredAndSortedEvents.length);
+
+  const scrollPageToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goToEventPage = (nextPage: number) => {
+    const bounded = Math.max(1, Math.min(nextPage, eventTotalPages));
+    if (bounded === eventPage) return;
+    setEventPage(bounded);
+    scrollPageToTop();
+  };
 
   const closeEditDialog = () => {
     setEditOpen(false);
@@ -631,16 +752,102 @@ export function PortalEvents() {
         <Card className="border-[#E7D9C3]">
           <CardHeader>
             <CardTitle>Your event listings</CardTitle>
-            <CardDescription>Published events go live immediately for approved contributors.</CardDescription>
+            <CardDescription>
+              Published events go live immediately for approved contributors.
+              Use filters, sorting, and pages to manage event updates faster.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <p className="text-sm text-[#6F7553]">Loading events...</p> : null}
             {!loading && listError ? <p className="text-sm text-red-600">{listError}</p> : null}
-            {!loading && sortedEvents.length === 0 ? (
-              <p className="text-sm text-[#6F7553]">No events yet. Create one to get started.</p>
+
+            {events.length > 0 ? (
+              <div className="rounded-xl border border-[#E7D9C3] bg-white p-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="min-w-0 md:col-span-2">
+                    <Label htmlFor="event-search">Search</Label>
+                    <Input
+                      id="event-search"
+                      value={eventSearch}
+                      onChange={(event) => setEventSearch(event.target.value)}
+                      placeholder="Enter keywords"
+                      className="h-10 text-sm"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <Label htmlFor="event-status-filter">Status</Label>
+                    <select
+                      id="event-status-filter"
+                      value={eventStatusFilter}
+                      onChange={(event) => setEventStatusFilter(event.target.value as StatusFilter)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="all">All statuses</option>
+                      {statuses.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0">
+                    <Label htmlFor="event-category-filter">Category</Label>
+                    <select
+                      id="event-category-filter"
+                      value={eventCategoryFilter}
+                      onChange={(event) => setEventCategoryFilter(event.target.value)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="all">All categories</option>
+                      {eventCategories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0">
+                    <Label htmlFor="event-time-filter">Time window</Label>
+                    <select
+                      id="event-time-filter"
+                      value={eventTimeFilter}
+                      onChange={(event) => setEventTimeFilter(event.target.value as EventTimeFilter)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="all">All events</option>
+                      <option value="upcoming">Upcoming</option>
+                      <option value="past">Past</option>
+                    </select>
+                  </div>
+                  <div className="min-w-0">
+                    <Label htmlFor="event-sort">Sort by</Label>
+                    <select
+                      id="event-sort"
+                      value={eventSort}
+                      onChange={(event) => setEventSort(event.target.value as EventSortOption)}
+                      className={DROPDOWN_CONTROL_CLASS}
+                    >
+                      <option value="starts_soonest">Start date (soonest)</option>
+                      <option value="starts_latest">Start date (latest)</option>
+                      <option value="updated_desc">Recently updated</option>
+                      <option value="updated_asc">Oldest updated</option>
+                      <option value="title_asc">Title A-Z</option>
+                      <option value="title_desc">Title Z-A</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             ) : null}
 
-            {sortedEvents.map((event) => (
+            {!loading && filteredAndSortedEvents.length === 0 ? (
+              <p className="text-sm text-[#6F7553]">
+                {events.length === 0
+                  ? "No events yet. Create one to get started."
+                  : "No events match the current filters."}
+              </p>
+            ) : null}
+
+            {paginatedEvents.map((event) => (
               <div key={event.id} className="rounded-2xl border border-[#E7D9C3] p-4 bg-[#F6F1E7]">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -682,6 +889,51 @@ export function PortalEvents() {
                 </div>
               </div>
             ))}
+
+            {!loading && filteredAndSortedEvents.length > 0 ? (
+              <div className="flex flex-col gap-3 border-t border-[#E7D9C3] pt-4 text-sm text-[#5B473A] sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                  Showing {eventStart}-{eventEnd} of {filteredAndSortedEvents.length} events
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => goToEventPage(safeEventPage - 1)}
+                    disabled={safeEventPage <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {getPaginationItems(safeEventPage, eventTotalPages).map((item, index) =>
+                      item === "ellipsis" ? (
+                        <span key={`event-ellipsis-${index}`} className="px-2 text-xs text-[#6F7553]">
+                          ...
+                        </span>
+                      ) : (
+                        <Button
+                          key={`event-page-${item}`}
+                          size="sm"
+                          variant={item === safeEventPage ? "default" : "outline"}
+                          onClick={() => goToEventPage(item)}
+                          className="min-w-8 px-2"
+                        >
+                          {item}
+                        </Button>
+                      ),
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => goToEventPage(safeEventPage + 1)}
+                    disabled={safeEventPage >= eventTotalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>

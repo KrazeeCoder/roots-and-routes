@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, ClipboardList, FileText, Trash2, UserCheck, UserX, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
@@ -39,6 +39,38 @@ const resourceModerationStatuses: ContentStatus[] = ["draft", "published", "reje
 const eventModerationStatuses: ContentStatus[] = ["draft", "published", "rejected", "pending"];
 const CONTENT_PAGE_SIZE = 12;
 type StatusFilter = "all" | ContentStatus;
+type ResourceSortOption = "updated_desc" | "updated_asc" | "name_asc" | "name_desc";
+type EventSortOption =
+  | "starts_soonest"
+  | "starts_latest"
+  | "updated_desc"
+  | "updated_asc"
+  | "title_asc"
+  | "title_desc";
+type EventTimeFilter = "all" | "upcoming" | "past";
+const DROPDOWN_CONTROL_CLASS =
+  "h-10 w-full rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20";
+const DROPDOWN_COMPACT_CLASS =
+  "h-9 rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20";
+
+function getPaginationItems(currentPage: number, totalPages: number): Array<number | "ellipsis"> {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const items: Array<number | "ellipsis"> = [1];
+  const left = Math.max(2, currentPage - 1);
+  const right = Math.min(totalPages - 1, currentPage + 1);
+
+  if (left > 2) items.push("ellipsis");
+  for (let page = left; page <= right; page += 1) {
+    items.push(page);
+  }
+  if (right < totalPages - 1) items.push("ellipsis");
+  items.push(totalPages);
+
+  return items;
+}
 
 function getErrorMessage(error: unknown) {
   if (typeof error !== "object" || error === null) return "";
@@ -61,14 +93,21 @@ export function PortalModeration() {
   const [eventNotes, setEventNotes] = useState<Record<string, string>>({});
   const [resourceSearch, setResourceSearch] = useState("");
   const [resourceStatusFilter, setResourceStatusFilter] = useState<StatusFilter>("all");
+  const [resourceCategoryFilter, setResourceCategoryFilter] = useState("all");
+  const [resourceSort, setResourceSort] = useState<ResourceSortOption>("updated_desc");
   const [eventSearch, setEventSearch] = useState("");
   const [eventStatusFilter, setEventStatusFilter] = useState<StatusFilter>("all");
+  const [eventCategoryFilter, setEventCategoryFilter] = useState("all");
+  const [eventTimeFilter, setEventTimeFilter] = useState<EventTimeFilter>("all");
+  const [eventSort, setEventSort] = useState<EventSortOption>("starts_soonest");
   const [resourcePage, setResourcePage] = useState(1);
   const [eventPage, setEventPage] = useState(1);
   const [resourceSubmissionBusy, setResourceSubmissionBusy] = useState<Record<string, boolean>>({});
   const [eventSubmissionBusy, setEventSubmissionBusy] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const resourceLibraryTopRef = useRef<HTMLDivElement | null>(null);
+  const eventLibraryTopRef = useRef<HTMLDivElement | null>(null);
 
   const loadQueue = async () => {
     setLoading(true);
@@ -118,41 +157,115 @@ export function PortalModeration() {
 
   useEffect(() => {
     setResourcePage(1);
-  }, [resourceSearch, resourceStatusFilter]);
+  }, [resourceSearch, resourceStatusFilter, resourceCategoryFilter, resourceSort]);
 
   useEffect(() => {
     setEventPage(1);
-  }, [eventSearch, eventStatusFilter]);
+  }, [eventSearch, eventStatusFilter, eventCategoryFilter, eventTimeFilter, eventSort]);
+
+  const resourceCategoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          resources
+            .map((resource) => resource.category)
+            .filter((category): category is string => Boolean(category)),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [resources],
+  );
+
+  const eventCategoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          events
+            .map((event) => event.category)
+            .filter((category): category is string => Boolean(category?.trim())),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [events],
+  );
 
   const filteredResources = useMemo(() => {
     const query = resourceSearch.trim().toLowerCase();
     return resources.filter((resource) => {
       const matchesStatus = resourceStatusFilter === "all" || resource.status === resourceStatusFilter;
+      const matchesCategory = resourceCategoryFilter === "all" || resource.category === resourceCategoryFilter;
       const matchesQuery = !query || [
         resource.name,
         resource.category,
         resource.description,
         resource.address,
         resource.posted_by_name ?? "",
+        resource.status,
       ].join(" ").toLowerCase().includes(query);
-      return matchesStatus && matchesQuery;
+      return matchesStatus && matchesCategory && matchesQuery;
     });
-  }, [resources, resourceSearch, resourceStatusFilter]);
+  }, [resources, resourceSearch, resourceStatusFilter, resourceCategoryFilter]);
 
   const filteredEvents = useMemo(() => {
     const query = eventSearch.trim().toLowerCase();
+    const now = Date.now();
     return events.filter((event) => {
+      const startsAt = new Date(event.starts_at).getTime();
       const matchesStatus = eventStatusFilter === "all" || event.status === eventStatusFilter;
+      const matchesCategory = eventCategoryFilter === "all" || (event.category ?? "") === eventCategoryFilter;
+      const matchesTime = eventTimeFilter === "all"
+        || (eventTimeFilter === "upcoming" ? startsAt >= now : startsAt < now);
       const matchesQuery = !query || [
         event.title,
         event.category ?? "",
         event.location,
         event.description ?? "",
         event.posted_by_name ?? "",
+        event.status,
       ].join(" ").toLowerCase().includes(query);
-      return matchesStatus && matchesQuery;
+      return matchesStatus && matchesCategory && matchesTime && matchesQuery;
     });
-  }, [events, eventSearch, eventStatusFilter]);
+  }, [events, eventSearch, eventStatusFilter, eventCategoryFilter, eventTimeFilter]);
+
+  const sortedResources = useMemo(() => {
+    return [...filteredResources].sort((a, b) => {
+      if (resourceSort === "updated_desc") {
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+      if (resourceSort === "updated_asc") {
+        return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+      }
+      if (resourceSort === "name_asc") {
+        return a.name.localeCompare(b.name);
+      }
+      if (resourceSort === "name_desc") {
+        return b.name.localeCompare(a.name);
+      }
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+  }, [filteredResources, resourceSort]);
+
+  const sortedEvents = useMemo(() => {
+    return [...filteredEvents].sort((a, b) => {
+      if (eventSort === "starts_soonest") {
+        return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+      }
+      if (eventSort === "starts_latest") {
+        return new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime();
+      }
+      if (eventSort === "updated_desc") {
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      }
+      if (eventSort === "updated_asc") {
+        return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+      }
+      if (eventSort === "title_asc") {
+        return a.title.localeCompare(b.title);
+      }
+      if (eventSort === "title_desc") {
+        return b.title.localeCompare(a.title);
+      }
+      return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime();
+    });
+  }, [filteredEvents, eventSort]);
 
   const pendingResourceContent = useMemo(
     () => resources.filter((resource) => resource.status === "pending"),
@@ -164,8 +277,10 @@ export function PortalModeration() {
     [events],
   );
 
-  const resourceTotalPages = Math.max(1, Math.ceil(filteredResources.length / CONTENT_PAGE_SIZE));
-  const eventTotalPages = Math.max(1, Math.ceil(filteredEvents.length / CONTENT_PAGE_SIZE));
+  const resourceTotalPages = Math.max(1, Math.ceil(sortedResources.length / CONTENT_PAGE_SIZE));
+  const eventTotalPages = Math.max(1, Math.ceil(sortedEvents.length / CONTENT_PAGE_SIZE));
+  const safeResourcePage = Math.min(resourcePage, resourceTotalPages);
+  const safeEventPage = Math.min(eventPage, eventTotalPages);
 
   useEffect(() => {
     if (resourcePage > resourceTotalPages) setResourcePage(resourceTotalPages);
@@ -176,19 +291,37 @@ export function PortalModeration() {
   }, [eventPage, eventTotalPages]);
 
   const paginatedResources = useMemo(() => {
-    const start = (resourcePage - 1) * CONTENT_PAGE_SIZE;
-    return filteredResources.slice(start, start + CONTENT_PAGE_SIZE);
-  }, [filteredResources, resourcePage]);
+    const start = (safeResourcePage - 1) * CONTENT_PAGE_SIZE;
+    return sortedResources.slice(start, start + CONTENT_PAGE_SIZE);
+  }, [sortedResources, safeResourcePage]);
 
   const paginatedEvents = useMemo(() => {
-    const start = (eventPage - 1) * CONTENT_PAGE_SIZE;
-    return filteredEvents.slice(start, start + CONTENT_PAGE_SIZE);
-  }, [filteredEvents, eventPage]);
+    const start = (safeEventPage - 1) * CONTENT_PAGE_SIZE;
+    return sortedEvents.slice(start, start + CONTENT_PAGE_SIZE);
+  }, [sortedEvents, safeEventPage]);
 
-  const resourceStart = filteredResources.length === 0 ? 0 : (resourcePage - 1) * CONTENT_PAGE_SIZE + 1;
-  const resourceEnd = Math.min(resourcePage * CONTENT_PAGE_SIZE, filteredResources.length);
-  const eventStart = filteredEvents.length === 0 ? 0 : (eventPage - 1) * CONTENT_PAGE_SIZE + 1;
-  const eventEnd = Math.min(eventPage * CONTENT_PAGE_SIZE, filteredEvents.length);
+  const resourceStart = sortedResources.length === 0 ? 0 : (safeResourcePage - 1) * CONTENT_PAGE_SIZE + 1;
+  const resourceEnd = Math.min(safeResourcePage * CONTENT_PAGE_SIZE, sortedResources.length);
+  const eventStart = sortedEvents.length === 0 ? 0 : (safeEventPage - 1) * CONTENT_PAGE_SIZE + 1;
+  const eventEnd = Math.min(safeEventPage * CONTENT_PAGE_SIZE, sortedEvents.length);
+
+  const scrollToPageTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goToResourcePage = (nextPage: number) => {
+    const bounded = Math.max(1, Math.min(nextPage, resourceTotalPages));
+    if (bounded === resourcePage) return;
+    setResourcePage(bounded);
+    scrollToPageTop();
+  };
+
+  const goToEventPage = (nextPage: number) => {
+    const bounded = Math.max(1, Math.min(nextPage, eventTotalPages));
+    if (bounded === eventPage) return;
+    setEventPage(bounded);
+    scrollToPageTop();
+  };
 
   const handleResourceStatus = async (id: string, status: ContentStatus) => {
     const target = resources.find((item) => item.id === id);
@@ -737,6 +870,7 @@ export function PortalModeration() {
             </TabsList>
 
             <TabsContent value="event-library">
+              <div ref={eventLibraryTopRef} />
               <Card className="border-[#E7D9C3]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -744,11 +878,11 @@ export function PortalModeration() {
                     Event Library
                   </CardTitle>
                   <CardDescription>
-                    Search, filter, and page through published, draft, pending, and rejected events.
+                    Search, filter, sort, and page through published, draft, pending, and rejected events.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-3 md:grid-cols-[1fr_200px]">
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                     <div>
                       <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
                         Search events
@@ -756,17 +890,17 @@ export function PortalModeration() {
                       <Input
                         value={eventSearch}
                         onChange={(event) => setEventSearch(event.target.value)}
-                        placeholder="Title, category, location, organizer..."
+                        placeholder="Enter keywords"
                       />
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
-                        Status filter
+                        Status
                       </label>
                       <select
                         value={eventStatusFilter}
                         onChange={(event) => setEventStatusFilter(event.target.value as StatusFilter)}
-                        className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        className={DROPDOWN_CONTROL_CLASS}
                       >
                         <option value="all">All statuses</option>
                         {eventModerationStatuses.map((status) => (
@@ -776,10 +910,58 @@ export function PortalModeration() {
                         ))}
                       </select>
                     </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
+                        Category
+                      </label>
+                      <select
+                        value={eventCategoryFilter}
+                        onChange={(event) => setEventCategoryFilter(event.target.value)}
+                        className={DROPDOWN_CONTROL_CLASS}
+                      >
+                        <option value="all">All categories</option>
+                        {eventCategoryOptions.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
+                        Time window
+                      </label>
+                      <select
+                        value={eventTimeFilter}
+                        onChange={(event) => setEventTimeFilter(event.target.value as EventTimeFilter)}
+                        className={DROPDOWN_CONTROL_CLASS}
+                      >
+                        <option value="all">All events</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="past">Past</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
+                        Sort
+                      </label>
+                      <select
+                        value={eventSort}
+                        onChange={(event) => setEventSort(event.target.value as EventSortOption)}
+                        className={DROPDOWN_CONTROL_CLASS}
+                      >
+                        <option value="starts_soonest">Start date (soonest)</option>
+                        <option value="starts_latest">Start date (latest)</option>
+                        <option value="updated_desc">Recently updated</option>
+                        <option value="updated_asc">Oldest updated</option>
+                        <option value="title_asc">Title A-Z</option>
+                        <option value="title_desc">Title Z-A</option>
+                      </select>
+                    </div>
                   </div>
 
                   {loading ? <p className="text-sm text-[#6F7553]">Loading event records...</p> : null}
-                  {!loading && filteredEvents.length === 0 ? (
+                  {!loading && sortedEvents.length === 0 ? (
                     <p className="text-sm text-[#6F7553]">No events match the current filters.</p>
                   ) : null}
 
@@ -799,7 +981,7 @@ export function PortalModeration() {
                           <select
                             value={event.status}
                             onChange={(next) => void handleEventStatus(event.id, next.target.value as ContentStatus)}
-                            className="h-9 rounded-md border border-input bg-white px-3 py-1 text-sm"
+                            className={DROPDOWN_COMPACT_CLASS}
                           >
                             {eventModerationStatuses.map((status) => (
                               <option key={`${event.id}-${status}`} value={status}>
@@ -820,28 +1002,44 @@ export function PortalModeration() {
                     </div>
                   ))}
 
-                  {!loading && filteredEvents.length > 0 ? (
+                  {!loading && sortedEvents.length > 0 ? (
                     <div className="flex flex-col gap-3 border-t border-[#E7D9C3] pt-4 text-sm text-[#5B473A] sm:flex-row sm:items-center sm:justify-between">
                       <p>
-                        Showing {eventStart}-{eventEnd} of {filteredEvents.length} events
+                        Showing {eventStart}-{eventEnd} of {sortedEvents.length} events
                       </p>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setEventPage((prev) => Math.max(prev - 1, 1))}
-                          disabled={eventPage <= 1}
+                          onClick={() => goToEventPage(safeEventPage - 1)}
+                          disabled={safeEventPage <= 1}
                         >
                           Previous
                         </Button>
-                        <span className="text-xs uppercase tracking-wide text-[#6F7553]">
-                          Page {eventPage} of {eventTotalPages}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          {getPaginationItems(safeEventPage, eventTotalPages).map((item, index) =>
+                            item === "ellipsis" ? (
+                              <span key={`moderator-event-ellipsis-${index}`} className="px-2 text-xs text-[#6F7553]">
+                                ...
+                              </span>
+                            ) : (
+                              <Button
+                                key={`moderator-event-page-${item}`}
+                                size="sm"
+                                variant={item === safeEventPage ? "default" : "outline"}
+                                onClick={() => goToEventPage(item)}
+                                className="min-w-8 px-2"
+                              >
+                                {item}
+                              </Button>
+                            ),
+                          )}
+                        </div>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setEventPage((prev) => Math.min(prev + 1, eventTotalPages))}
-                          disabled={eventPage >= eventTotalPages}
+                          onClick={() => goToEventPage(safeEventPage + 1)}
+                          disabled={safeEventPage >= eventTotalPages}
                         >
                           Next
                         </Button>
@@ -853,6 +1051,7 @@ export function PortalModeration() {
             </TabsContent>
 
             <TabsContent value="resource-library">
+              <div ref={resourceLibraryTopRef} />
               <Card className="border-[#E7D9C3]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -860,11 +1059,11 @@ export function PortalModeration() {
                     Resource Library
                   </CardTitle>
                   <CardDescription>
-                    Search, filter, and page through published, draft, pending, and rejected resources.
+                    Search, filter, sort, and page through published, draft, pending, and rejected resources.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-3 md:grid-cols-[1fr_200px]">
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     <div>
                       <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
                         Search resources
@@ -872,17 +1071,17 @@ export function PortalModeration() {
                       <Input
                         value={resourceSearch}
                         onChange={(event) => setResourceSearch(event.target.value)}
-                        placeholder="Name, category, address, posted by..."
+                        placeholder="Enter keywords"
                       />
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
-                        Status filter
+                        Status
                       </label>
                       <select
                         value={resourceStatusFilter}
                         onChange={(event) => setResourceStatusFilter(event.target.value as StatusFilter)}
-                        className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                        className={DROPDOWN_CONTROL_CLASS}
                       >
                         <option value="all">All statuses</option>
                         {resourceModerationStatuses.map((status) => (
@@ -892,10 +1091,42 @@ export function PortalModeration() {
                         ))}
                       </select>
                     </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
+                        Category
+                      </label>
+                      <select
+                        value={resourceCategoryFilter}
+                        onChange={(event) => setResourceCategoryFilter(event.target.value)}
+                        className={DROPDOWN_CONTROL_CLASS}
+                      >
+                        <option value="all">All categories</option>
+                        {resourceCategoryOptions.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#6F7553]">
+                        Sort
+                      </label>
+                      <select
+                        value={resourceSort}
+                        onChange={(event) => setResourceSort(event.target.value as ResourceSortOption)}
+                        className={DROPDOWN_CONTROL_CLASS}
+                      >
+                        <option value="updated_desc">Recently updated</option>
+                        <option value="updated_asc">Oldest updated</option>
+                        <option value="name_asc">Name A-Z</option>
+                        <option value="name_desc">Name Z-A</option>
+                      </select>
+                    </div>
                   </div>
 
                   {loading ? <p className="text-sm text-[#6F7553]">Loading resource records...</p> : null}
-                  {!loading && filteredResources.length === 0 ? (
+                  {!loading && sortedResources.length === 0 ? (
                     <p className="text-sm text-[#6F7553]">No resources match the current filters.</p>
                   ) : null}
 
@@ -913,7 +1144,7 @@ export function PortalModeration() {
                           <select
                             value={resource.status}
                             onChange={(next) => void handleResourceStatus(resource.id, next.target.value as ContentStatus)}
-                            className="h-9 rounded-md border border-input bg-white px-3 py-1 text-sm"
+                            className={DROPDOWN_COMPACT_CLASS}
                           >
                             {resourceModerationStatuses.map((status) => (
                               <option key={`${resource.id}-${status}`} value={status}>
@@ -934,28 +1165,44 @@ export function PortalModeration() {
                     </div>
                   ))}
 
-                  {!loading && filteredResources.length > 0 ? (
+                  {!loading && sortedResources.length > 0 ? (
                     <div className="flex flex-col gap-3 border-t border-[#E7D9C3] pt-4 text-sm text-[#5B473A] sm:flex-row sm:items-center sm:justify-between">
                       <p>
-                        Showing {resourceStart}-{resourceEnd} of {filteredResources.length} resources
+                        Showing {resourceStart}-{resourceEnd} of {sortedResources.length} resources
                       </p>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setResourcePage((prev) => Math.max(prev - 1, 1))}
-                          disabled={resourcePage <= 1}
+                          onClick={() => goToResourcePage(safeResourcePage - 1)}
+                          disabled={safeResourcePage <= 1}
                         >
                           Previous
                         </Button>
-                        <span className="text-xs uppercase tracking-wide text-[#6F7553]">
-                          Page {resourcePage} of {resourceTotalPages}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          {getPaginationItems(safeResourcePage, resourceTotalPages).map((item, index) =>
+                            item === "ellipsis" ? (
+                              <span key={`moderator-resource-ellipsis-${index}`} className="px-2 text-xs text-[#6F7553]">
+                                ...
+                              </span>
+                            ) : (
+                              <Button
+                                key={`moderator-resource-page-${item}`}
+                                size="sm"
+                                variant={item === safeResourcePage ? "default" : "outline"}
+                                onClick={() => goToResourcePage(item)}
+                                className="min-w-8 px-2"
+                              >
+                                {item}
+                              </Button>
+                            ),
+                          )}
+                        </div>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setResourcePage((prev) => Math.min(prev + 1, resourceTotalPages))}
-                          disabled={resourcePage >= resourceTotalPages}
+                          onClick={() => goToResourcePage(safeResourcePage + 1)}
+                          disabled={safeResourcePage >= resourceTotalPages}
                         >
                           Next
                         </Button>
@@ -971,3 +1218,4 @@ export function PortalModeration() {
     </PortalShell>
   );
 }
+

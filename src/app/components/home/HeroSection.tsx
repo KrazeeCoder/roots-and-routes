@@ -66,8 +66,7 @@ export function HeroSection() {
                 className="align-baseline whitespace-nowrap pb-6 pr-1"
                 textClassName="text-[#B36A4C] italic pr-2"
                 underlineClassName="text-[#B36A4C]/80"
-                underlineDuration={3.4}
-                underlineHoverDuration={1.6}
+                underlineDuration={5.2}
                 disableHover
               >
                 community roots.
