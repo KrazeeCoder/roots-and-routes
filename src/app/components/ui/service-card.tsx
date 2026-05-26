@@ -32,6 +32,8 @@ export interface ServiceCardProps
   imgSrc: string;
   imgAlt: string;
   imgClassName?: string;
+  imgLoading?: "eager" | "lazy";
+  imgFetchPriority?: "high" | "low" | "auto";
 }
 
 const cardAnimation = {
@@ -61,7 +63,22 @@ const arrowAnimation = {
 };
 
 const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
-  ({ className, variant, title, description, href, imgSrc, imgAlt, imgClassName, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      title,
+      description,
+      href,
+      imgSrc,
+      imgAlt,
+      imgClassName,
+      imgLoading = "lazy",
+      imgFetchPriority = "auto",
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <motion.div
         className={cn(cardVariants({ variant, className }))}
@@ -94,7 +111,8 @@ const ServiceCard = React.forwardRef<HTMLDivElement, ServiceCardProps>(
             imgClassName,
           )}
           variants={imageAnimation}
-          loading="lazy"
+          loading={imgLoading}
+          fetchPriority={imgFetchPriority}
         />
       </motion.div>
     );

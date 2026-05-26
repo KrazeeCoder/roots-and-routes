@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { useEffect, useState } from "react";
 import { HelpCircle, Info, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
@@ -72,6 +73,46 @@ const guideItems = [
 ];
 
 export function Help() {
+  const [guideSvgsReady, setGuideSvgsReady] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const preloadPromises = guideItems.map((guide) => {
+      return new Promise<void>((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const maybeDecode = img.decode?.();
+          if (maybeDecode && typeof maybeDecode.then === "function") {
+            maybeDecode.finally(() => resolve());
+            return;
+          }
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = guide.imgSrc;
+      });
+    });
+
+    Promise.all(preloadPromises).then(() => {
+      if (isMounted) {
+        setGuideSvgsReady(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (!guideSvgsReady) {
+    return (
+      <div className="min-h-screen bg-[#F6F1E7] text-[#334233] flex items-center justify-center">
+        <div className="h-10 w-10 rounded-full border-4 border-[#E7D9C3] border-t-[#B36A4C] animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
       <section className="relative overflow-hidden bg-[#334233] text-[#F6F1E7] pt-24 pb-24">
@@ -147,6 +188,8 @@ export function Help() {
                 imgSrc={guide.imgSrc}
                 imgAlt={guide.imgAlt}
                 imgClassName={guide.imgClassName}
+                imgLoading="eager"
+                imgFetchPriority="high"
                 variant={guide.variant}
                 className="min-h-[180px]"
               />
