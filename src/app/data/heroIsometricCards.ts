@@ -18,7 +18,7 @@ export const HERO_ISOMETRIC_CARDS: HeroIsometricCard[] = [
     location: "Park at Bothell Landing",
     href: "/events/83cd749a-1840-474c-91d3-ca18d7c8f9a1",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg",
+      "https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=1200&q=80",
     accentColor: "#B36A4C",
   },
   {
