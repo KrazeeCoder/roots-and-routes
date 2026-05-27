@@ -8,11 +8,13 @@ import { ScrollReveal, variants } from "../ScrollReveal";
 import { listSpotlightItems } from "../../data/portalApi";
 import type { SpotlightItem } from "../../types/home";
 import { RESOURCE_DETAIL_FROM_HOME_NAV } from "../../utils/detailNavigation";
+import { preloadImageUrls } from "../../../utils/preloadImages";
 
 export function SpotlightSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const inView = useInView(sectionRef, { once: true, amount: 0.1 });
   const [items, setItems] = useState<SpotlightItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -20,10 +22,15 @@ export function SpotlightSection() {
     async function loadSpotlights() {
       try {
         const data = await listSpotlightItems();
+        await preloadImageUrls(data.slice(0, 3).map((item) => item.image), { timeoutMs: 4000 });
         if (cancelled) return;
         setItems(data);
       } catch (error) {
         console.error("Could not load spotlight items", error);
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -53,7 +60,11 @@ export function SpotlightSection() {
           </Link>
         </ScrollReveal>
 
-        {spotlightStrip.length === 0 ? (
+        {isLoading ? (
+          <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-[#5B473A] shadow-sm">
+            Loading highlights...
+          </div>
+        ) : spotlightStrip.length === 0 ? (
           <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-[#5B473A]">
             There are no highlights yet.
           </div>

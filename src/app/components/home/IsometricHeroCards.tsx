@@ -8,6 +8,7 @@ import {
   type HeroIsometricCard,
 } from "../../data/heroIsometricCards";
 import { EVENT_DETAIL_FROM_HOME_NAV, RESOURCE_DETAIL_FROM_HOME_NAV } from "../../utils/detailNavigation";
+import { buildDisplayImageSet } from "../../../utils/imageProxy";
 
 const DESKTOP_ROTATE_Y = 16;
 const DESKTOP_SKEW_Y = -1;
@@ -221,12 +222,14 @@ export function IsometricHeroCards() {
 }
 
 function CardContent({ card }: { card: HeroIsometricCard }) {
+  const cardImage = buildDisplayImageSet(card.image)?.src ?? card.image;
+
   return (
     <>
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url(${card.image})`,
+          backgroundImage: `url("${cardImage.replace(/"/g, '\\"')}")`,
           opacity: 0.8,
           filter: "saturate(0.76) contrast(0.95) brightness(0.9)",
         }}
