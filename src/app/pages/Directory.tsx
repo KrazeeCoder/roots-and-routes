@@ -82,6 +82,7 @@ export function Directory() {
   const [engagementByEntry, setEngagementByEntry] = useState<Record<string, SpotlightEngagement>>({});
   const [loadingEntries, setLoadingEntries] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [query, setQuery] = useState(queryParam);
   const [appliedQuery, setAppliedQuery] = useState(queryParam);
@@ -120,7 +121,7 @@ export function Directory() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [appliedQuery, activeCategory, minRating]);
+  }, [appliedQuery, activeCategory, minRating, reloadKey]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -278,6 +279,7 @@ export function Directory() {
   const commitMinRating = (rating: number) => {
     setMinRating(rating);
   };
+  const retryLoadEntries = () => setReloadKey((key) => key + 1);
 
   const handleResourceCardNavigate = (
     event: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>,
@@ -625,6 +627,9 @@ export function Directory() {
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24 text-[#6F7553]">
                   <p className="text-lg font-medium text-[#334233] mb-1">We ran into a loading issue</p>
                   <p className="text-sm">{loadError}</p>
+                  <Button type="button" variant="outline" onClick={retryLoadEntries} className="mt-5">
+                    Try again
+                  </Button>
                 </motion.div>
               ) : totalCount === 0 ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24 text-[#6F7553]">

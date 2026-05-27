@@ -15,11 +15,16 @@ export function SpotlightSection() {
   const inView = useInView(sectionRef, { once: true, amount: 0.1 });
   const [items, setItems] = useState<SpotlightItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadSpotlights() {
+      setIsLoading(true);
+      setLoadError(null);
+
       try {
         const data = await listSpotlightItems();
         await preloadImageUrls(data.slice(0, 3).map((item) => item.image), { timeoutMs: 4000 });
@@ -27,6 +32,10 @@ export function SpotlightSection() {
         setItems(data);
       } catch (error) {
         console.error("Could not load spotlight items", error);
+        if (!cancelled) {
+          setItems([]);
+          setLoadError("Could not load highlights right now. Check your connection and try again.");
+        }
       } finally {
         if (!cancelled) {
           setIsLoading(false);
@@ -38,9 +47,10 @@ export function SpotlightSection() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   const spotlightStrip = useMemo(() => items.slice(0, 3), [items]);
+  const retryLoadSpotlights = () => setReloadKey((key) => key + 1);
 
   return (
     <section className="bg-[#F6F1E7] py-20 relative" id="spotlights" ref={sectionRef}>
@@ -65,9 +75,23 @@ export function SpotlightSection() {
             Loading highlights...
           </div>
         ) : spotlightStrip.length === 0 ? (
+          loadError ? (
+            <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-[#5B473A] shadow-sm">
+              <p className="font-semibold text-[#334233]">Could not load highlights</p>
+              <p className="mt-1 text-sm">{loadError}</p>
+              <button
+                type="button"
+                onClick={retryLoadSpotlights}
+                className="mt-4 inline-flex items-center justify-center rounded-xl border border-[#334233] px-5 py-2 text-sm font-semibold text-[#334233] transition-colors hover:bg-[#334233] hover:text-[#F6F1E7] focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2"
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
           <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-[#5B473A]">
             There are no highlights yet.
           </div>
+          )
         ) : (
           <div className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
             <div className="flex md:grid md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 snap-x snap-mandatory md:snap-none">

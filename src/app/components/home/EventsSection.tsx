@@ -22,17 +22,31 @@ function isInteractiveCardElement(target: EventTarget | null) {
 export function EventsSection() {
   const navigate = useNavigate();
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadEvents() {
+      setIsLoading(true);
+      setLoadError(null);
+
       try {
         const nextEvents = await listPublishedEvents();
         if (cancelled) return;
         setEvents(nextEvents.map(mapEventToEventItem));
       } catch (error) {
         console.error("Could not load published events", error);
+        if (!cancelled) {
+          setEvents([]);
+          setLoadError("Could not load events right now. Check your connection and try again.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -40,7 +54,7 @@ export function EventsSection() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   const handleEventCardClick = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>, detailHref: string | null) => {
@@ -61,6 +75,7 @@ export function EventsSection() {
     },
     [navigate],
   );
+  const retryLoadEvents = () => setReloadKey((key) => key + 1);
 
   return (
     <section className="bg-[#E7D9C3]/30 py-24 relative" id="events">
@@ -83,7 +98,23 @@ export function EventsSection() {
           </Link>
         </ScrollReveal>
 
-        {events.length === 0 ? (
+        {isLoading ? (
+          <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-sm text-[#5B473A] shadow-sm">
+            Loading events...
+          </div>
+        ) : loadError ? (
+          <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-[#5B473A] shadow-sm">
+            <p className="font-semibold text-[#334233]">Could not load events</p>
+            <p className="mt-1 text-sm">{loadError}</p>
+            <button
+              type="button"
+              onClick={retryLoadEvents}
+              className="mt-4 inline-flex items-center justify-center rounded-xl border border-[#334233] px-5 py-2 text-sm font-semibold text-[#334233] transition-colors hover:bg-[#334233] hover:text-[#F6F1E7] focus:outline-none focus:ring-2 focus:ring-[#B36A4C] focus:ring-offset-2"
+            >
+              Try again
+            </button>
+          </div>
+        ) : events.length === 0 ? (
           <p className="text-sm text-[#5B473A]">There are no published events yet.</p>
         ) : (
           <StaggerGroup className="relative border-l-2 border-[#A7AE8A]/50 pl-6 sm:pl-10 space-y-12 ml-4 sm:ml-6">

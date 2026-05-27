@@ -8,7 +8,7 @@ import {
   type HeroIsometricCard,
 } from "../../data/heroIsometricCards";
 import { EVENT_DETAIL_FROM_HOME_NAV, RESOURCE_DETAIL_FROM_HOME_NAV } from "../../utils/detailNavigation";
-import { buildDisplayImageSet } from "../../../utils/imageProxy";
+import { ImageWithFallback } from "../ui/image-with-fallback";
 
 const DESKTOP_ROTATE_Y = 16;
 const DESKTOP_SKEW_Y = -1;
@@ -21,6 +21,8 @@ const DESKTOP_NEIGHBOR_LIFT = -14;
 const MOBILE_STEP_X = 8;
 const MOBILE_STEP_Y = 12;
 const MOBILE_STEP_SCALE = 0.03;
+const HERO_CARD_FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80";
 
 function getDesktopTransform(index: number, yOffset = 0) {
   return `rotateY(${DESKTOP_ROTATE_Y}deg) translateY(${index * DESKTOP_STEP_Y + yOffset}px) translateZ(${index * DESKTOP_STEP_Z}px) skewY(${DESKTOP_SKEW_Y}deg)`;
@@ -222,18 +224,15 @@ export function IsometricHeroCards() {
 }
 
 function CardContent({ card }: { card: HeroIsometricCard }) {
-  const cardImage = buildDisplayImageSet(card.image)?.src ?? card.image;
-
   return (
     <>
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url("${cardImage.replace(/"/g, '\\"')}")`,
-          opacity: 0.8,
-          filter: "saturate(0.76) contrast(0.95) brightness(0.9)",
-        }}
+      <ImageWithFallback
+        src={card.image}
+        fallbackSrc={HERO_CARD_FALLBACK_IMAGE}
+        alt=""
         aria-hidden="true"
+        loading="eager"
+        className="absolute inset-0 h-full w-full object-cover opacity-80 [filter:saturate(0.76)_contrast(0.95)_brightness(0.9)]"
       />
 
       <div

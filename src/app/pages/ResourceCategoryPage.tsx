@@ -40,11 +40,16 @@ export function ResourceCategoryPage() {
   const category = searchParams.get('category') || '';
   const [resources, setResources] = useState<CategoryResource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!category) return;
 
     const fetchResources = async () => {
+      setLoading(true);
+      setLoadError(null);
+
       try {
         const { data, error } = await supabase
           .from('resources')
@@ -55,18 +60,22 @@ export function ResourceCategoryPage() {
 
         if (error) {
           console.error('Error fetching resources:', error);
+          setResources([]);
+          setLoadError('Could not load resources right now. Check your connection and try again.');
         } else {
           setResources(data || []);
         }
       } catch (error) {
         console.error('Error fetching resources:', error);
+        setResources([]);
+        setLoadError('Could not load resources right now. Check your connection and try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchResources();
-  }, [category]);
+  }, [category, reloadKey]);
 
   const colors = getCategoryColors(category);
 
@@ -92,6 +101,26 @@ export function ResourceCategoryPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-3 border-[#B36A4C] mx-auto mb-6"></div>
           <p className="text-[#5B473A] text-xl font-light">Loading {category.toLowerCase()} resources...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#F6F1E7] via-[#E7D9C3] to-[#DCD2B8] flex items-center justify-center px-6">
+        <div className="max-w-md rounded-3xl border border-[#E7D9C3] bg-white/95 p-8 text-center shadow-lg">
+          <h1 className="text-3xl font-['Cormorant_Garamond',serif] text-[#334233] mb-3">
+            Could not load resources
+          </h1>
+          <p className="text-[#5B473A]">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => setReloadKey((key) => key + 1)}
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-[#B36A4C] px-6 py-3 font-semibold text-white shadow-lg transition-colors hover:bg-[#8A5543]"
+          >
+            Try again
+          </button>
         </div>
       </div>
     );

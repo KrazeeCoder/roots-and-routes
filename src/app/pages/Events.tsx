@@ -364,6 +364,8 @@ export function Events() {
   const { isLoaded: isMapsLoaded } = useJsApiLoader(GOOGLE_MAPS_LOADER_OPTIONS);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [timeframeFilter, setTimeframeFilter] = useState<EventTimeframe>("upcoming");
   const [activeCenter, setActiveCenter] = useState<{ lat: number; lng: number; label: string } | null>(null);
@@ -391,6 +393,9 @@ export function Events() {
     let cancelled = false;
 
     async function loadEvents() {
+      setLoadingEvents(true);
+      setLoadError(null);
+
       try {
         const nextEvents = await listPublishedEvents();
         if (cancelled) return;
@@ -431,6 +436,12 @@ export function Events() {
         }
       } catch (error) {
         console.error("Could not load published events", error);
+        if (!cancelled) {
+          setEvents([]);
+          setEventsWithGeocodedCoords([]);
+          setLoadError("Could not load events right now. Check your connection and try again.");
+          setIsGeocoding(false);
+        }
       } finally {
         if (!cancelled) setLoadingEvents(false);
       }
@@ -440,7 +451,7 @@ export function Events() {
     return () => {
       cancelled = true;
     };
-  }, [isMapsLoaded]);
+  }, [isMapsLoaded, reloadKey]);
 
   const eventsWithDistance = useMemo<EventWithDistance[]>(() => {
     const sourceEvents = eventsWithGeocodedCoords.length > 0 ? eventsWithGeocodedCoords : events;
@@ -662,6 +673,7 @@ export function Events() {
     setLocationQuery("");
     setSelectedMarkerId(null);
   };
+  const retryLoadEvents = () => setReloadKey((key) => key + 1);
 
   const handleEventCardClick = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>, detailHref: string | null) => {
@@ -1027,6 +1039,14 @@ export function Events() {
                 <p className="p-6 text-sm text-[#5B473A]">
                   {loadingEvents ? "Loading events..." : "Geocoding event addresses..."}
                 </p>
+              ) : loadError ? (
+                <div className="p-6 text-sm text-[#5B473A]">
+                  <p className="font-semibold text-[#334233]">Could not load events</p>
+                  <p className="mt-1">{loadError}</p>
+                  <Button type="button" variant="outline" size="sm" onClick={retryLoadEvents} className="mt-4">
+                    Try again
+                  </Button>
+                </div>
               ) : (
                 <>
                 <GoogleMap
@@ -1113,6 +1133,14 @@ export function Events() {
 
           {loadingEvents ? (
             <EventListSkeleton />
+          ) : loadError ? (
+            <div className="mt-10 rounded-2xl border border-[#E7D9C3] bg-white p-6 text-[#5B473A] shadow-sm">
+              <p className="font-semibold text-[#334233]">Could not load events</p>
+              <p className="mt-1 text-sm">{loadError}</p>
+              <Button type="button" variant="outline" onClick={retryLoadEvents} className="mt-4">
+                Try again
+              </Button>
+            </div>
           ) : visibleEvents.length === 0 ? (
             <p className="mt-10 text-[#5B473A]">
               {query

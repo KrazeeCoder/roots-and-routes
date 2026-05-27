@@ -62,6 +62,8 @@ function parseEventDate(event: EventItem): Date | null {
 export function Calendar() {
   const [events, setEvents] = useState<EventWithDate[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
 
@@ -71,6 +73,9 @@ export function Calendar() {
     let cancelled = false;
 
     async function loadEvents() {
+      setLoadingEvents(true);
+      setLoadError(null);
+
       try {
         const nextEvents = await listPublishedEvents();
         if (cancelled) return;
@@ -94,6 +99,10 @@ export function Calendar() {
         setCurrentMonth(startOfMonth(initialDate));
       } catch (error) {
         console.error("Could not load published events", error);
+        if (!cancelled) {
+          setEvents([]);
+          setLoadError("Could not load events right now. Check your connection and try again.");
+        }
       } finally {
         if (!cancelled) setLoadingEvents(false);
       }
@@ -103,7 +112,7 @@ export function Calendar() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -137,6 +146,7 @@ export function Calendar() {
 
   const selectedDateEvents = getEventsForDay(selectedDate);
   const hasAnyEventsThisMonth = events.some((event) => event.parsedDate && isSameMonth(event.parsedDate, currentMonth));
+  const retryLoadEvents = () => setReloadKey((key) => key + 1);
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233]">
@@ -189,6 +199,14 @@ export function Calendar() {
             <ScrollReveal>
               {loadingEvents ? (
                 <CalendarSkeleton />
+              ) : loadError ? (
+                <div className="rounded-3xl border border-[#E7D9C3] bg-white p-8 text-[#5B473A] shadow-lg">
+                  <p className="font-semibold text-[#334233]">Could not load calendar events</p>
+                  <p className="mt-1 text-sm">{loadError}</p>
+                  <Button type="button" variant="outline" onClick={retryLoadEvents} className="mt-4">
+                    Try again
+                  </Button>
+                </div>
               ) : (
               <div className="bg-white rounded-3xl border border-[#E7D9C3] shadow-lg p-4 sm:p-6">
                 <div className="flex items-center justify-between gap-3 mb-4">
@@ -302,7 +320,17 @@ export function Calendar() {
                 <p className="mt-1 text-sm text-[#6F7553]">Select another date on the calendar to update this list.</p>
 
                 <div className="mt-5">
-                  {selectedDateEvents.length === 0 ? (
+                  {loadError ? (
+                    <div className="rounded-2xl border border-dashed border-[#D9C6A8] bg-[#F8F5F0] p-6 text-center">
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white border border-[#E7D9C3] flex items-center justify-center">
+                        <CalendarIcon className="w-6 h-6 text-[#A7AE8A]" />
+                      </div>
+                      <p className="text-[#5B473A] font-medium">Could not load events.</p>
+                      <Button type="button" variant="outline" size="sm" onClick={retryLoadEvents} className="mt-4">
+                        Try again
+                      </Button>
+                    </div>
+                  ) : selectedDateEvents.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-[#D9C6A8] bg-[#F8F5F0] p-6 text-center">
                       <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white border border-[#E7D9C3] flex items-center justify-center">
                         <CalendarIcon className="w-6 h-6 text-[#A7AE8A]" />

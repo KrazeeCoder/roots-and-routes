@@ -170,6 +170,33 @@ function SpotlightEmptyState({ title, message }: { title: string; message: strin
   );
 }
 
+function SpotlightRetryState({
+  title,
+  message,
+  onRetry,
+}: {
+  title: string;
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="relative rounded-[2rem] border border-[#E7D9C3] bg-white/82 px-6 py-16 text-center shadow-xl shadow-[#334233]/8">
+      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#F6F1E7]">
+        <Star className="h-10 w-10 text-[#A7AE8A]" />
+      </div>
+      <h3 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#243224]">{title}</h3>
+      <p className="mx-auto mt-3 max-w-md text-lg text-[#6F7553]">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-6 inline-flex items-center justify-center rounded-xl border border-[#334233] px-6 py-2.5 text-sm font-semibold text-[#334233] transition-colors hover:bg-[#334233] hover:text-[#F6F1E7] focus:outline-none focus:ring-2 focus:ring-[#B86B4D] focus:ring-offset-2"
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
+
 function SpotlightsHero({ shouldReduceMotion }: { shouldReduceMotion: boolean }) {
   const enterInitial = shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 };
   const enterTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.7, ease: "easeOut" as const };
@@ -590,6 +617,8 @@ export function Spotlights() {
   const [featuredAverageRating, setFeaturedAverageRating] = useState<number>(0);
   const [sceneRatings, setSceneRatings] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const shouldReduceMotion = useReducedMotion() ?? false;
   const navigate = useNavigate();
 
@@ -597,6 +626,9 @@ export function Spotlights() {
     let cancelled = false;
 
     async function loadSpotlights() {
+      setIsLoading(true);
+      setLoadError(null);
+
       try {
         const [resourceSpotlights, eventSpotlights] = await Promise.all([
           listSpotlightItems(),
@@ -607,6 +639,11 @@ export function Spotlights() {
         setSpotlightEvents(eventSpotlights);
       } catch (error) {
         console.error("Could not load spotlight items", error);
+        if (!cancelled) {
+          setSpotlights([]);
+          setSpotlightEvents([]);
+          setLoadError("Could not load spotlights right now. Check your connection and try again.");
+        }
       } finally {
         if (!cancelled) {
           setIsLoading(false);
@@ -618,7 +655,7 @@ export function Spotlights() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   const featured = useMemo(() => spotlights.find((item) => item.featured) || spotlights[0], [spotlights]);
   const sceneItems = useMemo<SceneSpotlightItem[]>(() => {
@@ -719,6 +756,7 @@ export function Spotlights() {
   const openSceneItem = (href: string) => {
     navigate(href, { state: RESOURCE_DETAIL_FROM_SPOTLIGHTS_NAV });
   };
+  const retryLoadSpotlights = () => setReloadKey((key) => key + 1);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#F4EFE4_0%,#F8F5ED_28%,#F2EADB_100%)] pb-20">
@@ -743,6 +781,12 @@ export function Spotlights() {
               <span className="font-medium">Loading spotlights...</span>
             </div>
           </div>
+        ) : loadError ? (
+          <SpotlightRetryState
+            title="Could not load spotlights"
+            message={loadError}
+            onRetry={retryLoadSpotlights}
+          />
         ) : !featured ? (
           <SpotlightEmptyState
             title="No spotlight found"
