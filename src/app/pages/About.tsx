@@ -269,7 +269,7 @@ export function About() {
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div className="text-4xl font-bold text-[#334233]">
-                    <CountUp end={27} />
+                    <CountUp end={40} />
                   </div>
                   <div className="mt-1 text-sm text-[#5B473A]">Resources listed in the hub</div>
                 </div>
