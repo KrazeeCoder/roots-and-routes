@@ -31,6 +31,19 @@ const additionalReferenceImages = [
   "https://upload.wikimedia.org/wikipedia/commons/1/15/Snohomish_County_portion_of_North_Creek_Forest_in_Bothell%2C_WA%2C_just_north_of_King_County_border%2C_with_sign_in_foreground.JPG",
 ];
 
+const PARTNER_LOGOS = [
+  { name: "Bothell Kenmore Chamber", logo: "/partner_logos/bothellChamber_logo.png", url: "https://bothellkenmorechamber.org/", license: "Fair use for community partnership identification (official logo)" },
+  { name: "City of Bothell", logo: "/partner_logos/cityOfBothell_logo.png", url: "https://www.bothellwa.gov/", license: "Fair use for community partnership identification (official logo)" },
+  { name: "Friends of Youth", logo: "/partner_logos/friendsOfYouth_logo.png", url: "https://www.friendsofyouth.org/", license: "Fair use for community partnership identification (official logo)" },
+  { name: "Hopelink", logo: "/partner_logos/hopelink_logo.png", url: "https://www.hopelink.org/", license: "Fair use for community partnership identification (official logo)" },
+  { name: "Luma Initiative", logo: "/partner_logos/lumaInitiative_logo.png", url: "https://www.lumainitiative.org/", license: "Fair use for community partnership identification (official logo)" },
+  { name: "Nourishing Networks", logo: "/partner_logos/nourishingNetworks_logo.png", url: "https://nourishingnetworks.net/bothellkenmore", license: "Fair use for community partnership identification (official logo)" },
+  { name: "Northshore Schools Foundation", logo: "/partner_logos/nsf_logo.png", url: "https://www.northshoreschoolsfoundation.org/", license: "Fair use for community partnership identification (official logo)" },
+  { name: "One Bothell", logo: "/partner_logos/oneBothell_logo.png", url: "https://onebothell.org/", license: "Fair use for community partnership identification (official logo)" },
+  { name: "University of Washington Bothell", logo: "/partner_logos/uw_logo.png", url: "https://www.uwb.edu/", license: "Fair use for community partnership identification (official logo)" },
+  { name: "YMCA", logo: "/partner_logos/ymca_logo.png", url: "https://www.seattleymca.org/locations/northshore-ymca", license: "Fair use for community partnership identification (official logo)" },
+] as const;
+
 const developmentSources = [
   { name: "React Documentation", url: "https://react.dev/" },
   { name: "Vite Documentation", url: "https://vite.dev/" },
@@ -519,6 +532,37 @@ export function Reference() {
                         >
                           <LinkIcon className="w-3 h-3" />
                           {citation.sourceUrl}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-sm font-semibold text-[#334233] mb-3">Partner Organization Logo Citations</h3>
+                  <p className="text-xs text-[#5B473A] mb-4">
+                    These citations document the partner logos used in the About page, linking to the official organization websites.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {PARTNER_LOGOS.map((partner) => (
+                      <div key={partner.name} className="rounded-lg border border-[#E7D9C3] bg-white p-3 flex flex-col justify-between">
+                        <div>
+                          <p className="text-xs font-semibold text-[#334233]">
+                            Partner: {partner.name}
+                          </p>
+                          <p className="mt-0.5 text-xs text-[#6F7553] font-mono break-all">
+                            Asset: {partner.logo}
+                          </p>
+                          <p className="mt-1 text-xs text-[#5B473A]">{partner.license}</p>
+                        </div>
+                        <a
+                          href={partner.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1 text-xs font-mono text-[#B36A4C] break-all hover:underline"
+                        >
+                          <LinkIcon className="w-3 h-3" />
+                          {partner.url}
                         </a>
                       </div>
                     ))}
