@@ -12,6 +12,10 @@ export function Portal() {
   const isApproved = canModerate || profile?.status === "approved";
   const isPending = profile?.status === "pending";
   const isRejected = profile?.status === "rejected";
+  const accountKindLabel = role === "super_admin" ? "Super admin" : canModerate ? "Moderator" : "Contributor";
+  const accountContact = canModerate
+    ? accountKindLabel
+    : [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Not set";
 
   return (
     <PortalShell
@@ -121,7 +125,7 @@ export function Portal() {
 
       <Card className="mt-8 border-[#E7D9C3]">
         <CardHeader>
-          <CardTitle>Contributor account</CardTitle>
+          <CardTitle>{accountKindLabel} account</CardTitle>
           <CardDescription>These are the profile details currently attached to your account.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -129,24 +133,26 @@ export function Portal() {
             <p className="text-[#6F7553]">Organization</p>
             <p className="font-medium text-[#334233]">{profile?.organization_name || "Not set"}</p>
           </div>
-          <div>
-            <p className="text-[#6F7553]">Status</p>
-            <p className={`font-medium capitalize ${
-              isApproved ? "text-green-700" : isRejected ? "text-red-700" : "text-amber-700"
-            }`}>
-              {profile?.status || "Pending"}
-            </p>
-          </div>
+          {!canModerate ? (
+            <div>
+              <p className="text-[#6F7553]">Status</p>
+              <p className={`font-medium capitalize ${
+                isApproved ? "text-green-700" : isRejected ? "text-red-700" : "text-amber-700"
+              }`}>
+                {profile?.status || "Pending"}
+              </p>
+            </div>
+          ) : null}
           <div>
             <p className="text-[#6F7553]">Contact</p>
             <p className="font-medium text-[#334233]">
-              {[profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Not set"}
+              {accountContact}
             </p>
           </div>
           <div>
             <p className="text-[#6F7553]">Role</p>
             <p className="font-medium text-[#334233] flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#6F7553]" /> {role || "contributor"}
+              <CheckCircle2 className="w-4 h-4 text-[#6F7553]" /> {accountKindLabel}
             </p>
           </div>
         </CardContent>

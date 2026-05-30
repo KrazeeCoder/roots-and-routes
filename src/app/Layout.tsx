@@ -18,6 +18,7 @@ export function Layout() {
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const wasMenuOpenRef = useRef(false);
+  const menuOpenScrollYRef = useRef(0);
 
   const toggleMenu = () => setIsMenuOpen((open) => !open);
 
@@ -64,9 +65,28 @@ export function Layout() {
   }, [location.hash, location.pathname]);
 
   useEffect(() => {
-    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    if (!isMenuOpen) return;
+
+    menuOpenScrollYRef.current = window.scrollY;
+    const previousBodyPosition = document.body.style.position;
+    const previousBodyTop = document.body.style.top;
+    const previousBodyWidth = document.body.style.width;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${menuOpenScrollYRef.current}px`;
+    document.body.style.width = "100%";
+
     return () => {
-      document.body.style.overflow = "";
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.position = previousBodyPosition;
+      document.body.style.top = previousBodyTop;
+      document.body.style.width = previousBodyWidth;
+      window.scrollTo(0, menuOpenScrollYRef.current);
     };
   }, [isMenuOpen]);
 
@@ -144,7 +164,10 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233] font-['Public_Sans',sans-serif] selection:bg-[#E7D9C3] selection:text-[#334233] flex flex-col">
-      <header className="sticky top-0 z-50 w-full bg-[#F6F1E7]/90 backdrop-blur-md border-b border-[#E7D9C3]" role="banner">
+      <header
+        className={`${isMenuOpen ? "fixed" : "sticky"} top-0 z-50 w-full bg-[#F6F1E7]/90 backdrop-blur-md border-b border-[#E7D9C3]`}
+        role="banner"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex-shrink-0 flex items-center gap-3">
@@ -417,8 +440,8 @@ export function Layout() {
             <Link to="/reference" className="hover:text-white transition-colors">
               References
             </Link>
-            <Link to="/calendar" className="hover:text-white transition-colors">
-              Community Calendar
+            <Link to="/help" className="hover:text-white transition-colors">
+              Help
             </Link>
           </div>
         </div>

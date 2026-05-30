@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { KeyRound, Mail, Sparkles, UserRound } from "lucide-react";
 import { toast } from "sonner";
@@ -51,6 +51,7 @@ export function ContributorLogin() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const signInPanelRef = useRef<HTMLDivElement | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -200,6 +201,19 @@ export function ContributorLogin() {
     }
   };
 
+  const autofillDemoCredentials = (demoEmail: string, demoPassword: string) => {
+    setMode("signin");
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+
+    window.requestAnimationFrame(() => {
+      signInPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.setTimeout(() => {
+        document.getElementById("signin-email")?.focus({ preventScroll: true });
+      }, 220);
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#F6F1E7] py-12 px-4">
       <div className="max-w-5xl mx-auto">
@@ -251,7 +265,7 @@ export function ContributorLogin() {
             </Card>
           </div>
 
-          <div className="lg:col-span-6">
+          <div ref={signInPanelRef} className="lg:col-span-6 scroll-mt-24">
             <Card className="border-[#E7D9C3] bg-white shadow-sm">
               <CardHeader>
                 <div className="flex gap-2 flex-wrap">
@@ -482,9 +496,7 @@ export function ContributorLogin() {
                       size="sm"
                       className="w-full h-8 text-xs bg-[#334233] hover:bg-[#B36A4C]"
                       onClick={() => {
-                        setMode("signin");
-                        setEmail("Rootsandroutes.bothell+1@outlook.com");
-                        setPassword("judges!!!");
+                        autofillDemoCredentials("Rootsandroutes.bothell+1@outlook.com", "judges!!!");
                       }}
                     >
                       Autofill Contributor
@@ -509,9 +521,7 @@ export function ContributorLogin() {
                       size="sm"
                       className="w-full h-8 text-xs border-[#B36A4C] text-[#334233] hover:bg-[#B36A4C]/10"
                       onClick={() => {
-                        setMode("signin");
-                        setEmail("Rootsandroutes.bothell@outlook.com");
-                        setPassword("judges!!");
+                        autofillDemoCredentials("Rootsandroutes.bothell@outlook.com", "judges!!");
                       }}
                     >
                       Autofill Moderator
