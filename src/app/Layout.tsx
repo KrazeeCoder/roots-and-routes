@@ -23,7 +23,7 @@ export function Layout() {
 
   const location = useLocation();
   const currentPath = location.pathname;
-  const isGuidePage = currentPath.startsWith("/guide/");
+  const isGuidePage = /(^|\/)guide\//.test(currentPath);
 
   useEffect(() => {
     if (location.hash) return;
@@ -103,20 +103,13 @@ export function Layout() {
 
     let animationFrame = 0;
     const updateProgress = () => {
-      const mainContent = document.getElementById("main-content");
-      if (!mainContent) {
-        setGuideScrollProgress(0);
-        return;
-      }
-
-      const mainTop = mainContent.offsetTop;
-      const maxScrollableDistance = Math.max(mainContent.offsetHeight - window.innerHeight, 0);
+      const maxScrollableDistance = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
       if (maxScrollableDistance === 0) {
         setGuideScrollProgress(1);
         return;
       }
 
-      const scrolledDistance = window.scrollY - mainTop;
+      const scrolledDistance = window.scrollY;
       const progress = Math.min(Math.max(scrolledDistance / maxScrollableDistance, 0), 1);
       setGuideScrollProgress(progress);
     };

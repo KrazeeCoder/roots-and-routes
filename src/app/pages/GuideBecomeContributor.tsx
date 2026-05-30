@@ -61,10 +61,10 @@ export function GuideBecomeContributor() {
       {/* Main Content */}
       <section className="relative pt-16 pb-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 lg:items-start gap-12">
             
             {/* Sticky Sidebar Navigation */}
-            <div className="hidden lg:block lg:col-span-3">
+            <div className="hidden lg:block lg:col-span-3 lg:self-start">
               <div className="sticky top-28 space-y-8">
                 <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
                   <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>

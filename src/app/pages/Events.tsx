@@ -378,7 +378,7 @@ export function Events() {
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const mapSectionRef = useRef<HTMLDivElement | null>(null);
-  const eventListTopRef = useRef<HTMLDivElement | null>(null);
+  const listControlsRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
   useEffect(() => {
@@ -513,8 +513,8 @@ export function Events() {
     return visibleEvents.slice(startIndex, startIndex + EVENTS_PER_PAGE);
   }, [visibleEvents, currentPage]);
 
-  const scrollToEventListTop = useCallback(() => {
-    eventListTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const scrollToListControls = useCallback(() => {
+    listControlsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   const goToEventPage = useCallback((nextPage: number) => {
@@ -522,9 +522,9 @@ export function Events() {
     if (boundedPage === currentPage) return;
     setCurrentPage(boundedPage);
     window.setTimeout(() => {
-      scrollToEventListTop();
+      scrollToListControls();
     }, 0);
-  }, [currentPage, scrollToEventListTop, totalPages]);
+  }, [currentPage, scrollToListControls, totalPages]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -795,36 +795,37 @@ export function Events() {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.9fr)] lg:gap-10">
-          <div className="min-w-0">
-            <ScrollReveal>
-              <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233] mb-4">
-                Featured Gathering
-              </h2>
-            </ScrollReveal>
-            <ScrollReveal delay={0.1}>
-              <p className="text-[#5B473A] text-base font-light max-w-2xl leading-relaxed">
-                Highlighting a community moment we think you'll want to save to your calendar. Tap into the energy,
-                meet local folks, and find support where it matters most.
-              </p>
-            </ScrollReveal>
+        <div className="mt-2">
+          <ScrollReveal>
+            <h2 className="mb-4 font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] sm:text-4xl">
+              Featured Gathering
+            </h2>
+          </ScrollReveal>
+          <ScrollReveal delay={0.1}>
+            <p className="max-w-3xl text-base font-light leading-relaxed text-[#5B473A]">
+              Highlighting a community moment we think you'll want to save to your calendar. Tap into the energy,
+              meet local folks, and find support where it matters most.
+            </p>
+          </ScrollReveal>
 
-            <ScrollReveal delay={0.2}>
-              <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_240px] xl:grid-cols-[minmax(0,1fr)_260px] xl:gap-6">
-                <div className="space-y-3">
+          <ScrollReveal delay={0.2}>
+            <div className="mt-6 rounded-2xl border border-[#E7D9C3] bg-white p-4 shadow-sm sm:p-6">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(280px,0.95fr)] lg:items-stretch">
+                <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-[#334233]/80">
-                    <span className="px-3 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                    <span className="rounded-full bg-[#A7AE8A]/20 px-3 py-1 text-[#5B473A]">
                       {featured?.date ?? "TBD"}
                     </span>
-                    <span className="px-3 py-1 rounded-full bg-[#B36A4C]/10 text-[#B36A4C]">
+                    <span className="rounded-full bg-[#B36A4C]/10 px-3 py-1 text-[#B36A4C]">
                       {featured?.category ?? "Community Event"}
                     </span>
                   </div>
+
                   {featuredHref ? (
                     <Link
                       to={featuredHref}
                       state={EVENT_DETAIL_DEFAULT_NAV}
-                      className="block font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] hover:text-[#B36A4C] transition-colors"
+                      className="block font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] transition-colors hover:text-[#B36A4C]"
                     >
                       {featured?.title ?? "No published event yet"}
                     </Link>
@@ -833,14 +834,15 @@ export function Events() {
                       {featured?.title ?? "No published event yet"}
                     </h3>
                   )}
-                  <div className="mt-4 rounded-xl border border-[#D9C6A8] bg-[#F8F5F0] divide-y divide-[#E7D9C3]">
+
+                  <div className="divide-y divide-[#E7D9C3] rounded-xl border border-[#D9C6A8] bg-[#F8F5F0]">
                     <div className="flex items-start gap-3 px-4 py-3">
                       <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
                         <Clock className="size-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] uppercase tracking-wide font-semibold text-[#6F7553]">Time</p>
-                        <p className="mt-1 text-[#334233] font-semibold text-sm leading-snug">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#6F7553]">Time</p>
+                        <p className="mt-1 text-sm font-semibold leading-snug text-[#334233]">
                           {featured?.time ?? "Time TBD"}
                         </p>
                       </div>
@@ -850,15 +852,15 @@ export function Events() {
                         <MapPin className="size-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] uppercase tracking-wide font-semibold text-[#6F7553]">Location</p>
-                        <p className="mt-1 text-[#334233] font-medium text-sm leading-snug break-words">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#6F7553]">Location</p>
+                        <p className="mt-1 break-words text-sm font-medium leading-snug text-[#334233]">
                           {featured?.location ?? "Location TBD"}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                  <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center">
                     {featuredHref ? (
                       <Button variant="default" className="w-full sm:w-auto" asChild>
                         <Link to={featuredHref} state={EVENT_DETAIL_DEFAULT_NAV}>View Details</Link>
@@ -872,45 +874,43 @@ export function Events() {
                   </div>
                 </div>
 
-                <div className="relative rounded-2xl overflow-hidden shadow-sm border border-[#E7D9C3]">
+                <div className="relative min-h-[260px] overflow-hidden rounded-xl border border-[#E7D9C3]">
                   <ImageWithFallback
                     src={featured?.image?.trim() ? featured.image : DEFAULT_EVENT_IMAGE}
                     alt={featured?.title ?? "Featured event"}
-                    className="w-full h-52 object-cover sm:h-full"
+                    className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/50 via-transparent" />
                 </div>
               </div>
-            </ScrollReveal>
-          </div>
+            </div>
+          </ScrollReveal>
 
-          <div className="min-w-0">
-            <ScrollReveal delay={0.15}>
-              <div className="h-full rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
-                <h4 className="text-base font-semibold text-[#334233] mb-3">Why join community events?</h4>
-                <ul className="space-y-2 text-[#5B473A] text-sm">
-                  <li className="flex items-start gap-2">
-                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                      <Check className="w-3 h-3" />
-                    </span>
-                    <span>Meet neighbors and local organizers in a welcoming setting.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                      <Check className="w-3 h-3" />
-                    </span>
-                    <span>Find support, resources, and services that fit your needs.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                      <Check className="w-3 h-3" />
-                    </span>
-                    <span>Build a stronger, more connected Bothell community.</span>
-                  </li>
-                </ul>
-              </div>
-            </ScrollReveal>
-          </div>
+          <ScrollReveal delay={0.3}>
+            <div className="mt-5 rounded-2xl border border-[#E7D9C3] bg-[#FCF8F1] p-4 sm:p-5">
+              <h4 className="text-base font-semibold text-[#334233]">Why join community events?</h4>
+              <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <li className="rounded-xl border border-[#E7D9C3] bg-white px-3 py-3 text-sm text-[#5B473A]">
+                  <span className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <p>Meet neighbors and local organizers in a welcoming setting.</p>
+                </li>
+                <li className="rounded-xl border border-[#E7D9C3] bg-white px-3 py-3 text-sm text-[#5B473A]">
+                  <span className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <p>Find support, resources, and services that fit your needs.</p>
+                </li>
+                <li className="rounded-xl border border-[#E7D9C3] bg-white px-3 py-3 text-sm text-[#5B473A]">
+                  <span className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  <p>Build a stronger, more connected Bothell community.</p>
+                </li>
+              </ul>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -927,7 +927,7 @@ export function Events() {
             </div>
           </ScrollReveal>
 
-          <div className="mt-4 rounded-2xl border border-[#E7D9C3] bg-white p-4 shadow-sm">
+          <div ref={listControlsRef} className="mt-4 rounded-2xl border border-[#E7D9C3] bg-white p-4 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
               <div className="inline-flex rounded-xl border border-[#E7D9C3] overflow-hidden">
                 <button
@@ -1167,7 +1167,6 @@ export function Events() {
             </p>
           ) : (
             <>
-              <div ref={eventListTopRef} />
               <StaggerGroup className="mt-8 space-y-6">
                 {paginatedEvents.map((event, index) => {
                 const detailHref = event.id ? `/events/${event.id}` : null;
