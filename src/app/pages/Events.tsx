@@ -769,23 +769,23 @@ export function Events() {
         </div>
       </section>
 
-      <section id="featured" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
+      <section id="featured" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <ScrollReveal>
-          <div className="mb-8 rounded-2xl border-2 border-[#B36A4C]/45 bg-gradient-to-r from-[#FFF9EF] via-[#F6F1E7] to-[#EEDFC9] p-4 sm:p-5 shadow-md ring-1 ring-[#B36A4C]/25">
+          <div className="mb-6 rounded-2xl border-2 border-[#B36A4C]/45 bg-gradient-to-r from-[#FFF9EF] via-[#F6F1E7] to-[#EEDFC9] p-3.5 sm:p-4 shadow-sm ring-1 ring-[#B36A4C]/25">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-2xl">
                 <p className="text-xs uppercase tracking-[0.18em] font-semibold text-[#7E664F]">Event Calendar</p>
-                <h2 className="font-['Cormorant_Garamond',serif] text-xl sm:text-2xl font-bold text-[#334233] mt-1">
+                <h2 className="mt-1 font-['Cormorant_Garamond',serif] text-lg font-bold text-[#334233] sm:text-xl">
                   Need the full month-at-a-glance?
                 </h2>
-                <p className="text-[#5B473A] text-sm mt-1 leading-relaxed">
+                <p className="mt-1 text-sm text-[#5B473A] leading-relaxed">
                   Open the community calendar to click dates and review day-specific events instantly.
                 </p>
               </div>
               <Button
                 variant="default"
                 asChild
-                className="w-full sm:w-auto sm:min-w-48 h-10 px-6 text-sm font-semibold rounded-md shadow-sm"
+                className="h-9 w-full rounded-md px-5 text-sm font-semibold shadow-sm sm:w-auto sm:min-w-44"
               >
                 <Link to="/calendar" className="inline-flex items-center justify-center gap-2">
                   <Calendar className="size-4" /> Open Full Calendar
@@ -797,22 +797,22 @@ export function Events() {
 
         <div className="mt-2">
           <ScrollReveal>
-            <h2 className="mb-4 font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] sm:text-4xl">
+            <h2 className="mb-2 font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] sm:text-3xl">
               Featured Gathering
             </h2>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
-            <p className="max-w-3xl text-base font-light leading-relaxed text-[#5B473A]">
+            <p className="max-w-2xl text-sm leading-relaxed text-[#5B473A] sm:text-base">
               Highlighting a community moment we think you'll want to save to your calendar. Tap into the energy,
               meet local folks, and find support where it matters most.
             </p>
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
-            <div className="mt-6 rounded-2xl border border-[#E7D9C3] bg-white p-4 shadow-sm sm:p-6">
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(280px,0.95fr)] lg:items-stretch">
-                <div className="space-y-4">
-                  <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-[#334233]/80">
+            <div className="mt-4 rounded-2xl border border-[#E7D9C3] bg-white p-3.5 shadow-sm sm:p-4">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(250px,0.95fr)] lg:items-stretch">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#334233]/80 sm:text-sm">
                     <span className="rounded-full bg-[#A7AE8A]/20 px-3 py-1 text-[#5B473A]">
                       {featured?.date ?? "TBD"}
                     </span>
@@ -825,20 +825,20 @@ export function Events() {
                     <Link
                       to={featuredHref}
                       state={EVENT_DETAIL_DEFAULT_NAV}
-                      className="block font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233] transition-colors hover:text-[#B36A4C]"
+                      className="block font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] transition-colors hover:text-[#B36A4C] sm:text-[1.9rem]"
                     >
                       {featured?.title ?? "No published event yet"}
                     </Link>
                   ) : (
-                    <h3 className="font-['Cormorant_Garamond',serif] text-3xl font-bold text-[#334233]">
+                    <h3 className="font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] sm:text-[1.9rem]">
                       {featured?.title ?? "No published event yet"}
                     </h3>
                   )}
 
                   <div className="divide-y divide-[#E7D9C3] rounded-xl border border-[#D9C6A8] bg-[#F8F5F0]">
-                    <div className="flex items-start gap-3 px-4 py-3">
-                      <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
-                        <Clock className="size-4" />
+                    <div className="flex items-start gap-3 px-3 py-2.5">
+                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
+                        <Clock className="size-3.5" />
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-[#6F7553]">Time</p>
@@ -847,9 +847,9 @@ export function Events() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3 px-4 py-3">
-                      <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
-                        <MapPin className="size-4" />
+                    <div className="flex items-start gap-3 px-3 py-2.5">
+                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
+                        <MapPin className="size-3.5" />
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-[#6F7553]">Location</p>
@@ -860,21 +860,21 @@ export function Events() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center">
+                  <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
                     {featuredHref ? (
-                      <Button variant="default" className="w-full sm:w-auto" asChild>
+                      <Button variant="default" className="h-9 w-full px-4 text-sm sm:w-auto" asChild>
                         <Link to={featuredHref} state={EVENT_DETAIL_DEFAULT_NAV}>View Details</Link>
                       </Button>
                     ) : (
-                      <Button variant="default" className="w-full sm:w-auto">
+                      <Button variant="default" className="h-9 w-full px-4 text-sm sm:w-auto">
                         RSVP & Details
                       </Button>
                     )}
-                    <CalendarMenu payload={featuredCalendar} triggerClassName="w-full sm:w-auto" />
+                    <CalendarMenu payload={featuredCalendar} triggerClassName="h-9 w-full px-4 text-sm sm:w-auto" />
                   </div>
                 </div>
 
-                <div className="relative min-h-[260px] overflow-hidden rounded-xl border border-[#E7D9C3]">
+                <div className="relative min-h-[200px] overflow-hidden rounded-xl border border-[#E7D9C3] sm:min-h-[220px]">
                   <ImageWithFallback
                     src={featured?.image?.trim() ? featured.image : DEFAULT_EVENT_IMAGE}
                     alt={featured?.title ?? "Featured event"}
@@ -887,23 +887,23 @@ export function Events() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.3}>
-            <div className="mt-5 rounded-2xl border border-[#E7D9C3] bg-[#FCF8F1] p-4 sm:p-5">
-              <h4 className="text-base font-semibold text-[#334233]">Why join community events?</h4>
-              <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <li className="rounded-xl border border-[#E7D9C3] bg-white px-3 py-3 text-sm text-[#5B473A]">
-                  <span className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+            <div className="mt-3 rounded-xl border border-[#E7D9C3] bg-[#FCF8F1] p-3 sm:p-4">
+              <h4 className="text-sm font-semibold text-[#334233] sm:text-base">Why join community events?</h4>
+              <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <li className="flex items-start gap-2 rounded-lg bg-white px-2.5 py-2 text-sm text-[#5B473A]">
+                  <span className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
                     <Check className="h-3 w-3" />
                   </span>
                   <p>Meet neighbors and local organizers in a welcoming setting.</p>
                 </li>
-                <li className="rounded-xl border border-[#E7D9C3] bg-white px-3 py-3 text-sm text-[#5B473A]">
-                  <span className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                <li className="flex items-start gap-2 rounded-lg bg-white px-2.5 py-2 text-sm text-[#5B473A]">
+                  <span className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
                     <Check className="h-3 w-3" />
                   </span>
                   <p>Find support, resources, and services that fit your needs.</p>
                 </li>
-                <li className="rounded-xl border border-[#E7D9C3] bg-white px-3 py-3 text-sm text-[#5B473A]">
-                  <span className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
+                <li className="flex items-start gap-2 rounded-lg bg-white px-2.5 py-2 text-sm text-[#5B473A]">
+                  <span className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
                     <Check className="h-3 w-3" />
                   </span>
                   <p>Build a stronger, more connected Bothell community.</p>

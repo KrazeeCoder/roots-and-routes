@@ -1,0 +1,21 @@
+X [ERROR] Cannot read file: C:\Users\tgsha\github_tsa2526\TSA-Web-Development-2526\roots\roots-and-routes\node_modules\lucide-react\dist\esm\defaultAttributes.js
+
+    node_modules/lucide-react/dist/esm/Icon.js:9:30:
+      9 │ import defaultAttributes from './defaultAttributes.js';
+        ╵                               ~~~~~~~~~~~~~~~~~~~~~~~~
+
+C:\Users\tgsha\github_tsa2526\TSA-Web-Development-2526\roots\roots-and-routes\node_modules\esbuild\lib\main.js:1467
+  let error = new Error(text);
+              ^
+
+Error: Build failed with 1 error:
+node_modules/lucide-react/dist/esm/Icon.js:9:30: ERROR: Cannot read file: C:\Users\tgsha\github_tsa2526\TSA-Web-Development-2526\roots\roots-and-routes\node_modules\lucide-react\dist\esm\defaultAttributes.js
+    at failureErrorWithLog (C:\Users\tgsha\github_tsa2526\TSA-Web-Development-2526\roots\roots-and-routes\node_modules\esbuild\lib\main.js:1467:15)
+    at C:\Users\tgsha\github_tsa2526\TSA-Web-Development-2526\roots\roots-and-routes\node_modules\esbuild\lib\main.js:926:25
+    at C:\Users\tgsha\github_tsa2526\TSA-Web-Development-2526\roots\roots-and-routes\node_modules\esbuild\lib\main.js:1345:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+Node.js v25.8.1

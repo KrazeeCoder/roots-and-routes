@@ -556,50 +556,50 @@ export function Directory() {
 
           <div className="flex-grow">
             <div ref={resultsTopRef}>
-            <div className="flex items-center justify-between mb-8 gap-4">
-              <p className="text-[#5B473A] text-sm" aria-live="polite">
-                <span className="inline-flex items-baseline gap-1.5">
-                  <span>Showing</span>
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.span
-                      key={`${shownCount}-${resultSummary}`}
-                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                      className="inline-flex min-w-6 justify-center rounded-full bg-[#E7D9C3] px-2 py-0.5 font-semibold text-[#334233]"
-                    >
-                      {shownCount}
-                    </motion.span>
-                  </AnimatePresence>
-                  <span>{shownCount === 1 ? "resource" : "resources"}</span>
-                </span>{" "}
-                <span>{resultSummary}</span>
-              </p>
+              <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-[#5B473A] text-sm" aria-live="polite">
+                  <span className="inline-flex items-baseline gap-1.5">
+                    <span>Showing</span>
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      <motion.span
+                        key={`${shownCount}-${resultSummary}`}
+                        initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        className="inline-flex min-w-6 justify-center rounded-full bg-[#E7D9C3] px-2 py-0.5 font-semibold text-[#334233]"
+                      >
+                        {shownCount}
+                      </motion.span>
+                    </AnimatePresence>
+                    <span>{shownCount === 1 ? "resource" : "resources"}</span>
+                  </span>{" "}
+                  <span>{resultSummary}</span>
+                </p>
+                {hasFilters && (
+                  <button
+                    disabled={loadingEntries}
+                    onClick={() => {
+                      setQuery("");
+                      setAppliedQuery("");
+                      setActiveCategory("All");
+                      setMinRatingDraft(0);
+                      setMinRating(0);
+                      setHasWebsite(null);
+                      setHasPhone(null);
+                      setHasEmail(null);
+                      setIsOpenNow(null);
+                      setSelectedHours("");
+                      setSortBy("rating");
+                      setCurrentPage(1);
+                      scrollToResultsTop();
+                    }}
+                    className="inline-flex w-fit items-center gap-1 self-start text-sm font-medium text-[#B36A4C] hover:underline disabled:opacity-70 disabled:no-underline sm:self-auto"
+                  >
+                    <X className="w-3.5 h-3.5" /> Clear filters
+                  </button>
+                )}
               </div>
-              {hasFilters && (
-                <button
-                  disabled={loadingEntries}
-                  onClick={() => {
-                    setQuery("");
-                    setAppliedQuery("");
-                    setActiveCategory("All");
-                    setMinRatingDraft(0);
-                    setMinRating(0);
-                    setHasWebsite(null);
-                    setHasPhone(null);
-                    setHasEmail(null);
-                    setIsOpenNow(null);
-                    setSelectedHours("");
-                    setSortBy("rating");
-                    setCurrentPage(1);
-                    scrollToResultsTop();
-                  }}
-                  className="text-sm text-[#B36A4C] font-medium hover:underline flex items-center gap-1 disabled:opacity-70 disabled:no-underline"
-                >
-                  <X className="w-3.5 h-3.5" /> Clear filters
-                </button>
-              )}
             </div>
 
             <div className="relative">

@@ -23,7 +23,7 @@ export function Layout() {
 
   const location = useLocation();
   const currentPath = location.pathname;
-  const isGuidePage = /(^|\/)guide\//.test(currentPath);
+  const isGuidePage = currentPath.includes("/guide/");
 
   useEffect(() => {
     if (location.hash) return;
@@ -103,13 +103,14 @@ export function Layout() {
 
     let animationFrame = 0;
     const updateProgress = () => {
-      const maxScrollableDistance = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
+      const scrollingElement = document.scrollingElement ?? document.documentElement;
+      const maxScrollableDistance = Math.max(scrollingElement.scrollHeight - scrollingElement.clientHeight, 0);
       if (maxScrollableDistance === 0) {
         setGuideScrollProgress(1);
         return;
       }
 
-      const scrolledDistance = window.scrollY;
+      const scrolledDistance = scrollingElement.scrollTop;
       const progress = Math.min(Math.max(scrolledDistance / maxScrollableDistance, 0), 1);
       setGuideScrollProgress(progress);
     };
@@ -234,10 +235,10 @@ export function Layout() {
         {isGuidePage ? (
           <div
             aria-hidden="true"
-            className="h-0.5 w-full bg-[#334233]/10"
+            className="h-1 w-full bg-[#E7D9C3]"
           >
             <div
-              className="h-full origin-left bg-[#B36A4C]/70 transition-transform duration-100 ease-linear"
+              className="h-full origin-left bg-[#B36A4C] transition-transform duration-100 ease-linear"
               style={{ transform: `scaleX(${guideScrollProgress})` }}
             />
           </div>
