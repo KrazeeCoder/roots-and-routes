@@ -378,6 +378,7 @@ export function Events() {
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const mapSectionRef = useRef<HTMLDivElement | null>(null);
+  const eventListTopRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
   useEffect(() => {
@@ -511,6 +512,19 @@ export function Events() {
     const startIndex = (currentPage - 1) * EVENTS_PER_PAGE;
     return visibleEvents.slice(startIndex, startIndex + EVENTS_PER_PAGE);
   }, [visibleEvents, currentPage]);
+
+  const scrollToEventListTop = useCallback(() => {
+    eventListTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  const goToEventPage = useCallback((nextPage: number) => {
+    const boundedPage = Math.max(1, Math.min(nextPage, totalPages));
+    if (boundedPage === currentPage) return;
+    setCurrentPage(boundedPage);
+    window.setTimeout(() => {
+      scrollToEventListTop();
+    }, 0);
+  }, [currentPage, scrollToEventListTop, totalPages]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -781,8 +795,8 @@ export function Events() {
           </div>
         </ScrollReveal>
 
-        <div className="flex flex-col lg:flex-row gap-8 lg:items-center">
-          <div className="flex-1">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.9fr)] lg:gap-10">
+          <div className="min-w-0">
             <ScrollReveal>
               <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233] mb-4">
                 Featured Gathering
@@ -796,7 +810,7 @@ export function Events() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.2}>
-              <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
+              <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_240px] xl:grid-cols-[minmax(0,1fr)_260px] xl:gap-6">
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-[#334233]/80">
                     <span className="px-3 py-1 rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
@@ -870,9 +884,9 @@ export function Events() {
             </ScrollReveal>
           </div>
 
-          <div className="flex-1">
+          <div className="min-w-0">
             <ScrollReveal delay={0.15}>
-              <div className="rounded-2xl border border-[#E7D9C3] bg-white shadow-sm p-6">
+              <div className="h-full rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
                 <h4 className="text-base font-semibold text-[#334233] mb-3">Why join community events?</h4>
                 <ul className="space-y-2 text-[#5B473A] text-sm">
                   <li className="flex items-start gap-2">
@@ -1153,6 +1167,7 @@ export function Events() {
             </p>
           ) : (
             <>
+              <div ref={eventListTopRef} />
               <StaggerGroup className="mt-8 space-y-6">
                 {paginatedEvents.map((event, index) => {
                 const detailHref = event.id ? `/events/${event.id}` : null;
@@ -1288,7 +1303,7 @@ export function Events() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  onClick={() => goToEventPage(currentPage - 1)}
                   disabled={currentPage === 1}
                   className="flex w-full max-w-[180px] items-center justify-center gap-2 sm:w-auto"
                 >
@@ -1303,7 +1318,7 @@ export function Events() {
                         key={page}
                         variant={currentPage === page ? "default" : "ghost"}
                         size="sm"
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => goToEventPage(page)}
                         className={`h-8 w-8 shrink-0 p-0 ${currentPage === page ? "bg-[#B36A4C] hover:bg-[#8A6F5A]" : ""}`}
                       >
                         {page}
@@ -1315,7 +1330,7 @@ export function Events() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() => goToEventPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   className="flex w-full max-w-[180px] items-center justify-center gap-2 sm:w-auto"
                 >

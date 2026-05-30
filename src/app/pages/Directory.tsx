@@ -36,12 +36,6 @@ function getCategoryBadgeClassName(category: string) {
   return "bg-[#E7D9C3] text-[#5B473A] border-[#C2B99E]";
 }
 
-function truncateDescription(value: string, maxLength = 125) {
-  const trimmed = value.trim();
-  if (trimmed.length <= maxLength) return trimmed;
-  return `${trimmed.slice(0, maxLength - 1).trimEnd()}...`;
-}
-
 function hasTextValue(value: string | null | undefined) {
   return (value ?? "").trim().length > 0;
 }
@@ -684,8 +678,8 @@ export function Directory() {
                           {entry.name}
                         </h3>
 
-                        <p className="text-[#5B473A] text-sm leading-relaxed mb-4">
-                          {truncateDescription(entry.description)}
+                        <p className="line-clamp-3 text-[#5B473A] text-sm leading-relaxed mb-4">
+                          {entry.description}
                         </p>
 
                         <div className="mt-auto">
