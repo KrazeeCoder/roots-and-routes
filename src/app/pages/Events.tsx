@@ -9,7 +9,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useLoaderData, useNavigate, useSearchParams } from "react-router";
 import { useJsApiLoader, CircleF, GoogleMap, InfoWindowF, MarkerF } from "@react-google-maps/api";
 import { Calendar, Check, ChevronDown, Clock, List, Map, MapPin, Navigation, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { TopoPattern } from "../components/TopoPattern";
@@ -19,7 +19,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { EventListSkeleton } from "../components/ui/skeleton";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
-import { listPublishedEvents, mapEventToEventItem } from "../data/portalApi";
+import { getFeaturedPublishedEvent, listPublishedEvents, mapEventToEventItem } from "../data/portalApi";
 import type { EventItem } from "../types/home";
 import { EVENT_DETAIL_DEFAULT_NAV } from "../utils/detailNavigation";
 import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_OPTIONS, milesToMeters } from "../../utils/googleMaps";
@@ -28,13 +28,17 @@ const bothellCenter = { lat: 47.7614, lng: -122.2052 };
 const radiusOptions = [1, 5, 10, 25] as const;
 const EVENTS_PER_PAGE = 6;
 const DEFAULT_EVENT_IMAGE = "https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,w_1280/sample.jpg";
-const CARD_INTERACTIVE_ELEMENT_SELECTOR = "a, button, input, select, textarea, [role='button'], [role='menuitem']";
+const CARD_INTERACTIVE_ELEMENT_SELECTOR = "a, button, input, select, textarea, [role='button'], [role='menu'], [role='menuitem']";
 
 type ViewMode = "list" | "map";
 type EventTimeframe = "upcoming" | "past";
 
 interface EventWithDistance extends EventItem {
   distanceMiles: number | null;
+}
+
+interface EventsLoaderData {
+  initialFeatured: EventItem | null;
 }
 
 interface CalendarPayload {
@@ -51,6 +55,7 @@ interface CalendarMenuProps {
   triggerVariant?: ComponentProps<typeof Button>["variant"];
   triggerSize?: ComponentProps<typeof Button>["size"];
   align?: "start" | "center" | "end";
+  fullWidth?: boolean;
 }
 
 function getEventStartsAtTimestamp(event: Pick<EventItem, "startsAt">) {
@@ -228,12 +233,32 @@ function downloadIcs(payload: CalendarPayload) {
   URL.revokeObjectURL(url);
 }
 
+async function loadPublishedEventItems() {
+  const nextEvents = await listPublishedEvents();
+  return nextEvents.map(mapEventToEventItem);
+}
+
+export async function eventsLoader(): Promise<EventsLoaderData> {
+  try {
+    const featuredEvent = await getFeaturedPublishedEvent();
+    return {
+      initialFeatured: featuredEvent ? mapEventToEventItem(featuredEvent) : null,
+    };
+  } catch (error) {
+    console.error("Could not preload featured event", error);
+    return {
+      initialFeatured: null,
+    };
+  }
+}
+
 function CalendarMenu({
   payload,
   triggerClassName,
   triggerVariant = "outline",
   triggerSize = "default",
   align = "start",
+  fullWidth = false,
 }: CalendarMenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -245,6 +270,8 @@ function CalendarMenu({
     : align === "center"
       ? "left-1/2 -translate-x-1/2"
       : "left-0";
+  const containerClassName = fullWidth ? "relative block w-full sm:inline-block sm:w-auto" : "relative inline-block";
+  const menuWidthClass = fullWidth ? "w-full sm:w-56" : "w-56";
 
   useEffect(() => {
     if (!open) return;
@@ -272,7 +299,7 @@ function CalendarMenu({
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative inline-block">
+    <div ref={containerRef} className={containerClassName}>
       <Button
         type="button"
         variant={triggerVariant}
@@ -289,7 +316,7 @@ function CalendarMenu({
       {open ? (
         <div
           role="menu"
-          className={`absolute ${menuPositionClass} mt-2 w-56 rounded-md border border-[#D9C6A8] bg-white shadow-lg z-[120] p-1`}
+          className={`absolute ${menuPositionClass} ${menuWidthClass} mt-2 rounded-md border border-[#D9C6A8] bg-white shadow-lg z-[120] p-1`}
         >
           <p className="px-2 py-1.5 text-sm font-medium text-[#334233]">Save This Event</p>
           <div className="my-1 h-px bg-[#E7D9C3]" />
@@ -357,6 +384,7 @@ function CalendarMenu({
 }
 
 export function Events() {
+  const { initialFeatured } = useLoaderData() as EventsLoaderData;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q")?.trim() ?? "";
@@ -398,50 +426,15 @@ export function Events() {
       setLoadError(null);
 
       try {
-        const nextEvents = await listPublishedEvents();
+        const mappedEvents = await loadPublishedEventItems();
         if (cancelled) return;
-        const mappedEvents = nextEvents.map(mapEventToEventItem);
         setEvents(mappedEvents);
-
-        // Geocode events that don't have coordinates but have addresses
-        if (isMapsLoaded && window.google?.maps?.Geocoder) {
-          setIsGeocoding(true);
-          const geocoder = new window.google.maps.Geocoder();
-          const geocodedEvents = await Promise.all(
-            mappedEvents.map(async (event) => {
-              if (!hasCoordinates(event) && event.location && event.location.trim()) {
-                try {
-                  const geocode = await geocoder.geocode({ address: event.location });
-                  const location = geocode.results[0]?.geometry?.location;
-                  if (location) {
-                    return {
-                      ...event,
-                      locationLat: location.lat(),
-                      locationLng: location.lng(),
-                    };
-                  }
-                } catch (error) {
-                  console.warn(`Could not geocode event location: ${event.location}`, error);
-                }
-              }
-              return event;
-            })
-          );
-          if (!cancelled) {
-            setEventsWithGeocodedCoords(geocodedEvents);
-            setIsGeocoding(false);
-          }
-        } else {
-          setEventsWithGeocodedCoords(mappedEvents);
-          setIsGeocoding(false);
-        }
       } catch (error) {
         console.error("Could not load published events", error);
         if (!cancelled) {
           setEvents([]);
           setEventsWithGeocodedCoords([]);
           setLoadError("Could not load events right now. Check your connection and try again.");
-          setIsGeocoding(false);
         }
       } finally {
         if (!cancelled) setLoadingEvents(false);
@@ -452,7 +445,58 @@ export function Events() {
     return () => {
       cancelled = true;
     };
-  }, [isMapsLoaded, reloadKey]);
+  }, [reloadKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function geocodeEvents() {
+      if (!events.length) {
+        setEventsWithGeocodedCoords([]);
+        setIsGeocoding(false);
+        return;
+      }
+
+      if (!isMapsLoaded || !window.google?.maps?.Geocoder) {
+        setEventsWithGeocodedCoords(events);
+        setIsGeocoding(false);
+        return;
+      }
+
+      setIsGeocoding(true);
+      const geocoder = new window.google.maps.Geocoder();
+      const geocodedEvents = await Promise.all(
+        events.map(async (event) => {
+          if (!hasCoordinates(event) && event.location && event.location.trim()) {
+            try {
+              const geocode = await geocoder.geocode({ address: event.location });
+              const location = geocode.results[0]?.geometry?.location;
+              if (location) {
+                return {
+                  ...event,
+                  locationLat: location.lat(),
+                  locationLng: location.lng(),
+                };
+              }
+            } catch (error) {
+              console.warn(`Could not geocode event location: ${event.location}`, error);
+            }
+          }
+          return event;
+        }),
+      );
+
+      if (!cancelled) {
+        setEventsWithGeocodedCoords(geocodedEvents);
+        setIsGeocoding(false);
+      }
+    }
+
+    void geocodeEvents();
+    return () => {
+      cancelled = true;
+    };
+  }, [events, isMapsLoaded]);
 
   const eventsWithDistance = useMemo<EventWithDistance[]>(() => {
     const sourceEvents = eventsWithGeocodedCoords.length > 0 ? eventsWithGeocodedCoords : events;
@@ -479,7 +523,7 @@ export function Events() {
     return sortEventsByStartsAt(filteredEvents, direction);
   }, [eventsWithDistance, timeframeFilter]);
 
-  const featured = timeframeEvents[0];
+  const featured = timeframeEvents[0] ?? initialFeatured;
 
   const textMatchedEvents = useMemo<EventWithDistance[]>(() => {
     if (!normalizedQuery) return timeframeEvents;
@@ -808,9 +852,18 @@ export function Events() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.15}>
-            <div className="mt-4 overflow-hidden rounded-2xl border border-[#E7D9C3] bg-white shadow-sm">
+            <div
+              role={featuredHref ? "link" : undefined}
+              tabIndex={featuredHref ? 0 : undefined}
+              aria-label={featuredHref && featured?.title ? `Open event details: ${featured.title}` : undefined}
+              onClick={(event) => handleEventCardClick(event, featuredHref)}
+              onKeyDown={(event) => handleEventCardKeyDown(event, featuredHref)}
+              className={`mt-4 overflow-visible rounded-2xl border border-[#E7D9C3] bg-white shadow-sm ${
+                featuredHref ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B36A4C]/40" : ""
+              }`}
+            >
               <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_240px]">
-                <div className="relative h-40 overflow-hidden bg-[#E7D9C3] sm:h-44 lg:h-auto lg:min-h-[210px]">
+                <div className="relative h-40 overflow-hidden rounded-t-2xl bg-[#E7D9C3] sm:h-44 lg:h-auto lg:min-h-[210px] lg:rounded-l-2xl lg:rounded-t-none">
                   <ImageWithFallback
                     src={featured?.image?.trim() ? featured.image : DEFAULT_EVENT_IMAGE}
                     alt={featured?.title ?? "Featured event"}
@@ -878,11 +931,11 @@ export function Events() {
                         RSVP & Details
                       </Button>
                     )}
-                    <CalendarMenu payload={featuredCalendar} triggerClassName="h-9 w-full px-4 text-sm sm:w-auto" />
+                    <CalendarMenu payload={featuredCalendar} triggerClassName="h-9 w-full px-4 text-sm sm:w-auto" fullWidth />
                   </div>
                 </div>
 
-                <aside className="border-t border-[#E7D9C3] bg-[#FCF8F1] p-4 lg:border-l lg:border-t-0">
+                <aside className="rounded-b-2xl border-t border-[#E7D9C3] bg-[#FCF8F1] p-4 lg:rounded-b-none lg:rounded-r-2xl lg:border-l lg:border-t-0">
                   <h4 className="text-sm font-semibold text-[#334233]">What to expect</h4>
                   <ul className="mt-3 space-y-2 text-sm text-[#5B473A]">
                     <li className="flex items-start gap-2">

@@ -4,7 +4,7 @@ import { Home } from "./pages/Home";
 import { Directory } from "./pages/Directory";
 import { ResourcesRedirect } from "./pages/ResourcesRedirect";
 import { Spotlights } from "./pages/Spotlights";
-import { Events } from "./pages/Events";
+import { Events, eventsLoader } from "./pages/Events";
 import { Calendar } from "./pages/Calendar";
 import { Suggest } from "./pages/Suggest";
 import { About } from "./pages/About";
@@ -34,7 +34,7 @@ export const router = createBrowserRouter([
       { path: "directory", Component: Directory },
       { path: "resources", Component: ResourcesRedirect },
       { path: "spotlights", Component: Spotlights },
-      { path: "events", Component: Events },
+      { path: "events", loader: eventsLoader, Component: Events },
       { path: "events/:eventId", Component: EventDetail },
       { path: "calendar", Component: Calendar },
       { path: "suggest", Component: Suggest },

@@ -64,8 +64,7 @@ export function GuideBecomeContributor() {
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:items-start gap-12">
             
             {/* Sticky Sidebar Navigation */}
-            <div className="hidden lg:block lg:col-span-3 lg:self-start">
-              <div className="sticky top-24 max-h-[calc(100dvh-6.5rem)] overflow-y-auto pr-1 space-y-8">
+            <div className="hidden lg:sticky lg:top-24 lg:col-span-3 lg:block lg:max-h-[calc(100dvh-6.5rem)] lg:overflow-y-auto lg:pr-1 space-y-8">
                 <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
                   <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>
                   <nav className="space-y-4">
@@ -103,7 +102,6 @@ export function GuideBecomeContributor() {
                     Go to Contact Form
                   </Link>
                 </div>
-              </div>
             </div>
 
             {/* Main Content Area */}

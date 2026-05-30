@@ -247,6 +247,24 @@ export async function listPublishedEvents(): Promise<EventRecord[]> {
   return ((data ?? []) as EventRecord[]).map(withResolvedEventImage);
 }
 
+export async function getFeaturedPublishedEvent(): Promise<EventRecord | null> {
+  const nowIso = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("status", "published")
+    .gte("starts_at", nowIso)
+    .order("starts_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") throw error;
+  if (data) return withResolvedEventImage(data as EventRecord);
+
+  const fallbackEvents = await listPublishedEvents();
+  return fallbackEvents[0] ?? null;
+}
+
 export async function getPublishedEventById(eventId: string): Promise<EventRecord | null> {
   const { data, error } = await supabase
     .from("events")
