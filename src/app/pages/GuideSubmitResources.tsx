@@ -65,7 +65,7 @@ export function GuideSubmitResources() {
             
             {/* Sticky Sidebar Navigation */}
             <div className="hidden lg:block lg:col-span-3 lg:self-start">
-              <div className="sticky top-28 space-y-8">
+              <div className="sticky top-24 max-h-[calc(100dvh-6.5rem)] overflow-y-auto pr-1 space-y-8">
                 <div className="rounded-2xl border border-[#E7D9C3] bg-white p-6 shadow-sm">
                   <p className="text-xs font-bold uppercase tracking-wider text-[#B36A4C] mb-4">Guide Sections</p>
                   <nav className="space-y-4">
@@ -352,31 +352,30 @@ export function GuideSubmitResources() {
                 </div>
               </motion.div>
 
+              {/* Bottom CTA */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+                className="mt-20 text-center border-t border-[#E7D9C3] pt-12"
+              >
+                <h3 className="text-2xl font-semibold font-['Cormorant_Garamond',serif] text-[#334233] mb-4">
+                  Ready to share a resource?
+                </h3>
+                <p className="text-sm text-[#5B473A] mb-8 max-w-md mx-auto">
+                  Help your community discover local services and events by submitting them to our directory.
+                </p>
+                <Link
+                  to="/suggest"
+                  className="inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-all duration-300 hover:shadow-lg"
+                >
+                  Submit a Resource or Event
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </motion.div>
             </div>
           </div>
-
-          {/* Bottom CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="mt-20 text-center border-t border-[#E7D9C3] pt-12"
-          >
-            <h3 className="text-2xl font-semibold font-['Cormorant_Garamond',serif] text-[#334233] mb-4">
-              Ready to share a resource?
-            </h3>
-            <p className="text-sm text-[#5B473A] mb-8 max-w-md mx-auto">
-              Help your community discover local services and events by submitting them to our directory.
-            </p>
-            <Link
-              to="/suggest"
-              className="inline-flex items-center justify-center rounded-full bg-[#B36A4C] px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-[#934a3f] transition-all duration-300 hover:shadow-lg"
-            >
-              Submit a Resource or Event
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </motion.div>
         </div>
       </section>
     </div>

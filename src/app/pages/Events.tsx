@@ -795,28 +795,36 @@ export function Events() {
           </div>
         </ScrollReveal>
 
-        <div className="mt-2">
+        <div className="mt-1">
           <ScrollReveal>
-            <h2 className="mb-2 font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] sm:text-3xl">
-              Featured Gathering
-            </h2>
-          </ScrollReveal>
-          <ScrollReveal delay={0.1}>
-            <p className="max-w-2xl text-sm leading-relaxed text-[#5B473A] sm:text-base">
-              Highlighting a community moment we think you'll want to save to your calendar. Tap into the energy,
-              meet local folks, and find support where it matters most.
-            </p>
+            <div className="max-w-2xl">
+              <h2 className="mb-2 font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] sm:text-3xl">
+                Featured Gathering
+              </h2>
+              <p className="text-sm leading-relaxed text-[#5B473A] sm:text-base">
+                Highlighting a community moment we think you'll want to save to your calendar.
+              </p>
+            </div>
           </ScrollReveal>
 
-          <ScrollReveal delay={0.2}>
-            <div className="mt-4 rounded-2xl border border-[#E7D9C3] bg-white p-3.5 shadow-sm sm:p-4">
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(250px,0.95fr)] lg:items-stretch">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#334233]/80 sm:text-sm">
-                    <span className="rounded-full bg-[#A7AE8A]/20 px-3 py-1 text-[#5B473A]">
+          <ScrollReveal delay={0.15}>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-[#E7D9C3] bg-white shadow-sm">
+              <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_240px]">
+                <div className="relative h-40 overflow-hidden bg-[#E7D9C3] sm:h-44 lg:h-auto lg:min-h-[210px]">
+                  <ImageWithFallback
+                    src={featured?.image?.trim() ? featured.image : DEFAULT_EVENT_IMAGE}
+                    alt={featured?.title ?? "Featured event"}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/45 via-transparent" />
+                </div>
+
+                <div className="p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#334233]/80">
+                    <span className="rounded-full bg-[#A7AE8A]/20 px-2.5 py-1 text-[#5B473A]">
                       {featured?.date ?? "TBD"}
                     </span>
-                    <span className="rounded-full bg-[#B36A4C]/10 px-3 py-1 text-[#B36A4C]">
+                    <span className="rounded-full bg-[#B36A4C]/10 px-2.5 py-1 text-[#B36A4C]">
                       {featured?.category ?? "Community Event"}
                     </span>
                   </div>
@@ -825,19 +833,19 @@ export function Events() {
                     <Link
                       to={featuredHref}
                       state={EVENT_DETAIL_DEFAULT_NAV}
-                      className="block font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] transition-colors hover:text-[#B36A4C] sm:text-[1.9rem]"
+                      className="mt-3 block font-['Cormorant_Garamond',serif] text-2xl font-bold leading-tight text-[#334233] transition-colors hover:text-[#B36A4C] sm:text-[1.85rem]"
                     >
                       {featured?.title ?? "No published event yet"}
                     </Link>
                   ) : (
-                    <h3 className="font-['Cormorant_Garamond',serif] text-2xl font-bold text-[#334233] sm:text-[1.9rem]">
+                    <h3 className="mt-3 font-['Cormorant_Garamond',serif] text-2xl font-bold leading-tight text-[#334233] sm:text-[1.85rem]">
                       {featured?.title ?? "No published event yet"}
                     </h3>
                   )}
 
-                  <div className="divide-y divide-[#E7D9C3] rounded-xl border border-[#D9C6A8] bg-[#F8F5F0]">
-                    <div className="flex items-start gap-3 px-3 py-2.5">
-                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/20 text-[#5B473A]">
                         <Clock className="size-3.5" />
                       </span>
                       <div className="min-w-0 flex-1">
@@ -847,8 +855,8 @@ export function Events() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3 px-3 py-2.5">
-                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/25 text-[#5B473A]">
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#A7AE8A]/20 text-[#5B473A]">
                         <MapPin className="size-3.5" />
                       </span>
                       <div className="min-w-0 flex-1">
@@ -860,7 +868,7 @@ export function Events() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
+                  <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
                     {featuredHref ? (
                       <Button variant="default" className="h-9 w-full px-4 text-sm sm:w-auto" asChild>
                         <Link to={featuredHref} state={EVENT_DETAIL_DEFAULT_NAV}>View Details</Link>
@@ -874,41 +882,24 @@ export function Events() {
                   </div>
                 </div>
 
-                <div className="relative min-h-[200px] overflow-hidden rounded-xl border border-[#E7D9C3] sm:min-h-[220px]">
-                  <ImageWithFallback
-                    src={featured?.image?.trim() ? featured.image : DEFAULT_EVENT_IMAGE}
-                    alt={featured?.title ?? "Featured event"}
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#334233]/50 via-transparent" />
-                </div>
+                <aside className="border-t border-[#E7D9C3] bg-[#FCF8F1] p-4 lg:border-l lg:border-t-0">
+                  <h4 className="text-sm font-semibold text-[#334233]">What to expect</h4>
+                  <ul className="mt-3 space-y-2 text-sm text-[#5B473A]">
+                    <li className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#6F7553]" />
+                      <span>Welcoming neighbors and local organizers.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#6F7553]" />
+                      <span>Useful support, resources, and services.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#6F7553]" />
+                      <span>A stronger, more connected community.</span>
+                    </li>
+                  </ul>
+                </aside>
               </div>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.3}>
-            <div className="mt-3 rounded-xl border border-[#E7D9C3] bg-[#FCF8F1] p-3 sm:p-4">
-              <h4 className="text-sm font-semibold text-[#334233] sm:text-base">Why join community events?</h4>
-              <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <li className="flex items-start gap-2 rounded-lg bg-white px-2.5 py-2 text-sm text-[#5B473A]">
-                  <span className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  <p>Meet neighbors and local organizers in a welcoming setting.</p>
-                </li>
-                <li className="flex items-start gap-2 rounded-lg bg-white px-2.5 py-2 text-sm text-[#5B473A]">
-                  <span className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  <p>Find support, resources, and services that fit your needs.</p>
-                </li>
-                <li className="flex items-start gap-2 rounded-lg bg-white px-2.5 py-2 text-sm text-[#5B473A]">
-                  <span className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#A7AE8A]/20 text-[#5B473A]">
-                    <Check className="h-3 w-3" />
-                  </span>
-                  <p>Build a stronger, more connected Bothell community.</p>
-                </li>
-              </ul>
             </div>
           </ScrollReveal>
         </div>
