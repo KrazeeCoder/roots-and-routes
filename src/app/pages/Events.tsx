@@ -858,7 +858,7 @@ export function Events() {
               aria-label={featuredHref && featured?.title ? `Open event details: ${featured.title}` : undefined}
               onClick={(event) => handleEventCardClick(event, featuredHref)}
               onKeyDown={(event) => handleEventCardKeyDown(event, featuredHref)}
-              className={`mt-4 overflow-visible rounded-2xl border border-[#E7D9C3] bg-white shadow-sm ${
+              className={`group mt-4 overflow-visible rounded-2xl border border-[#E7D9C3] bg-white shadow-sm transition-colors hover:border-[#B36A4C]/45 ${
                 featuredHref ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B36A4C]/40" : ""
               }`}
             >
@@ -886,12 +886,12 @@ export function Events() {
                     <Link
                       to={featuredHref}
                       state={EVENT_DETAIL_DEFAULT_NAV}
-                      className="mt-3 block font-['Cormorant_Garamond',serif] text-2xl font-bold leading-tight text-[#334233] transition-colors hover:text-[#B36A4C] sm:text-[1.85rem]"
+                      className="mt-3 block font-['Cormorant_Garamond',serif] text-2xl font-bold leading-tight text-[#334233] transition-colors group-hover:text-[#B36A4C] hover:text-[#B36A4C] sm:text-[1.85rem]"
                     >
                       {featured?.title ?? "No published event yet"}
                     </Link>
                   ) : (
-                    <h3 className="mt-3 font-['Cormorant_Garamond',serif] text-2xl font-bold leading-tight text-[#334233] sm:text-[1.85rem]">
+                    <h3 className="mt-3 font-['Cormorant_Garamond',serif] text-2xl font-bold leading-tight text-[#334233] transition-colors group-hover:text-[#B36A4C] sm:text-[1.85rem]">
                       {featured?.title ?? "No published event yet"}
                     </h3>
                   )}
