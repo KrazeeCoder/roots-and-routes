@@ -18,7 +18,6 @@ export function Layout() {
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const wasMenuOpenRef = useRef(false);
-  const menuOpenScrollYRef = useRef(0);
 
   const toggleMenu = () => setIsMenuOpen((open) => !open);
 
@@ -63,32 +62,6 @@ export function Layout() {
       window.clearTimeout(timeout);
     };
   }, [location.hash, location.pathname]);
-
-  useEffect(() => {
-    if (!isMenuOpen) return;
-
-    menuOpenScrollYRef.current = window.scrollY;
-    const previousBodyPosition = document.body.style.position;
-    const previousBodyTop = document.body.style.top;
-    const previousBodyWidth = document.body.style.width;
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${menuOpenScrollYRef.current}px`;
-    document.body.style.width = "100%";
-
-    return () => {
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.body.style.overflow = previousBodyOverflow;
-      document.body.style.position = previousBodyPosition;
-      document.body.style.top = previousBodyTop;
-      document.body.style.width = previousBodyWidth;
-      window.scrollTo(0, menuOpenScrollYRef.current);
-    };
-  }, [isMenuOpen]);
 
   useEffect(() => {
     if (!isMenuOpen || !mobileMenuRef.current) return;
@@ -164,10 +137,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-[#F6F1E7] text-[#334233] font-['Public_Sans',sans-serif] selection:bg-[#E7D9C3] selection:text-[#334233] flex flex-col">
-      <header
-        className={`${isMenuOpen ? "fixed" : "sticky"} top-0 z-50 w-full bg-[#F6F1E7]/90 backdrop-blur-md border-b border-[#E7D9C3]`}
-        role="banner"
-      >
+      <header className="sticky top-0 z-50 w-full bg-[#F6F1E7]/90 backdrop-blur-md border-b border-[#E7D9C3]" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex-shrink-0 flex items-center gap-3">
@@ -268,16 +238,9 @@ export function Layout() {
         ) : null}
       </header>
 
-      <div
-        className={`fixed inset-x-0 top-20 bottom-0 z-40 md:hidden ${
-          isMenuOpen ? "pointer-events-auto" : "pointer-events-none"
-        }`}
-        aria-hidden={!isMenuOpen}
-      >
-        <button
-          type="button"
-          onClick={() => setIsMenuOpen(false)}
-          aria-label="Close mobile menu"
+      <div className="pointer-events-none fixed inset-x-0 top-20 bottom-0 z-40 md:hidden" aria-hidden={!isMenuOpen}>
+        <div
+          aria-hidden="true"
           className={`absolute inset-0 bg-[#334233]/35 transition-opacity duration-300 ${
             isMenuOpen ? "opacity-100" : "opacity-0"
           }`}
@@ -287,7 +250,7 @@ export function Layout() {
           ref={mobileMenuRef}
           role="navigation"
           aria-label="Mobile navigation"
-          className={`absolute top-0 right-0 h-full w-[min(85vw,22rem)] bg-[#F6F1E7] border-l border-[#E7D9C3] shadow-2xl transition-transform duration-300 ease-out ${
+          className={`pointer-events-auto absolute top-0 right-0 h-full w-[min(85vw,22rem)] bg-[#F6F1E7] border-l border-[#E7D9C3] shadow-2xl transition-transform duration-300 ease-out ${
             isMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
