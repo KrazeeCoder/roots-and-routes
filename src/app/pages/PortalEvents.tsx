@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { useJsApiLoader } from "@react-google-maps/api";
-import { Pencil, PlusCircle, Trash2, Upload } from "lucide-react";
+import { Pencil, PlusCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -275,14 +275,17 @@ function EventFormFields({
           />
         </div>
         <div className="sm:col-span-2">
-          <Label htmlFor={imageId}>Image URL</Label>
-          <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-            <Input
-              id={imageId}
-              value={form.imageUrl}
-              onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-            />
-            <div className="space-y-1">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+            <div>
+              <Label htmlFor={imageId}>Image URL</Label>
+              <Input
+                id={imageId}
+                className="mt-1"
+                value={form.imageUrl}
+                onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+              />
+            </div>
+            <div>
               <Label htmlFor={imageUploadId}>Upload image</Label>
               <input
                 id={imageUploadId}
@@ -299,10 +302,10 @@ function EventFormFields({
               />
               <label
                 htmlFor={imageUploadId}
-                className={`inline-flex h-10 min-w-44 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] transition-colors hover:bg-[#F6F1E7] ${isUploadingImage ? "pointer-events-none opacity-70" : ""}`}
+                title={imageFileName || "Choose file"}
+                className={`mt-1 inline-flex h-9 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${isUploadingImage ? "pointer-events-none opacity-70" : ""}`}
               >
-                <Upload className="h-3.5 w-3.5" aria-hidden />
-                <span>{isUploadingImage ? "Uploading..." : (imageFileName || "Choose file")}</span>
+                <span className="block min-w-0 max-w-full truncate">{isUploadingImage ? "Uploading..." : (imageFileName || "Choose file")}</span>
               </label>
             </div>
           </div>

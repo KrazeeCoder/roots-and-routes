@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, Sparkles, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../auth/AuthProvider";
 import { TopoPattern } from "../components/TopoPattern";
@@ -776,39 +776,40 @@ export function Suggest() {
                       </div>
                       <fieldset>
                         <legend className="text-sm font-medium mb-2">Image</legend>
-                        <div>
-                          <Label htmlFor="resource-image-url">Image URL</Label>
-                          <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+                          <div>
+                            <Label htmlFor="resource-image-url">Image URL</Label>
                             <Input
                               id="resource-image-url"
+                              className="mt-1"
                               value={resourceForm.imageUrl}
                               onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
                               aria-invalid={!!resourceFieldErrors["resource-image-url"]}
                               aria-describedby={resourceFieldErrors["resource-image-url"] ? getFieldErrorId("resource-image-url") : undefined}
                             />
-                            <div className="space-y-1">
-                              <Label htmlFor="resource-image-upload">Upload image</Label>
-                              <input
-                                id="resource-image-upload"
-                                type="file"
-                                accept="image/*"
-                                disabled={resourceImageUploading}
-                                className="sr-only"
-                                onChange={(event) => {
-                                  const file = event.target.files?.[0];
-                                  if (!file) return;
-                                  void handleResourceImageUpload(file);
-                                  event.currentTarget.value = "";
-                                }}
-                              />
-                              <label
-                                htmlFor="resource-image-upload"
-                                className={`inline-flex h-10 min-w-44 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] transition-colors hover:bg-[#F6F1E7] ${resourceImageUploading ? "pointer-events-none opacity-70" : ""}`}
-                              >
-                                <Upload className="h-3.5 w-3.5" aria-hidden />
-                                <span>{resourceImageUploading ? "Uploading..." : (resourceImageFileName || "Choose file")}</span>
-                              </label>
-                            </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="resource-image-upload">Upload image</Label>
+                            <input
+                              id="resource-image-upload"
+                              type="file"
+                              accept="image/*"
+                              disabled={resourceImageUploading}
+                              className="sr-only"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                if (!file) return;
+                                void handleResourceImageUpload(file);
+                                event.currentTarget.value = "";
+                              }}
+                            />
+                            <label
+                              htmlFor="resource-image-upload"
+                              title={resourceImageFileName || "Choose file"}
+                              className={`mt-1 inline-flex h-9 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${resourceImageUploading ? "pointer-events-none opacity-70" : ""}`}
+                            >
+                              <span className="block min-w-0 max-w-full truncate">{resourceImageUploading ? "Uploading..." : (resourceImageFileName || "Choose file")}</span>
+                            </label>
                           </div>
                           {resourceFieldErrors["resource-image-url"] ? <p id={getFieldErrorId("resource-image-url")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-image-url"]}</p> : null}
                           {resourceImageUploadError ? <p className="mt-1 text-xs text-red-600">{resourceImageUploadError}</p> : null}
@@ -913,17 +914,19 @@ export function Suggest() {
                       </div>
                       <fieldset>
                         <legend className="text-sm font-medium mb-2">Image</legend>
-                        <div>
-                          <Label htmlFor="event-image-url">Image URL</Label>
-                          <Input
-                            id="event-image-url"
-                            value={eventForm.imageUrl}
-                            onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-                            aria-invalid={!!eventFieldErrors["event-image-url"]}
-                            aria-describedby={eventFieldErrors["event-image-url"] ? getFieldErrorId("event-image-url") : undefined}
-                          />
-                          {eventFieldErrors["event-image-url"] ? <p id={getFieldErrorId("event-image-url")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-image-url"]}</p> : null}
-                          <div className="mt-2 space-y-2">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+                          <div>
+                            <Label htmlFor="event-image-url">Image URL</Label>
+                            <Input
+                              id="event-image-url"
+                              className="mt-1"
+                              value={eventForm.imageUrl}
+                              onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+                              aria-invalid={!!eventFieldErrors["event-image-url"]}
+                              aria-describedby={eventFieldErrors["event-image-url"] ? getFieldErrorId("event-image-url") : undefined}
+                            />
+                          </div>
+                          <div>
                             <Label htmlFor="event-image-upload">Upload image</Label>
                             <input
                               id="event-image-upload"
@@ -940,13 +943,14 @@ export function Suggest() {
                             />
                             <label
                               htmlFor="event-image-upload"
-                              className={`inline-flex h-10 min-w-44 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] transition-colors hover:bg-[#F6F1E7] ${eventImageUploading ? "pointer-events-none opacity-70" : ""}`}
+                              title={eventImageFileName || "Choose file"}
+                              className={`mt-1 inline-flex h-9 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${eventImageUploading ? "pointer-events-none opacity-70" : ""}`}
                             >
-                              <Upload className="h-3.5 w-3.5" aria-hidden />
-                              <span>{eventImageUploading ? "Uploading..." : (eventImageFileName || "Choose file")}</span>
+                              <span className="block min-w-0 max-w-full truncate">{eventImageUploading ? "Uploading..." : (eventImageFileName || "Choose file")}</span>
                             </label>
-                            {eventImageUploadError ? <p className="text-xs text-red-600">{eventImageUploadError}</p> : null}
                           </div>
+                          {eventFieldErrors["event-image-url"] ? <p id={getFieldErrorId("event-image-url")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-image-url"]}</p> : null}
+                          {eventImageUploadError ? <p className="mt-1 text-xs text-red-600">{eventImageUploadError}</p> : null}
                         </div>
                       </fieldset>
                       <fieldset>
