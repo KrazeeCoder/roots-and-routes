@@ -386,7 +386,7 @@ function CalendarMenu({
 export function Events() {
   const { initialFeatured } = useLoaderData() as EventsLoaderData;
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get("q")?.trim() ?? "";
   const normalizedQuery = query.toLowerCase();
   const { isLoaded: isMapsLoaded } = useJsApiLoader(GOOGLE_MAPS_LOADER_OPTIONS);
@@ -405,6 +405,7 @@ export function Events() {
   const [eventsWithGeocodedCoords, setEventsWithGeocodedCoords] = useState<EventItem[]>([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [keywordQuery, setKeywordQuery] = useState(query);
   const mapSectionRef = useRef<HTMLDivElement | null>(null);
   const listControlsRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -417,6 +418,10 @@ export function Events() {
       behavior: 'smooth'
     });
   }, []);
+
+  useEffect(() => {
+    setKeywordQuery(query);
+  }, [query]);
 
   useEffect(() => {
     let cancelled = false;
@@ -731,6 +736,28 @@ export function Events() {
     setLocationQuery("");
     setSelectedMarkerId(null);
   };
+
+  const applyKeywordSearch = useCallback((nextQuery: string) => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    const trimmedQuery = nextQuery.trim();
+    if (trimmedQuery) {
+      nextSearchParams.set("q", trimmedQuery);
+    } else {
+      nextSearchParams.delete("q");
+    }
+    setSearchParams(nextSearchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const onKeywordSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    applyKeywordSearch(keywordQuery);
+  };
+
+  const clearKeywordSearch = () => {
+    setKeywordQuery("");
+    applyKeywordSearch("");
+  };
+
   const retryLoadEvents = () => setReloadKey((key) => key + 1);
 
   const handleEventCardClick = useCallback(
@@ -999,6 +1026,29 @@ export function Events() {
               </div>
 
               <div className="flex flex-wrap items-end gap-3">
+                <form onSubmit={onKeywordSearch} className="flex items-end gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="events-keyword-search" className="text-xs text-[#6F7553]">
+                      Keyword
+                    </Label>
+                    <Input
+                      id="events-keyword-search"
+                      value={keywordQuery}
+                      onChange={(event) => setKeywordQuery(event.target.value)}
+                      placeholder="Search events"
+                      className="w-48 sm:w-64"
+                    />
+                  </div>
+                  <Button type="submit" variant="secondary">
+                    Search
+                  </Button>
+                  {query ? (
+                    <Button type="button" variant="ghost" onClick={clearKeywordSearch}>
+                      Clear
+                    </Button>
+                  ) : null}
+                </form>
+
                 <form
                   onSubmit={(event) => {
                     void onLocationSearch(event);
@@ -1018,7 +1068,7 @@ export function Events() {
                     />
                   </div>
                   <Button type="submit" variant="secondary">
-                    Search
+                    Nearby
                   </Button>
                 </form>
 

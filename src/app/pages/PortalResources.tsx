@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
-import { Pencil, PlusCircle, Star, Trash2 } from "lucide-react";
+import { Pencil, PlusCircle, Star, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -21,6 +21,7 @@ import {
   isModerator,
   listResourceRatingFeedback,
   listPortalResources,
+  uploadResourceImage,
   updateResource,
 } from "../data/portalApi";
 import type {
@@ -237,6 +238,9 @@ interface ResourceFormFieldsProps {
   statuses: ContentStatus[];
   canModerate: boolean;
   idPrefix: string;
+  isUploadingImage: boolean;
+  imageUploadError: string | null;
+  onImageUpload: (file: File) => void;
 }
 
 function ResourceFormFields({
@@ -245,6 +249,9 @@ function ResourceFormFields({
   statuses,
   canModerate,
   idPrefix,
+  isUploadingImage,
+  imageUploadError,
+  onImageUpload,
 }: ResourceFormFieldsProps) {
   const nameId = `${idPrefix}-name`;
   const categoryId = `${idPrefix}-category`;
@@ -256,6 +263,7 @@ function ResourceFormFields({
   const emailId = `${idPrefix}-email`;
   const websiteId = `${idPrefix}-website`;
   const imageId = `${idPrefix}-image`;
+  const imageUploadId = `${idPrefix}-image-upload`;
   const tagsId = `${idPrefix}-tags`;
   const statusId = `${idPrefix}-status`;
   const spotlightId = `${idPrefix}-spotlight`;
@@ -361,6 +369,26 @@ function ResourceFormFields({
             value={form.imageUrl}
             onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
           />
+          <div className="mt-2 space-y-2">
+            <Label htmlFor={imageUploadId}>Or upload image</Label>
+            <Input
+              id={imageUploadId}
+              type="file"
+              accept="image/*"
+              disabled={isUploadingImage}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                onImageUpload(file);
+                event.currentTarget.value = "";
+              }}
+            />
+            <div className="flex items-center gap-2 text-xs text-[#6F7553]">
+              <Upload className="h-3.5 w-3.5" aria-hidden />
+              <span>{isUploadingImage ? "Uploading image..." : "Uploads fill the Image URL automatically."}</span>
+            </div>
+            {imageUploadError ? <p className="text-xs text-red-600">{imageUploadError}</p> : null}
+          </div>
         </div>
       </div>
 
@@ -432,6 +460,8 @@ export function PortalResources() {
   const [createForm, setCreateForm] = useState<ResourceFormState>(defaultForm);
   const [createSaving, setCreateSaving] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [createImageUploading, setCreateImageUploading] = useState(false);
+  const [createImageUploadError, setCreateImageUploadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
@@ -440,6 +470,8 @@ export function PortalResources() {
   const [editForm, setEditForm] = useState<ResourceFormState>(defaultForm);
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [editImageUploading, setEditImageUploading] = useState(false);
+  const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
@@ -632,12 +664,15 @@ export function PortalResources() {
     setEditId(null);
     setEditForm(defaultForm);
     setEditError(null);
+    setEditImageUploading(false);
+    setEditImageUploadError(null);
   };
 
   const startEdit = (resource: ResourceRecord) => {
     setEditId(resource.id);
     setEditForm(mapResourceToForm(resource, canModerate));
     setEditError(null);
+    setEditImageUploadError(null);
     setEditOpen(true);
   };
 
@@ -681,6 +716,13 @@ export function PortalResources() {
 
     setCreateSaving(true);
     setCreateError(null);
+    setCreateImageUploadError(null);
+
+    if (createImageUploading) {
+      setCreateError("Please wait for the image upload to finish.");
+      setCreateSaving(false);
+      return;
+    }
 
     const validationError = validateResourceForm(createForm);
     if (validationError) {
@@ -712,6 +754,13 @@ export function PortalResources() {
 
     setEditSaving(true);
     setEditError(null);
+    setEditImageUploadError(null);
+
+    if (editImageUploading) {
+      setEditError("Please wait for the image upload to finish.");
+      setEditSaving(false);
+      return;
+    }
 
     const validationError = validateResourceForm(editForm);
     if (validationError) {
@@ -755,6 +804,48 @@ export function PortalResources() {
     }
   };
 
+  const handleCreateImageUpload = async (file: File) => {
+    if (!user) return;
+
+    setCreateImageUploading(true);
+    setCreateImageUploadError(null);
+    const toastId = toast.loading("Uploading image...");
+
+    try {
+      const imageUrl = await uploadResourceImage(file, user.id);
+      setCreateForm((prev) => ({ ...prev, imageUrl }));
+      toast.success("Image uploaded.", { id: toastId });
+    } catch (error) {
+      console.error(error);
+      const nextMessage = toErrorMessage(error, "Could not upload this image.");
+      setCreateImageUploadError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
+    } finally {
+      setCreateImageUploading(false);
+    }
+  };
+
+  const handleEditImageUpload = async (file: File) => {
+    if (!user) return;
+
+    setEditImageUploading(true);
+    setEditImageUploadError(null);
+    const toastId = toast.loading("Uploading image...");
+
+    try {
+      const imageUrl = await uploadResourceImage(file, user.id);
+      setEditForm((prev) => ({ ...prev, imageUrl }));
+      toast.success("Image uploaded.", { id: toastId });
+    } catch (error) {
+      console.error(error);
+      const nextMessage = toErrorMessage(error, "Could not upload this image.");
+      setEditImageUploadError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
+    } finally {
+      setEditImageUploading(false);
+    }
+  };
+
   return (
     <PortalShell
       title="Manage Resources"
@@ -778,9 +869,14 @@ export function PortalResources() {
                 statuses={statuses}
                 canModerate={canModerate}
                 idPrefix="resource-create"
+                isUploadingImage={createImageUploading}
+                imageUploadError={createImageUploadError}
+                onImageUpload={(file) => {
+                  void handleCreateImageUpload(file);
+                }}
               />
               <div className="flex flex-wrap gap-3">
-                <Button type="submit" disabled={createSaving}>
+                <Button type="submit" disabled={createSaving || createImageUploading}>
                   <PlusCircle className="w-4 h-4" /> {createSaving ? "Creating..." : "Create Resource"}
                 </Button>
               </div>
@@ -994,11 +1090,16 @@ export function PortalResources() {
                 statuses={statuses}
                 canModerate={canModerate}
                 idPrefix="resource-edit"
+                isUploadingImage={editImageUploading}
+                imageUploadError={editImageUploadError}
+                onImageUpload={(file) => {
+                  void handleEditImageUpload(file);
+                }}
               />
             </div>
             <div className="border-t border-[#E7D9C3] bg-[#F6F1E7] px-6 py-3">
               <div className="flex flex-wrap gap-3">
-                <Button type="submit" disabled={editSaving}>
+                <Button type="submit" disabled={editSaving || editImageUploading}>
                   {editSaving ? "Saving..." : "Save Changes"}
                 </Button>
                 <Button type="button" variant="outline" onClick={closeEditDialog}>

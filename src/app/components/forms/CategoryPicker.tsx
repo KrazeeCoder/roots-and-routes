@@ -68,7 +68,7 @@ export function CategoryPicker({
             role="combobox"
             aria-expanded={open}
             disabled={disabled}
-            className="h-auto min-h-9 w-full justify-between gap-2 px-3 py-2 font-normal"
+            className="h-auto min-h-9 w-full justify-between gap-2 border-[#D9D0C1] bg-white px-3 py-2 text-sm font-normal text-[#334233] focus-visible:ring-[#B36A4C]/20"
           >
             {displayValue ? (
               <span className="inline-flex max-w-[calc(100%-1.5rem)] items-center rounded-full border border-input bg-muted/50 px-3 py-0.5 text-left text-sm font-medium">

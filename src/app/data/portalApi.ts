@@ -16,6 +16,8 @@ import type {
   SignUpContributorInput,
 } from "../types/portal";
 
+const LISTING_IMAGE_BUCKET = "resource-images";
+
 function displayDateRange(startsAt: string, endsAt: string | null) {
   const start = new Date(startsAt);
   const end = endsAt ? new Date(endsAt) : null;
@@ -100,6 +102,79 @@ function prepareImageFields(sourceUrl: string | null | undefined) {
   return {
     image_url: normalized,
   };
+}
+
+function sanitizePathSegment(raw: string) {
+  const next = raw
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return next || "image";
+}
+
+function inferImageExtension(file: File) {
+  const fromName = file.name.split(".").pop()?.toLowerCase();
+  if (fromName && /^[a-z0-9]{2,8}$/.test(fromName)) {
+    return fromName;
+  }
+
+  const fromType = file.type.split("/").pop()?.toLowerCase() ?? "";
+  if (fromType && /^[a-z0-9.+-]{2,16}$/.test(fromType)) {
+    return fromType.replace(/[^a-z0-9]/g, "") || "img";
+  }
+
+  return "img";
+}
+
+type UploadScope = "resources" | "events" | "suggestions/resources" | "suggestions/events";
+
+async function uploadListingImage(file: File, scope: UploadScope, ownerKey: string) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Only image files can be uploaded.");
+  }
+
+  const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new Error("Image must be 10 MB or smaller.");
+  }
+
+  const safeOwnerKey = sanitizePathSegment(ownerKey);
+  const baseName = sanitizePathSegment(file.name.replace(/\.[^.]+$/, ""));
+  const ext = inferImageExtension(file);
+  const uniqueId = typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.round(Math.random() * 1_000_000_000)}`;
+  const objectPath = `${scope}/${safeOwnerKey}/${baseName}-${uniqueId}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(LISTING_IMAGE_BUCKET)
+    .upload(objectPath, file, {
+      cacheControl: "3600",
+      contentType: file.type || undefined,
+      upsert: false,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from(LISTING_IMAGE_BUCKET)
+    .getPublicUrl(objectPath);
+
+  return data.publicUrl;
+}
+
+export async function uploadResourceImage(file: File, userId: string) {
+  return uploadListingImage(file, "resources", userId);
+}
+
+export async function uploadEventImage(file: File, userId: string) {
+  return uploadListingImage(file, "events", userId);
+}
+
+export async function uploadSuggestionImage(file: File, kind: "resource" | "event") {
+  const scope = kind === "resource" ? "suggestions/resources" : "suggestions/events";
+  return uploadListingImage(file, scope, "anonymous");
 }
 
 function applyPublicResourceOverrides(resources: ResourceRecord[]): ResourceRecord[] {

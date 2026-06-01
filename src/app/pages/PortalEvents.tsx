@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { useJsApiLoader } from "@react-google-maps/api";
-import { Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { Pencil, PlusCircle, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -21,6 +21,7 @@ import {
   deleteEvent,
   isModerator,
   listPortalEvents,
+  uploadEventImage,
   updateEvent,
 } from "../data/portalApi";
 import type { ContentStatus, EventPayload, EventRecord } from "../types/portal";
@@ -185,6 +186,9 @@ interface EventFormFieldsProps {
   statuses: ContentStatus[];
   canModerate: boolean;
   idPrefix: string;
+  isUploadingImage: boolean;
+  imageUploadError: string | null;
+  onImageUpload: (file: File) => void;
 }
 
 function EventFormFields({
@@ -193,12 +197,16 @@ function EventFormFields({
   statuses,
   canModerate,
   idPrefix,
+  isUploadingImage,
+  imageUploadError,
+  onImageUpload,
 }: EventFormFieldsProps) {
   const titleId = `${idPrefix}-title`;
   const categoryId = `${idPrefix}-category`;
   const descriptionId = `${idPrefix}-description`;
   const locationId = `${idPrefix}-location`;
   const imageId = `${idPrefix}-image`;
+  const imageUploadId = `${idPrefix}-image-upload`;
   const startsAtId = `${idPrefix}-starts`;
   const endsAtId = `${idPrefix}-ends`;
   const statusId = `${idPrefix}-status`;
@@ -271,6 +279,26 @@ function EventFormFields({
             value={form.imageUrl}
             onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
           />
+          <div className="mt-2 space-y-2">
+            <Label htmlFor={imageUploadId}>Or upload image</Label>
+            <Input
+              id={imageUploadId}
+              type="file"
+              accept="image/*"
+              disabled={isUploadingImage}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                onImageUpload(file);
+                event.currentTarget.value = "";
+              }}
+            />
+            <div className="flex items-center gap-2 text-xs text-[#6F7553]">
+              <Upload className="h-3.5 w-3.5" aria-hidden />
+              <span>{isUploadingImage ? "Uploading image..." : "Uploads fill the Image URL automatically."}</span>
+            </div>
+            {imageUploadError ? <p className="text-xs text-red-600">{imageUploadError}</p> : null}
+          </div>
         </div>
       </div>
 
@@ -352,6 +380,8 @@ export function PortalEvents() {
   const [createSaving, setCreateSaving] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createGeoNotice, setCreateGeoNotice] = useState<string | null>(null);
+  const [createImageUploading, setCreateImageUploading] = useState(false);
+  const [createImageUploadError, setCreateImageUploadError] = useState<string | null>(null);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -359,6 +389,8 @@ export function PortalEvents() {
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [editGeoNotice, setEditGeoNotice] = useState<string | null>(null);
+  const [editImageUploading, setEditImageUploading] = useState(false);
+  const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
   const [editOriginalLocation, setEditOriginalLocation] = useState<string | null>(null);
   const [eventSearch, setEventSearch] = useState("");
   const [eventStatusFilter, setEventStatusFilter] = useState<StatusFilter>("all");
@@ -485,6 +517,8 @@ export function PortalEvents() {
     setEditForm(defaultForm);
     setEditError(null);
     setEditGeoNotice(null);
+    setEditImageUploading(false);
+    setEditImageUploadError(null);
     setEditOriginalLocation(null);
   };
 
@@ -494,6 +528,7 @@ export function PortalEvents() {
     setEditOriginalLocation(event.location);
     setEditError(null);
     setEditGeoNotice(null);
+    setEditImageUploadError(null);
     setEditOpen(true);
   };
 
@@ -586,6 +621,14 @@ export function PortalEvents() {
     setCreateSaving(true);
     setCreateError(null);
     setCreateGeoNotice(null);
+    setCreateImageUploadError(null);
+
+    if (createImageUploading) {
+      const nextMessage = "Please wait for the image upload to finish.";
+      setCreateSaving(false);
+      setCreateError(nextMessage);
+      return;
+    }
 
     const validationError = validateEventForm(createForm);
     if (validationError) {
@@ -645,6 +688,14 @@ export function PortalEvents() {
     setEditSaving(true);
     setEditError(null);
     setEditGeoNotice(null);
+    setEditImageUploadError(null);
+
+    if (editImageUploading) {
+      const nextMessage = "Please wait for the image upload to finish.";
+      setEditSaving(false);
+      setEditError(nextMessage);
+      return;
+    }
 
     const validationError = validateEventForm(editForm);
     if (validationError) {
@@ -715,6 +766,48 @@ export function PortalEvents() {
     }
   };
 
+  const handleCreateImageUpload = async (file: File) => {
+    if (!user) return;
+
+    setCreateImageUploading(true);
+    setCreateImageUploadError(null);
+    const toastId = toast.loading("Uploading image...");
+
+    try {
+      const imageUrl = await uploadEventImage(file, user.id);
+      setCreateForm((prev) => ({ ...prev, imageUrl }));
+      toast.success("Image uploaded.", { id: toastId });
+    } catch (error) {
+      console.error(error);
+      const nextMessage = toErrorMessage(error, "Could not upload this image.");
+      setCreateImageUploadError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
+    } finally {
+      setCreateImageUploading(false);
+    }
+  };
+
+  const handleEditImageUpload = async (file: File) => {
+    if (!user) return;
+
+    setEditImageUploading(true);
+    setEditImageUploadError(null);
+    const toastId = toast.loading("Uploading image...");
+
+    try {
+      const imageUrl = await uploadEventImage(file, user.id);
+      setEditForm((prev) => ({ ...prev, imageUrl }));
+      toast.success("Image uploaded.", { id: toastId });
+    } catch (error) {
+      console.error(error);
+      const nextMessage = toErrorMessage(error, "Could not upload this image.");
+      setEditImageUploadError(nextMessage);
+      toast.error(nextMessage, { id: toastId });
+    } finally {
+      setEditImageUploading(false);
+    }
+  };
+
   return (
     <PortalShell
       title="Manage Events"
@@ -739,9 +832,14 @@ export function PortalEvents() {
                 statuses={statuses}
                 canModerate={canModerate}
                 idPrefix="event-create"
+                isUploadingImage={createImageUploading}
+                imageUploadError={createImageUploadError}
+                onImageUpload={(file) => {
+                  void handleCreateImageUpload(file);
+                }}
               />
               <div className="flex flex-wrap gap-3">
-                <Button type="submit" disabled={createSaving}>
+                <Button type="submit" disabled={createSaving || createImageUploading}>
                   <PlusCircle className="w-4 h-4" /> {createSaving ? "Creating..." : "Create Event"}
                 </Button>
               </div>
@@ -968,11 +1066,16 @@ export function PortalEvents() {
                 statuses={statuses}
                 canModerate={canModerate}
                 idPrefix="event-edit"
+                isUploadingImage={editImageUploading}
+                imageUploadError={editImageUploadError}
+                onImageUpload={(file) => {
+                  void handleEditImageUpload(file);
+                }}
               />
             </div>
             <div className="border-t border-[#E7D9C3] bg-[#F6F1E7] px-6 py-3">
               <div className="flex flex-wrap gap-3">
-                <Button type="submit" disabled={editSaving}>
+                <Button type="submit" disabled={editSaving || editImageUploading}>
                   {editSaving ? "Saving..." : "Save Changes"}
                 </Button>
                 <Button type="button" variant="outline" onClick={closeEditDialog}>

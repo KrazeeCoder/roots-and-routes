@@ -39,6 +39,8 @@ type HoursMode = "not_listed" | "specific";
 const DEFAULT_DAYS: DayKey[] = [...WEEKDAYS];
 const DEFAULT_OPEN = "9:00 AM";
 const DEFAULT_CLOSE = "5:00 PM";
+const DROPDOWN_CONTROL_CLASS =
+  "h-9 w-full rounded-md border border-[#D9D0C1] bg-white px-3 py-1 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20";
 
 interface ParsedHoursValue {
   mode: HoursMode;
@@ -227,7 +229,7 @@ export function ResourceHoursSelector({
         value={mode}
         onChange={(event) => handleModeChange(event.target.value as HoursMode)}
         disabled={disabled}
-        className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+        className={DROPDOWN_CONTROL_CLASS}
       >
         <option value="not_listed">Not listed</option>
         <option value="specific">Set specific hours</option>
@@ -263,7 +265,7 @@ export function ResourceHoursSelector({
                 value={open}
                 onChange={(event) => handleOpenChange(event.target.value)}
                 disabled={disabled}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                className={DROPDOWN_CONTROL_CLASS}
               >
                 {TIME_OPTIONS.map((option) => (
                   <option key={option} value={option}>
@@ -279,7 +281,7 @@ export function ResourceHoursSelector({
                 value={close}
                 onChange={(event) => handleCloseChange(event.target.value)}
                 disabled={disabled}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                className={DROPDOWN_CONTROL_CLASS}
               >
                 {TIME_OPTIONS.map((option) => (
                   <option key={option} value={option}>

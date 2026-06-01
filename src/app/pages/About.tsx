@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { HeartPulse, Layers, Users, MapPin, Sparkles, Info } from "lucide-react";
+import { HeartPulse, Layers, Users, MapPin, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { TopoPattern } from "../components/TopoPattern";
 import { Button } from "../components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../components/ui/tooltip";
 import { TiltCard } from "../components/ui/tilt-card";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "../components/ScrollReveal";
 
@@ -235,25 +234,9 @@ export function About() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <div className="mb-7">
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <h2 className="font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233]">
-                  Community impact
-                </h2>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      aria-label="Community impact display note"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#B36A4C]/35 bg-[#FFF6EC] text-[#7D4F3A] transition-colors hover:bg-[#F8EBD9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B36A4C]/45"
-                    >
-                      <Info className="h-4 w-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" sideOffset={8} className="max-w-xs bg-[#334233] text-[#F6F1E7]">
-                    The community member counter is for TSA display purposes only and may not be factual.
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+              <h2 className="mb-3 font-['Cormorant_Garamond',serif] text-3xl sm:text-4xl font-bold text-[#334233]">
+                Community impact
+              </h2>
               <p className="max-w-3xl text-sm sm:text-base leading-relaxed text-[#5B473A]">
                 Every listing and event creates one more pathway for Bothell residents to find support, opportunities, and local connection.
               </p>
@@ -306,6 +289,10 @@ export function About() {
               </TiltCard>
             </StaggerItem>
           </StaggerGroup>
+
+          <p className="mt-4 text-xs leading-relaxed text-[#6F5A4A]">
+            Note: The community member counter is for TSA display purposes only and may not be factual.
+          </p>
         </div>
       </section>
 
