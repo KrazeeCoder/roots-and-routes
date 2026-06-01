@@ -217,10 +217,9 @@ export function Suggest() {
     setSearchParams(nextKind === "event" ? { type: "event" } : { type: "resource" });
   };
 
-  const validateResourceStep = (step: StepId, applyErrors = true) => {
+  const validateResourceStep = (step: StepId) => {
     const errors: FieldErrors = {};
     let firstInvalidFieldId: string | null = null;
-    const effectiveImageUrl = resourceUploadedImageUrl || resourceForm.imageUrl;
 
     const markError = (fieldId: string, message: string | null) => {
       if (!message) return;
@@ -236,27 +235,19 @@ export function Suggest() {
 
     if (step === 2) {
       markError("resource-address", validateRequired(resourceForm.address, "Address"));
-      markError("resource-image-url", validateUrl(effectiveImageUrl));
-      markError("resource-website", validateUrl(resourceForm.website));
-      markError("resource-contact-email", validateEmail(resourceForm.contactEmail));
-      markError("resource-contact-phone", validatePhone(resourceForm.contactPhone));
     }
 
-    if (applyErrors) {
-      setResourceFieldErrors(errors);
-    }
+    setResourceFieldErrors(errors);
     return {
       isValid: Object.keys(errors).length === 0,
-      errors,
       firstInvalidFieldId,
       firstError: Object.values(errors)[0] ?? null,
     };
   };
 
-  const validateEventStep = (step: StepId, applyErrors = true) => {
+  const validateEventStep = (step: StepId) => {
     const errors: FieldErrors = {};
     let firstInvalidFieldId: string | null = null;
-    const effectiveImageUrl = eventUploadedImageUrl || eventForm.imageUrl;
 
     const markError = (fieldId: string, message: string | null) => {
       if (!message) return;
@@ -272,28 +263,15 @@ export function Suggest() {
 
     if (step === 2) {
       markError("event-ends-at", validateEventDateRange(eventForm.startsAt, eventForm.endsAt));
-      markError("event-image-url", validateUrl(effectiveImageUrl));
-      markError("event-organizer-email", validateEmail(eventForm.organizerEmail));
-      markError("event-organizer-phone", validatePhone(eventForm.organizerPhone));
     }
 
-    if (applyErrors) {
-      setEventFieldErrors(errors);
-    }
+    setEventFieldErrors(errors);
     return {
       isValid: Object.keys(errors).length === 0,
-      errors,
       firstInvalidFieldId,
       firstError: Object.values(errors)[0] ?? null,
     };
   };
-
-  const activeFieldErrors = kind === "resource" ? resourceFieldErrors : eventFieldErrors;
-  const showTopError = Boolean(error) && Object.keys(activeFieldErrors).length === 0;
-  const canProceedToNextStep = currentStep >= 3
-    || (kind === "resource"
-      ? validateResourceStep(currentStep, false).isValid
-      : validateEventStep(currentStep, false).isValid);
 
   const goToNextStep = () => {
     if (isCurrentKindImageUploading) {
@@ -303,6 +281,7 @@ export function Suggest() {
 
     const validation = kind === "resource" ? validateResourceStep(currentStep) : validateEventStep(currentStep);
     if (!validation.isValid) {
+      setError(validation.firstError);
       if (validation.firstInvalidFieldId) focusFieldById(validation.firstInvalidFieldId);
       return;
     }
@@ -354,6 +333,7 @@ export function Suggest() {
       console.error(nextError);
       const nextMessage = toErrorMessage(nextError, "Could not upload this image right now.");
       setResourceImageUploadError(nextMessage);
+      setError(nextMessage);
       toast.error(nextMessage, { id: toastId });
     } finally {
       setResourceImageUploading(false);
@@ -376,6 +356,7 @@ export function Suggest() {
       console.error(nextError);
       const nextMessage = toErrorMessage(nextError, "Could not upload this image right now.");
       setEventImageUploadError(nextMessage);
+      setError(nextMessage);
       toast.error(nextMessage, { id: toastId });
     } finally {
       setEventImageUploading(false);
@@ -447,6 +428,7 @@ export function Suggest() {
 
     if (Object.keys(errors).length > 0) {
       setResourceFieldErrors(errors);
+      setError(Object.values(errors)[0]);
       if (firstInvalidFieldId) focusFieldById(firstInvalidFieldId);
       setSubmitting(false);
       return;
@@ -560,6 +542,7 @@ export function Suggest() {
 
     if (Object.keys(errors).length > 0) {
       setEventFieldErrors(errors);
+      setError(Object.values(errors)[0]);
       if (firstInvalidFieldId) focusFieldById(firstInvalidFieldId);
       setSubmitting(false);
       return;
@@ -673,7 +656,7 @@ export function Suggest() {
         <Button
           type="button"
           onClick={goToNextStep}
-          disabled={submitting || isCurrentKindImageUploading || !canProceedToNextStep}
+          disabled={submitting || isCurrentKindImageUploading}
           className="inline-flex items-center gap-2"
         >
           Next
@@ -762,7 +745,7 @@ export function Suggest() {
 
               {renderStepProgress()}
 
-              {showTopError ? <div role="alert" aria-live="polite" className="text-sm text-red-600">{error}</div> : null}
+              {error ? <div role="alert" aria-live="polite" className="text-sm text-red-600">{error}</div> : null}
               {successMessage ? <div role="status" aria-live="polite" className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">{successMessage}</div> : null}
 
               {kind === "resource" ? (
