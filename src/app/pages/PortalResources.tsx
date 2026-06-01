@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
-import { Pencil, PlusCircle, Star, Trash2 } from "lucide-react";
+import { Pencil, PlusCircle, Star, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -241,7 +241,9 @@ interface ResourceFormFieldsProps {
   isUploadingImage: boolean;
   imageUploadError: string | null;
   imageFileName: string;
+  hasUploadedImage: boolean;
   onImageUpload: (file: File) => void;
+  onClearImageUpload: () => void;
 }
 
 function ResourceFormFields({
@@ -253,7 +255,9 @@ function ResourceFormFields({
   isUploadingImage,
   imageUploadError,
   imageFileName,
+  hasUploadedImage,
   onImageUpload,
+  onClearImageUpload,
 }: ResourceFormFieldsProps) {
   const nameId = `${idPrefix}-name`;
   const categoryId = `${idPrefix}-category`;
@@ -365,12 +369,13 @@ function ResourceFormFields({
           />
         </div>
         <div className="sm:col-span-2 lg:col-span-2">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
             <div>
               <Label htmlFor={imageId}>Image URL</Label>
               <Input
                 id={imageId}
                 className="mt-1"
+                disabled={hasUploadedImage}
                 value={form.imageUrl}
                 onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
               />
@@ -390,13 +395,26 @@ function ResourceFormFields({
                   event.currentTarget.value = "";
                 }}
               />
-              <label
-                htmlFor={imageUploadId}
-                title={imageFileName || "Choose file"}
-                className={`mt-1 inline-flex h-9 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${isUploadingImage ? "pointer-events-none opacity-70" : ""}`}
-              >
-                <span className="block min-w-0 max-w-full truncate">{isUploadingImage ? "Uploading..." : (imageFileName || "Choose file")}</span>
-              </label>
+              <div className="mt-1 flex gap-2">
+                <label
+                  htmlFor={imageUploadId}
+                  title={imageFileName || "Choose file"}
+                  className={`inline-flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${isUploadingImage ? "pointer-events-none opacity-70" : ""}`}
+                >
+                  <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="block min-w-0 max-w-full truncate">{isUploadingImage ? "Uploading..." : (imageFileName || "Choose file")}</span>
+                </label>
+                {hasUploadedImage ? (
+                  <button
+                    type="button"
+                    aria-label="Remove uploaded image"
+                    onClick={onClearImageUpload}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#D9D0C1] bg-white text-[#334233] transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
           {imageUploadError ? <p className="mt-2 text-xs text-red-600">{imageUploadError}</p> : null}
@@ -474,6 +492,7 @@ export function PortalResources() {
   const [createImageUploading, setCreateImageUploading] = useState(false);
   const [createImageUploadError, setCreateImageUploadError] = useState<string | null>(null);
   const [createImageFileName, setCreateImageFileName] = useState("");
+  const [createUploadedImageUrl, setCreateUploadedImageUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
@@ -485,6 +504,7 @@ export function PortalResources() {
   const [editImageUploading, setEditImageUploading] = useState(false);
   const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
   const [editImageFileName, setEditImageFileName] = useState("");
+  const [editUploadedImageUrl, setEditUploadedImageUrl] = useState("");
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
@@ -680,6 +700,7 @@ export function PortalResources() {
     setEditImageUploading(false);
     setEditImageUploadError(null);
     setEditImageFileName("");
+    setEditUploadedImageUrl("");
   };
 
   const startEdit = (resource: ResourceRecord) => {
@@ -688,6 +709,7 @@ export function PortalResources() {
     setEditError(null);
     setEditImageUploadError(null);
     setEditImageFileName("");
+    setEditUploadedImageUrl("");
     setEditOpen(true);
   };
 
@@ -739,7 +761,11 @@ export function PortalResources() {
       return;
     }
 
-    const validationError = validateResourceForm(createForm);
+    const createPayloadForm = {
+      ...createForm,
+      imageUrl: createUploadedImageUrl || createForm.imageUrl,
+    };
+    const validationError = validateResourceForm(createPayloadForm);
     if (validationError) {
       setCreateError(validationError);
       setCreateSaving(false);
@@ -749,9 +775,10 @@ export function PortalResources() {
     const toastId = toast.loading("Creating resource...");
 
     try {
-      await createResource(toResourcePayload(createForm, canModerate));
+      await createResource(toResourcePayload(createPayloadForm, canModerate));
       setCreateForm(defaultForm);
       setCreateImageFileName("");
+      setCreateUploadedImageUrl("");
       await loadResources();
       toast.success("Resource created.", { id: toastId });
     } catch (nextError) {
@@ -778,7 +805,11 @@ export function PortalResources() {
       return;
     }
 
-    const validationError = validateResourceForm(editForm);
+    const editPayloadForm = {
+      ...editForm,
+      imageUrl: editUploadedImageUrl || editForm.imageUrl,
+    };
+    const validationError = validateResourceForm(editPayloadForm);
     if (validationError) {
       setEditError(validationError);
       setEditSaving(false);
@@ -788,7 +819,7 @@ export function PortalResources() {
     const toastId = toast.loading("Saving resource changes...");
 
     try {
-      await updateResource(editId, toResourcePayload(editForm, canModerate));
+      await updateResource(editId, toResourcePayload(editPayloadForm, canModerate));
       closeEditDialog();
       await loadResources();
       toast.success("Resource changes saved.", { id: toastId });
@@ -830,7 +861,8 @@ export function PortalResources() {
 
     try {
       const imageUrl = await uploadResourceImage(file, user.id);
-      setCreateForm((prev) => ({ ...prev, imageUrl }));
+      setCreateUploadedImageUrl(imageUrl);
+      setCreateForm((prev) => ({ ...prev, imageUrl: "" }));
       toast.success("Image uploaded.", { id: toastId });
     } catch (error) {
       console.error(error);
@@ -852,7 +884,8 @@ export function PortalResources() {
 
     try {
       const imageUrl = await uploadResourceImage(file, user.id);
-      setEditForm((prev) => ({ ...prev, imageUrl }));
+      setEditUploadedImageUrl(imageUrl);
+      setEditForm((prev) => ({ ...prev, imageUrl: "" }));
       toast.success("Image uploaded.", { id: toastId });
     } catch (error) {
       console.error(error);
@@ -890,8 +923,14 @@ export function PortalResources() {
                 isUploadingImage={createImageUploading}
                 imageUploadError={createImageUploadError}
                 imageFileName={createImageFileName}
+                hasUploadedImage={Boolean(createUploadedImageUrl)}
                 onImageUpload={(file) => {
                   void handleCreateImageUpload(file);
+                }}
+                onClearImageUpload={() => {
+                  setCreateUploadedImageUrl("");
+                  setCreateImageFileName("");
+                  setCreateImageUploadError(null);
                 }}
               />
               <div className="flex flex-wrap gap-3">
@@ -1112,8 +1151,14 @@ export function PortalResources() {
                 isUploadingImage={editImageUploading}
                 imageUploadError={editImageUploadError}
                 imageFileName={editImageFileName}
+                hasUploadedImage={Boolean(editUploadedImageUrl)}
                 onImageUpload={(file) => {
                   void handleEditImageUpload(file);
+                }}
+                onClearImageUpload={() => {
+                  setEditUploadedImageUrl("");
+                  setEditImageFileName("");
+                  setEditImageUploadError(null);
                 }}
               />
             </div>

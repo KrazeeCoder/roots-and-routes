@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
 import { useJsApiLoader } from "@react-google-maps/api";
-import { Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { Pencil, PlusCircle, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -189,7 +189,9 @@ interface EventFormFieldsProps {
   isUploadingImage: boolean;
   imageUploadError: string | null;
   imageFileName: string;
+  hasUploadedImage: boolean;
   onImageUpload: (file: File) => void;
+  onClearImageUpload: () => void;
 }
 
 function EventFormFields({
@@ -201,7 +203,9 @@ function EventFormFields({
   isUploadingImage,
   imageUploadError,
   imageFileName,
+  hasUploadedImage,
   onImageUpload,
+  onClearImageUpload,
 }: EventFormFieldsProps) {
   const titleId = `${idPrefix}-title`;
   const categoryId = `${idPrefix}-category`;
@@ -275,12 +279,13 @@ function EventFormFields({
           />
         </div>
         <div className="sm:col-span-2">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
             <div>
               <Label htmlFor={imageId}>Image URL</Label>
               <Input
                 id={imageId}
                 className="mt-1"
+                disabled={hasUploadedImage}
                 value={form.imageUrl}
                 onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
               />
@@ -300,13 +305,26 @@ function EventFormFields({
                   event.currentTarget.value = "";
                 }}
               />
-              <label
-                htmlFor={imageUploadId}
-                title={imageFileName || "Choose file"}
-                className={`mt-1 inline-flex h-9 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${isUploadingImage ? "pointer-events-none opacity-70" : ""}`}
-              >
-                <span className="block min-w-0 max-w-full truncate">{isUploadingImage ? "Uploading..." : (imageFileName || "Choose file")}</span>
-              </label>
+              <div className="mt-1 flex gap-2">
+                <label
+                  htmlFor={imageUploadId}
+                  title={imageFileName || "Choose file"}
+                  className={`inline-flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${isUploadingImage ? "pointer-events-none opacity-70" : ""}`}
+                >
+                  <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="block min-w-0 max-w-full truncate">{isUploadingImage ? "Uploading..." : (imageFileName || "Choose file")}</span>
+                </label>
+                {hasUploadedImage ? (
+                  <button
+                    type="button"
+                    aria-label="Remove uploaded image"
+                    onClick={onClearImageUpload}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#D9D0C1] bg-white text-[#334233] transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
           {imageUploadError ? <p className="mt-2 text-xs text-red-600">{imageUploadError}</p> : null}
@@ -394,6 +412,7 @@ export function PortalEvents() {
   const [createImageUploading, setCreateImageUploading] = useState(false);
   const [createImageUploadError, setCreateImageUploadError] = useState<string | null>(null);
   const [createImageFileName, setCreateImageFileName] = useState("");
+  const [createUploadedImageUrl, setCreateUploadedImageUrl] = useState("");
 
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -404,6 +423,7 @@ export function PortalEvents() {
   const [editImageUploading, setEditImageUploading] = useState(false);
   const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
   const [editImageFileName, setEditImageFileName] = useState("");
+  const [editUploadedImageUrl, setEditUploadedImageUrl] = useState("");
   const [editOriginalLocation, setEditOriginalLocation] = useState<string | null>(null);
   const [eventSearch, setEventSearch] = useState("");
   const [eventStatusFilter, setEventStatusFilter] = useState<StatusFilter>("all");
@@ -533,6 +553,7 @@ export function PortalEvents() {
     setEditImageUploading(false);
     setEditImageUploadError(null);
     setEditImageFileName("");
+    setEditUploadedImageUrl("");
     setEditOriginalLocation(null);
   };
 
@@ -544,6 +565,7 @@ export function PortalEvents() {
     setEditGeoNotice(null);
     setEditImageUploadError(null);
     setEditImageFileName("");
+    setEditUploadedImageUrl("");
     setEditOpen(true);
   };
 
@@ -645,7 +667,11 @@ export function PortalEvents() {
       return;
     }
 
-    const validationError = validateEventForm(createForm);
+    const createPayloadForm = {
+      ...createForm,
+      imageUrl: createUploadedImageUrl || createForm.imageUrl,
+    };
+    const validationError = validateEventForm(createPayloadForm);
     if (validationError) {
       setCreateError(validationError);
       setCreateSaving(false);
@@ -656,8 +682,8 @@ export function PortalEvents() {
     const resolvedLocation = await resolveLocationForSave(createForm, false, null);
     setCreateGeoNotice(resolvedLocation.geoNotice);
 
-    const normalizedImageUrl = normalizeHttpUrl(createForm.imageUrl);
-    if (createForm.imageUrl.trim() && !normalizedImageUrl) {
+    const normalizedImageUrl = normalizeHttpUrl(createPayloadForm.imageUrl);
+    if (createPayloadForm.imageUrl.trim() && !normalizedImageUrl) {
       const nextMessage = "Image URL must be a valid URL (for example: https://images.unsplash.com/...).";
       setCreateSaving(false);
       setCreateError(nextMessage);
@@ -672,7 +698,7 @@ export function PortalEvents() {
       return;
     }
 
-    const payload = buildPayload(createForm, resolvedLocation.lat, resolvedLocation.lng);
+    const payload = buildPayload(createPayloadForm, resolvedLocation.lat, resolvedLocation.lng);
     if (!payload) {
       const nextMessage = "Image URL must be a valid URL.";
       setCreateSaving(false);
@@ -685,6 +711,7 @@ export function PortalEvents() {
       await createEvent(payload);
       setCreateForm(defaultForm);
       setCreateImageFileName("");
+      setCreateUploadedImageUrl("");
       await loadEvents();
       toast.success("Event created.", { id: toastId });
     } catch (nextError) {
@@ -713,7 +740,11 @@ export function PortalEvents() {
       return;
     }
 
-    const validationError = validateEventForm(editForm);
+    const editPayloadForm = {
+      ...editForm,
+      imageUrl: editUploadedImageUrl || editForm.imageUrl,
+    };
+    const validationError = validateEventForm(editPayloadForm);
     if (validationError) {
       setEditError(validationError);
       setEditSaving(false);
@@ -724,8 +755,8 @@ export function PortalEvents() {
     const resolvedLocation = await resolveLocationForSave(editForm, true, editOriginalLocation);
     setEditGeoNotice(resolvedLocation.geoNotice);
 
-    const normalizedImageUrl = normalizeHttpUrl(editForm.imageUrl);
-    if (editForm.imageUrl.trim() && !normalizedImageUrl) {
+    const normalizedImageUrl = normalizeHttpUrl(editPayloadForm.imageUrl);
+    if (editPayloadForm.imageUrl.trim() && !normalizedImageUrl) {
       const nextMessage = "Image URL must be a valid URL (for example: https://images.unsplash.com/...).";
       setEditSaving(false);
       setEditError(nextMessage);
@@ -740,7 +771,7 @@ export function PortalEvents() {
       return;
     }
 
-    const payload = buildPayload(editForm, resolvedLocation.lat, resolvedLocation.lng);
+    const payload = buildPayload(editPayloadForm, resolvedLocation.lat, resolvedLocation.lng);
     if (!payload) {
       const nextMessage = "Image URL must be a valid URL.";
       setEditSaving(false);
@@ -792,7 +823,8 @@ export function PortalEvents() {
 
     try {
       const imageUrl = await uploadEventImage(file, user.id);
-      setCreateForm((prev) => ({ ...prev, imageUrl }));
+      setCreateUploadedImageUrl(imageUrl);
+      setCreateForm((prev) => ({ ...prev, imageUrl: "" }));
       toast.success("Image uploaded.", { id: toastId });
     } catch (error) {
       console.error(error);
@@ -814,7 +846,8 @@ export function PortalEvents() {
 
     try {
       const imageUrl = await uploadEventImage(file, user.id);
-      setEditForm((prev) => ({ ...prev, imageUrl }));
+      setEditUploadedImageUrl(imageUrl);
+      setEditForm((prev) => ({ ...prev, imageUrl: "" }));
       toast.success("Image uploaded.", { id: toastId });
     } catch (error) {
       console.error(error);
@@ -853,8 +886,14 @@ export function PortalEvents() {
                 isUploadingImage={createImageUploading}
                 imageUploadError={createImageUploadError}
                 imageFileName={createImageFileName}
+                hasUploadedImage={Boolean(createUploadedImageUrl)}
                 onImageUpload={(file) => {
                   void handleCreateImageUpload(file);
+                }}
+                onClearImageUpload={() => {
+                  setCreateUploadedImageUrl("");
+                  setCreateImageFileName("");
+                  setCreateImageUploadError(null);
                 }}
               />
               <div className="flex flex-wrap gap-3">
@@ -1088,8 +1127,14 @@ export function PortalEvents() {
                 isUploadingImage={editImageUploading}
                 imageUploadError={editImageUploadError}
                 imageFileName={editImageFileName}
+                hasUploadedImage={Boolean(editUploadedImageUrl)}
                 onImageUpload={(file) => {
                   void handleEditImageUpload(file);
+                }}
+                onClearImageUpload={() => {
+                  setEditUploadedImageUrl("");
+                  setEditImageFileName("");
+                  setEditImageUploadError(null);
                 }}
               />
             </div>

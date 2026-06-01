@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileText, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../auth/AuthProvider";
 import { TopoPattern } from "../components/TopoPattern";
@@ -154,9 +154,11 @@ export function Suggest() {
   const [resourceImageUploading, setResourceImageUploading] = useState(false);
   const [resourceImageUploadError, setResourceImageUploadError] = useState<string | null>(null);
   const [resourceImageFileName, setResourceImageFileName] = useState("");
+  const [resourceUploadedImageUrl, setResourceUploadedImageUrl] = useState("");
   const [eventImageUploading, setEventImageUploading] = useState(false);
   const [eventImageUploadError, setEventImageUploadError] = useState<string | null>(null);
   const [eventImageFileName, setEventImageFileName] = useState("");
+  const [eventUploadedImageUrl, setEventUploadedImageUrl] = useState("");
 
   const hasDirectPublishingAccess = isModerator(role) || profile?.status === "approved";
   const currentStep = kind === "resource" ? resourceStep : eventStep;
@@ -208,6 +210,8 @@ export function Suggest() {
     setEventImageUploadError(null);
     setResourceImageFileName("");
     setEventImageFileName("");
+    setResourceUploadedImageUrl("");
+    setEventUploadedImageUrl("");
     clearKindFieldErrors(nextKind);
     setSearchParams(nextKind === "event" ? { type: "event" } : { type: "resource" });
   };
@@ -305,7 +309,8 @@ export function Suggest() {
 
     try {
       const imageUrl = await uploadSuggestionImage(file, "resource");
-      setResourceForm((prev) => ({ ...prev, imageUrl }));
+      setResourceUploadedImageUrl(imageUrl);
+      setResourceForm((prev) => ({ ...prev, imageUrl: "" }));
       toast.success("Image uploaded.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
@@ -327,7 +332,8 @@ export function Suggest() {
 
     try {
       const imageUrl = await uploadSuggestionImage(file, "event");
-      setEventForm((prev) => ({ ...prev, imageUrl }));
+      setEventUploadedImageUrl(imageUrl);
+      setEventForm((prev) => ({ ...prev, imageUrl: "" }));
       toast.success("Image uploaded.", { id: toastId });
     } catch (nextError) {
       console.error(nextError);
@@ -355,6 +361,7 @@ export function Suggest() {
 
     const errors: FieldErrors = {};
     let firstInvalidFieldId: string | null = null;
+    const effectiveImageUrl = resourceUploadedImageUrl || resourceForm.imageUrl;
     const markError = (fieldId: string, message: string | null) => {
       if (!message) return;
       errors[fieldId] = message;
@@ -371,7 +378,7 @@ export function Suggest() {
     markError("resource-contact-email", validateEmail(resourceForm.contactEmail));
     markError("resource-contact-phone", validatePhone(resourceForm.contactPhone));
     markError("resource-website", validateUrl(resourceForm.website));
-    markError("resource-image-url", validateUrl(resourceForm.imageUrl));
+    markError("resource-image-url", validateUrl(effectiveImageUrl));
 
     const firstError =
       validateRequired(resourceForm.resourceName, "Resource name")
@@ -393,7 +400,7 @@ export function Suggest() {
       || validateEmail(resourceForm.contactEmail)
       || validatePhone(resourceForm.contactPhone)
       || validateUrl(resourceForm.website)
-      || validateUrl(resourceForm.imageUrl)
+      || validateUrl(effectiveImageUrl)
       || validateMaxLength(resourceForm.resourceName, "Resource name", 200)
       || validateMaxLength(resourceForm.organizationName, "Organization name", 200)
       || validateMaxLength(resourceForm.description, "Description", 500)
@@ -437,7 +444,7 @@ export function Suggest() {
         contact_email: resourceForm.contactEmail.trim() || null,
         contact_phone: resourceForm.contactPhone.trim() || null,
         tags: resourceForm.tags,
-        image_url: normalizeHttpUrl(resourceForm.imageUrl),
+        image_url: normalizeHttpUrl(effectiveImageUrl),
         submitter_name: resourceForm.submitterName.trim(),
         submitter_email: resourceForm.submitterEmail.trim(),
         submitter_connection: resourceForm.submitterConnection.trim() || null,
@@ -447,6 +454,7 @@ export function Suggest() {
       setResourceStep(1);
       setResourceFieldErrors({});
       setResourceImageFileName("");
+      setResourceUploadedImageUrl("");
       const nextMessage = "Resource proposal received. It is pending moderator review and is not live on the site yet.";
       setSuccessMessage(nextMessage);
       toast.success("Resource proposal submitted for review.", { id: toastId });
@@ -476,6 +484,7 @@ export function Suggest() {
 
     const errors: FieldErrors = {};
     let firstInvalidFieldId: string | null = null;
+    const effectiveImageUrl = eventUploadedImageUrl || eventForm.imageUrl;
     const markError = (fieldId: string, message: string | null) => {
       if (!message) return;
       errors[fieldId] = message;
@@ -490,7 +499,7 @@ export function Suggest() {
     markError("event-submitter-email", validateEmail(eventForm.submitterEmail));
     markError("event-organizer-email", validateEmail(eventForm.organizerEmail));
     markError("event-organizer-phone", validatePhone(eventForm.organizerPhone));
-    markError("event-image-url", validateUrl(eventForm.imageUrl));
+    markError("event-image-url", validateUrl(effectiveImageUrl));
 
     const firstError =
       validateRequired(eventForm.title, "Event title")
@@ -508,7 +517,7 @@ export function Suggest() {
       || validateEmail(eventForm.submitterEmail)
       || validateEmail(eventForm.organizerEmail)
       || validatePhone(eventForm.organizerPhone)
-      || validateUrl(eventForm.imageUrl)
+      || validateUrl(effectiveImageUrl)
       || validateMaxLength(eventForm.title, "Event title", 200)
       || validateMaxLength(eventForm.category, "Category", 100)
       || validateMaxLength(eventForm.description, "Description", 1000)
@@ -550,7 +559,7 @@ export function Suggest() {
         location: eventForm.location.trim(),
         starts_at: startsAtIso,
         ends_at: endsAtIso,
-        image_url: normalizeHttpUrl(eventForm.imageUrl),
+        image_url: normalizeHttpUrl(effectiveImageUrl),
         organizer_name: eventForm.organizerName.trim() || null,
         organizer_email: eventForm.organizerEmail.trim() || null,
         organizer_phone: eventForm.organizerPhone.trim() || null,
@@ -563,6 +572,7 @@ export function Suggest() {
       setEventStep(1);
       setEventFieldErrors({});
       setEventImageFileName("");
+      setEventUploadedImageUrl("");
       const nextMessage = "Event proposal received. It is pending moderator review and is not live on the site yet.";
       setSuccessMessage(nextMessage);
       toast.success("Event proposal submitted for review.", { id: toastId });
@@ -776,12 +786,13 @@ export function Suggest() {
                       </div>
                       <fieldset>
                         <legend className="text-sm font-medium mb-2">Image</legend>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
                           <div>
                             <Label htmlFor="resource-image-url">Image URL</Label>
                             <Input
                               id="resource-image-url"
                               className="mt-1"
+                              disabled={Boolean(resourceUploadedImageUrl)}
                               value={resourceForm.imageUrl}
                               onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
                               aria-invalid={!!resourceFieldErrors["resource-image-url"]}
@@ -803,13 +814,30 @@ export function Suggest() {
                                 event.currentTarget.value = "";
                               }}
                             />
-                            <label
-                              htmlFor="resource-image-upload"
-                              title={resourceImageFileName || "Choose file"}
-                              className={`mt-1 inline-flex h-9 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${resourceImageUploading ? "pointer-events-none opacity-70" : ""}`}
-                            >
-                              <span className="block min-w-0 max-w-full truncate">{resourceImageUploading ? "Uploading..." : (resourceImageFileName || "Choose file")}</span>
-                            </label>
+                            <div className="mt-1 flex gap-2">
+                              <label
+                                htmlFor="resource-image-upload"
+                                title={resourceImageFileName || "Choose file"}
+                                className={`inline-flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${resourceImageUploading ? "pointer-events-none opacity-70" : ""}`}
+                              >
+                                <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                                <span className="block min-w-0 max-w-full truncate">{resourceImageUploading ? "Uploading..." : (resourceImageFileName || "Choose file")}</span>
+                              </label>
+                              {resourceUploadedImageUrl ? (
+                                <button
+                                  type="button"
+                                  aria-label="Remove uploaded image"
+                                  onClick={() => {
+                                    setResourceUploadedImageUrl("");
+                                    setResourceImageFileName("");
+                                    setResourceImageUploadError(null);
+                                  }}
+                                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#D9D0C1] bg-white text-[#334233] transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                                >
+                                  <X className="h-4 w-4" aria-hidden />
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
                           {resourceFieldErrors["resource-image-url"] ? <p id={getFieldErrorId("resource-image-url")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-image-url"]}</p> : null}
                           {resourceImageUploadError ? <p className="mt-1 text-xs text-red-600">{resourceImageUploadError}</p> : null}
@@ -914,12 +942,13 @@ export function Suggest() {
                       </div>
                       <fieldset>
                         <legend className="text-sm font-medium mb-2">Image</legend>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
                           <div>
                             <Label htmlFor="event-image-url">Image URL</Label>
                             <Input
                               id="event-image-url"
                               className="mt-1"
+                              disabled={Boolean(eventUploadedImageUrl)}
                               value={eventForm.imageUrl}
                               onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
                               aria-invalid={!!eventFieldErrors["event-image-url"]}
@@ -941,13 +970,30 @@ export function Suggest() {
                                 event.currentTarget.value = "";
                               }}
                             />
-                            <label
-                              htmlFor="event-image-upload"
-                              title={eventImageFileName || "Choose file"}
-                              className={`mt-1 inline-flex h-9 w-full min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${eventImageUploading ? "pointer-events-none opacity-70" : ""}`}
-                            >
-                              <span className="block min-w-0 max-w-full truncate">{eventImageUploading ? "Uploading..." : (eventImageFileName || "Choose file")}</span>
-                            </label>
+                            <div className="mt-1 flex gap-2">
+                              <label
+                                htmlFor="event-image-upload"
+                                title={eventImageFileName || "Choose file"}
+                                className={`inline-flex h-9 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-md border border-[#D9D0C1] bg-white px-3 text-sm font-medium text-[#334233] transition-colors hover:border-[#B36A4C] hover:bg-[#F6F1E7] ${eventImageUploading ? "pointer-events-none opacity-70" : ""}`}
+                              >
+                                <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                                <span className="block min-w-0 max-w-full truncate">{eventImageUploading ? "Uploading..." : (eventImageFileName || "Choose file")}</span>
+                              </label>
+                              {eventUploadedImageUrl ? (
+                                <button
+                                  type="button"
+                                  aria-label="Remove uploaded image"
+                                  onClick={() => {
+                                    setEventUploadedImageUrl("");
+                                    setEventImageFileName("");
+                                    setEventImageUploadError(null);
+                                  }}
+                                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#D9D0C1] bg-white text-[#334233] transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                                >
+                                  <X className="h-4 w-4" aria-hidden />
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
                           {eventFieldErrors["event-image-url"] ? <p id={getFieldErrorId("event-image-url")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-image-url"]}</p> : null}
                           {eventImageUploadError ? <p className="mt-1 text-xs text-red-600">{eventImageUploadError}</p> : null}
