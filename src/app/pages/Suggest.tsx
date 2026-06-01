@@ -164,6 +164,9 @@ export function Suggest() {
   const currentStep = kind === "resource" ? resourceStep : eventStep;
   const isCurrentKindImageUploading = kind === "resource" ? resourceImageUploading : eventImageUploading;
   const eventDateBounds = getEventDateBounds();
+  const hasInlineErrors = kind === "resource"
+    ? Object.keys(resourceFieldErrors).length > 0 || Boolean(resourceImageUploadError)
+    : Object.keys(eventFieldErrors).length > 0 || Boolean(eventImageUploadError);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
@@ -363,8 +366,13 @@ export function Suggest() {
     }
   };
 
-  const handleResourceSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const preventUnexpectedFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+  };
+
+  const handleResourceSubmit = async () => {
+    if (currentStep !== 3 || submitting) return;
+
     if (resourceImageUploading) {
       setError("Please wait for the image upload to finish.");
       return;
@@ -486,8 +494,9 @@ export function Suggest() {
     }
   };
 
-  const handleEventSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleEventSubmit = async () => {
+    if (currentStep !== 3 || submitting) return;
+
     if (eventImageUploading) {
       setError("Please wait for the image upload to finish.");
       return;
@@ -639,7 +648,7 @@ export function Suggest() {
     );
   };
 
-  const renderNavigation = (submitLabel: string) => (
+  const renderNavigation = (submitLabel: string, onSubmit: () => void) => (
     <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
       <Button
         type="button"
@@ -663,7 +672,7 @@ export function Suggest() {
           <ArrowRight className="h-4 w-4" />
         </Button>
       ) : (
-        <Button type="submit" disabled={submitting || isCurrentKindImageUploading}>
+        <Button type="button" onClick={onSubmit} disabled={submitting || isCurrentKindImageUploading}>
           {submitting ? "Submitting..." : submitLabel}
         </Button>
       )}
@@ -745,11 +754,11 @@ export function Suggest() {
 
               {renderStepProgress()}
 
-              {error ? <div role="alert" aria-live="polite" className="text-sm text-red-600">{error}</div> : null}
+              {error && !hasInlineErrors ? <div role="alert" aria-live="polite" className="text-sm text-red-600">{error}</div> : null}
               {successMessage ? <div role="status" aria-live="polite" className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">{successMessage}</div> : null}
 
               {kind === "resource" ? (
-                <form className="space-y-4" onSubmit={handleResourceSubmit} role="tabpanel" id="resource-panel" aria-labelledby="resource-tab">
+                <form className="space-y-4" onSubmit={preventUnexpectedFormSubmit} role="tabpanel" id="resource-panel" aria-labelledby="resource-tab">
                   {currentStep === 1 ? (
                     <fieldset>
                       <legend className="sr-only">Resource Basics</legend>
@@ -917,10 +926,10 @@ export function Suggest() {
                     </fieldset>
                   ) : null}
 
-                  {renderNavigation("Submit Resource Proposal")}
+                  {renderNavigation("Submit Resource Proposal", () => { void handleResourceSubmit(); })}
                 </form>
               ) : (
-                <form className="space-y-4" onSubmit={handleEventSubmit} role="tabpanel" id="event-panel" aria-labelledby="event-tab">
+                <form className="space-y-4" onSubmit={preventUnexpectedFormSubmit} role="tabpanel" id="event-panel" aria-labelledby="event-tab">
                   {currentStep === 1 ? (
                     <fieldset>
                       <legend className="sr-only">Event Basics</legend>
@@ -1043,7 +1052,7 @@ export function Suggest() {
                     </fieldset>
                   ) : null}
 
-                  {renderNavigation("Submit Event Proposal")}
+                  {renderNavigation("Submit Event Proposal", () => { void handleEventSubmit(); })}
                 </form>
               )}
             </CardContent>
