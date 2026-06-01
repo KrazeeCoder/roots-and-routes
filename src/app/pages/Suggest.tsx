@@ -27,7 +27,7 @@ import { CategoryPicker } from "../components/forms/CategoryPicker";
 import { ResourceHoursSelector } from "../components/forms/ResourceHoursSelector";
 import { TagChipInput, joinTagsForValidation } from "../components/forms/TagChipInput";
 import { validateProfanity } from "../../utils/profanityFilter";
-import { validateEmail, validatePhone, validateRequired, validateUrl, validateMaxLength } from "../../utils/validation";
+import { getEventDateBounds, validateEmail, validateEventDateRange, validateMaxLength, validatePhone, validateRequired, validateUrl } from "../../utils/validation";
 import { launchSuccessConfetti } from "../../utils/confetti";
 
 type SubmissionKind = "resource" | "event";
@@ -163,6 +163,7 @@ export function Suggest() {
   const hasDirectPublishingAccess = isModerator(role) || profile?.status === "approved";
   const currentStep = kind === "resource" ? resourceStep : eventStep;
   const isCurrentKindImageUploading = kind === "resource" ? resourceImageUploading : eventImageUploading;
+  const eventDateBounds = getEventDateBounds();
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
@@ -257,7 +258,11 @@ export function Suggest() {
     if (step === 1) {
       markError("event-title", validateRequired(eventForm.title, "Event title"));
       markError("event-location", validateRequired(eventForm.location, "Location"));
-      markError("event-starts-at", validateRequired(eventForm.startsAt, "Start date and time"));
+      markError("event-starts-at", validateEventDateRange(eventForm.startsAt, ""));
+    }
+
+    if (step === 2) {
+      markError("event-ends-at", validateEventDateRange(eventForm.startsAt, eventForm.endsAt));
     }
 
     setEventFieldErrors(errors);
@@ -505,7 +510,7 @@ export function Suggest() {
 
     markError("event-title", validateRequired(eventForm.title, "Event title"));
     markError("event-location", validateRequired(eventForm.location, "Location"));
-    markError("event-starts-at", validateRequired(eventForm.startsAt, "Start date and time"));
+    markError("event-starts-at", validateEventDateRange(eventForm.startsAt, eventForm.endsAt));
     markError("event-submitter-name", validateRequired(eventForm.submitterName, "Your name"));
     markError("event-submitter-email", validateRequired(eventForm.submitterEmail, "Your email"));
     markError("event-submitter-email", validateEmail(eventForm.submitterEmail));
@@ -516,7 +521,7 @@ export function Suggest() {
     const firstError =
       validateRequired(eventForm.title, "Event title")
       || validateRequired(eventForm.location, "Location")
-      || validateRequired(eventForm.startsAt, "Start date and time")
+      || validateEventDateRange(eventForm.startsAt, eventForm.endsAt)
       || validateRequired(eventForm.submitterName, "Your name")
       || validateRequired(eventForm.submitterEmail, "Your email")
       || validateProfanity(eventForm.title, "Event title")
@@ -946,7 +951,7 @@ export function Suggest() {
                           />
                           {eventFieldErrors["event-location"] ? <p id={getFieldErrorId("event-location")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-location"]}</p> : null}
                       </div>
-                      <div><Label htmlFor="event-starts-at">Starts at</Label><Input id="event-starts-at" type="datetime-local" value={eventForm.startsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, startsAt: event.target.value }))} aria-invalid={!!eventFieldErrors["event-starts-at"]} aria-describedby={eventFieldErrors["event-starts-at"] ? getFieldErrorId("event-starts-at") : undefined} required />{eventFieldErrors["event-starts-at"] ? <p id={getFieldErrorId("event-starts-at")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-starts-at"]}</p> : null}</div>
+                      <div><Label htmlFor="event-starts-at">Starts at</Label><Input id="event-starts-at" type="datetime-local" min={eventDateBounds.minInput} max={eventDateBounds.maxInput} value={eventForm.startsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, startsAt: event.target.value }))} aria-invalid={!!eventFieldErrors["event-starts-at"]} aria-describedby={eventFieldErrors["event-starts-at"] ? getFieldErrorId("event-starts-at") : undefined} required />{eventFieldErrors["event-starts-at"] ? <p id={getFieldErrorId("event-starts-at")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-starts-at"]}</p> : null}</div>
                     </fieldset>
                   ) : null}
 
@@ -955,7 +960,7 @@ export function Suggest() {
                       <legend className="sr-only">Event Details</legend>
                       <div><Label htmlFor="event-description">Description</Label><Textarea id="event-description" value={eventForm.description} onChange={(event) => setEventForm((prev) => ({ ...prev, description: event.target.value }))} /></div>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <div><Label htmlFor="event-ends-at">Ends at</Label><Input id="event-ends-at" type="datetime-local" value={eventForm.endsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, endsAt: event.target.value }))} /></div>
+                        <div><Label htmlFor="event-ends-at">Ends at</Label><Input id="event-ends-at" type="datetime-local" min={eventForm.startsAt || eventDateBounds.minInput} max={eventDateBounds.maxInput} value={eventForm.endsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, endsAt: event.target.value }))} aria-invalid={!!eventFieldErrors["event-ends-at"]} aria-describedby={eventFieldErrors["event-ends-at"] ? getFieldErrorId("event-ends-at") : undefined} />{eventFieldErrors["event-ends-at"] ? <p id={getFieldErrorId("event-ends-at")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-ends-at"]}</p> : null}</div>
                       </div>
                       <fieldset>
                         <legend className="sr-only">Image</legend>

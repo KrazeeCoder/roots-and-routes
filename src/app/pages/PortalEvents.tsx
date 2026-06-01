@@ -30,7 +30,7 @@ import { EVENT_CATEGORY_SUGGESTIONS } from "../constants/eventCategorySuggestion
 import { AddressAutocompleteInput } from "../components/forms/AddressAutocompleteInput";
 import { CategoryPicker } from "../components/forms/CategoryPicker";
 import { validateProfanity } from "../../utils/profanityFilter";
-import { validateUrl, validateRequired, validateMaxLength } from "../../utils/validation";
+import { getEventDateBounds, validateEventDateRange, validateMaxLength, validateRequired, validateUrl } from "../../utils/validation";
 
 interface EventFormState {
   title: string;
@@ -169,6 +169,7 @@ function mapEventToForm(event: EventRecord, canModerate: boolean): EventFormStat
 function validateEventForm(form: EventFormState): string | null {
   return validateRequired(form.title, "Event title")
     || validateRequired(form.location, "Location")
+    || validateEventDateRange(form.startsAt, form.endsAt)
     || validateProfanity(form.title, "Event title")
     || validateProfanity(form.category, "Category")
     || validateProfanity(form.description, "Description")
@@ -217,6 +218,7 @@ function EventFormFields({
   const endsAtId = `${idPrefix}-ends`;
   const statusId = `${idPrefix}-status`;
   const spotlightId = `${idPrefix}-spotlight`;
+  const eventDateBounds = getEventDateBounds();
 
   return (
     <>
@@ -337,6 +339,8 @@ function EventFormFields({
           <Input
             id={startsAtId}
             type="datetime-local"
+            min={eventDateBounds.minInput}
+            max={eventDateBounds.maxInput}
             value={form.startsAt}
             onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))}
             required
@@ -347,6 +351,8 @@ function EventFormFields({
           <Input
             id={endsAtId}
             type="datetime-local"
+            min={form.startsAt || eventDateBounds.minInput}
+            max={eventDateBounds.maxInput}
             value={form.endsAt}
             onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))}
           />
@@ -630,7 +636,10 @@ export function PortalEvents() {
       return null;
     }
 
-    const startsAtIso = toIso(form.startsAt) || new Date().toISOString();
+    const startsAtIso = toIso(form.startsAt);
+    if (!startsAtIso) {
+      return null;
+    }
     const endsAtCandidate = toIso(form.endsAt);
     const endsAtIso = endsAtCandidate && new Date(endsAtCandidate).getTime() > new Date(startsAtIso).getTime()
       ? endsAtCandidate

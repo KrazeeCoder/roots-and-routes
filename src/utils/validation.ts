@@ -125,6 +125,62 @@ export function validateMaxLength(value: string, fieldName: string, maxLength: n
   return null;
 }
 
+function toDateTimeLocalValue(date: Date): string {
+  const offset = date.getTimezoneOffset();
+  const normalized = new Date(date.getTime() - offset * 60000);
+  return normalized.toISOString().slice(0, 16);
+}
+
+export function getEventDateBounds(now = new Date()) {
+  const min = new Date(now);
+  min.setSeconds(0, 0);
+  min.setMinutes(min.getMinutes() + 1);
+
+  const max = new Date(min);
+  max.setFullYear(max.getFullYear() + 5);
+
+  return {
+    min,
+    max,
+    minInput: toDateTimeLocalValue(min),
+    maxInput: toDateTimeLocalValue(max),
+  };
+}
+
+export function validateEventDateRange(startsAt: string, endsAt: string): string | null {
+  const requiredError = validateRequired(startsAt, "Start date and time");
+  if (requiredError) return requiredError;
+
+  const startDate = new Date(startsAt);
+  if (Number.isNaN(startDate.getTime())) {
+    return "Start date and time must be valid.";
+  }
+
+  const { min, max } = getEventDateBounds();
+  if (startDate.getTime() < min.getTime()) {
+    return "Start date and time cannot be in the past.";
+  }
+  if (startDate.getTime() > max.getTime()) {
+    return "Start date and time must be within the next 5 years.";
+  }
+
+  const trimmedEndsAt = endsAt.trim();
+  if (!trimmedEndsAt) return null;
+
+  const endDate = new Date(trimmedEndsAt);
+  if (Number.isNaN(endDate.getTime())) {
+    return "End date and time must be valid.";
+  }
+  if (endDate.getTime() <= startDate.getTime()) {
+    return "End date and time must be after the start date and time.";
+  }
+  if (endDate.getTime() > max.getTime()) {
+    return "End date and time must be within the next 5 years.";
+  }
+
+  return null;
+}
+
 /**
  * Validates zip codes (US format)
  * @param zipCode - Zip code to validate
