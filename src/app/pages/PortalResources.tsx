@@ -240,6 +240,7 @@ interface ResourceFormFieldsProps {
   idPrefix: string;
   isUploadingImage: boolean;
   imageUploadError: string | null;
+  imageFileName: string;
   onImageUpload: (file: File) => void;
 }
 
@@ -251,6 +252,7 @@ function ResourceFormFields({
   idPrefix,
   isUploadingImage,
   imageUploadError,
+  imageFileName,
   onImageUpload,
 }: ResourceFormFieldsProps) {
   const nameId = `${idPrefix}-name`;
@@ -362,33 +364,39 @@ function ResourceFormFields({
             onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))}
           />
         </div>
-        <div>
+        <div className="sm:col-span-2 lg:col-span-2">
           <Label htmlFor={imageId}>Image URL</Label>
-          <Input
-            id={imageId}
-            value={form.imageUrl}
-            onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-          />
-          <div className="mt-2 space-y-2">
-            <Label htmlFor={imageUploadId}>Or upload image</Label>
+          <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
             <Input
-              id={imageUploadId}
-              type="file"
-              accept="image/*"
-              disabled={isUploadingImage}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-                onImageUpload(file);
-                event.currentTarget.value = "";
-              }}
+              id={imageId}
+              value={form.imageUrl}
+              onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
             />
-            <div className="flex items-center gap-2 text-xs text-[#6F7553]">
-              <Upload className="h-3.5 w-3.5" aria-hidden />
-              <span>{isUploadingImage ? "Uploading image..." : "Uploads fill the Image URL automatically."}</span>
+            <div className="space-y-1">
+              <Label htmlFor={imageUploadId}>Upload image</Label>
+              <input
+                id={imageUploadId}
+                type="file"
+                accept="image/*"
+                disabled={isUploadingImage}
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  onImageUpload(file);
+                  event.currentTarget.value = "";
+                }}
+              />
+              <label
+                htmlFor={imageUploadId}
+                className={`inline-flex h-10 min-w-44 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] transition-colors hover:bg-[#F6F1E7] ${isUploadingImage ? "pointer-events-none opacity-70" : ""}`}
+              >
+                <Upload className="h-3.5 w-3.5" aria-hidden />
+                <span>{isUploadingImage ? "Uploading..." : (imageFileName || "Choose file")}</span>
+              </label>
             </div>
-            {imageUploadError ? <p className="text-xs text-red-600">{imageUploadError}</p> : null}
           </div>
+          {imageUploadError ? <p className="mt-2 text-xs text-red-600">{imageUploadError}</p> : null}
         </div>
       </div>
 
@@ -462,6 +470,7 @@ export function PortalResources() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createImageUploading, setCreateImageUploading] = useState(false);
   const [createImageUploadError, setCreateImageUploadError] = useState<string | null>(null);
+  const [createImageFileName, setCreateImageFileName] = useState("");
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
@@ -472,6 +481,7 @@ export function PortalResources() {
   const [editError, setEditError] = useState<string | null>(null);
   const [editImageUploading, setEditImageUploading] = useState(false);
   const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
+  const [editImageFileName, setEditImageFileName] = useState("");
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
@@ -666,6 +676,7 @@ export function PortalResources() {
     setEditError(null);
     setEditImageUploading(false);
     setEditImageUploadError(null);
+    setEditImageFileName("");
   };
 
   const startEdit = (resource: ResourceRecord) => {
@@ -673,6 +684,7 @@ export function PortalResources() {
     setEditForm(mapResourceToForm(resource, canModerate));
     setEditError(null);
     setEditImageUploadError(null);
+    setEditImageFileName("");
     setEditOpen(true);
   };
 
@@ -736,6 +748,7 @@ export function PortalResources() {
     try {
       await createResource(toResourcePayload(createForm, canModerate));
       setCreateForm(defaultForm);
+      setCreateImageFileName("");
       await loadResources();
       toast.success("Resource created.", { id: toastId });
     } catch (nextError) {
@@ -809,6 +822,7 @@ export function PortalResources() {
 
     setCreateImageUploading(true);
     setCreateImageUploadError(null);
+    setCreateImageFileName(file.name);
     const toastId = toast.loading("Uploading image...");
 
     try {
@@ -830,6 +844,7 @@ export function PortalResources() {
 
     setEditImageUploading(true);
     setEditImageUploadError(null);
+    setEditImageFileName(file.name);
     const toastId = toast.loading("Uploading image...");
 
     try {
@@ -871,6 +886,7 @@ export function PortalResources() {
                 idPrefix="resource-create"
                 isUploadingImage={createImageUploading}
                 imageUploadError={createImageUploadError}
+                imageFileName={createImageFileName}
                 onImageUpload={(file) => {
                   void handleCreateImageUpload(file);
                 }}
@@ -1092,6 +1108,7 @@ export function PortalResources() {
                 idPrefix="resource-edit"
                 isUploadingImage={editImageUploading}
                 imageUploadError={editImageUploadError}
+                imageFileName={editImageFileName}
                 onImageUpload={(file) => {
                   void handleEditImageUpload(file);
                 }}

@@ -188,6 +188,7 @@ interface EventFormFieldsProps {
   idPrefix: string;
   isUploadingImage: boolean;
   imageUploadError: string | null;
+  imageFileName: string;
   onImageUpload: (file: File) => void;
 }
 
@@ -199,6 +200,7 @@ function EventFormFields({
   idPrefix,
   isUploadingImage,
   imageUploadError,
+  imageFileName,
   onImageUpload,
 }: EventFormFieldsProps) {
   const titleId = `${idPrefix}-title`;
@@ -272,33 +274,39 @@ function EventFormFields({
             required
           />
         </div>
-        <div>
+        <div className="sm:col-span-2">
           <Label htmlFor={imageId}>Image URL</Label>
-          <Input
-            id={imageId}
-            value={form.imageUrl}
-            onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-          />
-          <div className="mt-2 space-y-2">
-            <Label htmlFor={imageUploadId}>Or upload image</Label>
+          <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
             <Input
-              id={imageUploadId}
-              type="file"
-              accept="image/*"
-              disabled={isUploadingImage}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-                onImageUpload(file);
-                event.currentTarget.value = "";
-              }}
+              id={imageId}
+              value={form.imageUrl}
+              onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
             />
-            <div className="flex items-center gap-2 text-xs text-[#6F7553]">
-              <Upload className="h-3.5 w-3.5" aria-hidden />
-              <span>{isUploadingImage ? "Uploading image..." : "Uploads fill the Image URL automatically."}</span>
+            <div className="space-y-1">
+              <Label htmlFor={imageUploadId}>Upload image</Label>
+              <input
+                id={imageUploadId}
+                type="file"
+                accept="image/*"
+                disabled={isUploadingImage}
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  onImageUpload(file);
+                  event.currentTarget.value = "";
+                }}
+              />
+              <label
+                htmlFor={imageUploadId}
+                className={`inline-flex h-10 min-w-44 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] transition-colors hover:bg-[#F6F1E7] ${isUploadingImage ? "pointer-events-none opacity-70" : ""}`}
+              >
+                <Upload className="h-3.5 w-3.5" aria-hidden />
+                <span>{isUploadingImage ? "Uploading..." : (imageFileName || "Choose file")}</span>
+              </label>
             </div>
-            {imageUploadError ? <p className="text-xs text-red-600">{imageUploadError}</p> : null}
           </div>
+          {imageUploadError ? <p className="mt-2 text-xs text-red-600">{imageUploadError}</p> : null}
         </div>
       </div>
 
@@ -382,6 +390,7 @@ export function PortalEvents() {
   const [createGeoNotice, setCreateGeoNotice] = useState<string | null>(null);
   const [createImageUploading, setCreateImageUploading] = useState(false);
   const [createImageUploadError, setCreateImageUploadError] = useState<string | null>(null);
+  const [createImageFileName, setCreateImageFileName] = useState("");
 
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -391,6 +400,7 @@ export function PortalEvents() {
   const [editGeoNotice, setEditGeoNotice] = useState<string | null>(null);
   const [editImageUploading, setEditImageUploading] = useState(false);
   const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
+  const [editImageFileName, setEditImageFileName] = useState("");
   const [editOriginalLocation, setEditOriginalLocation] = useState<string | null>(null);
   const [eventSearch, setEventSearch] = useState("");
   const [eventStatusFilter, setEventStatusFilter] = useState<StatusFilter>("all");
@@ -519,6 +529,7 @@ export function PortalEvents() {
     setEditGeoNotice(null);
     setEditImageUploading(false);
     setEditImageUploadError(null);
+    setEditImageFileName("");
     setEditOriginalLocation(null);
   };
 
@@ -529,6 +540,7 @@ export function PortalEvents() {
     setEditError(null);
     setEditGeoNotice(null);
     setEditImageUploadError(null);
+    setEditImageFileName("");
     setEditOpen(true);
   };
 
@@ -669,6 +681,7 @@ export function PortalEvents() {
     try {
       await createEvent(payload);
       setCreateForm(defaultForm);
+      setCreateImageFileName("");
       await loadEvents();
       toast.success("Event created.", { id: toastId });
     } catch (nextError) {
@@ -771,6 +784,7 @@ export function PortalEvents() {
 
     setCreateImageUploading(true);
     setCreateImageUploadError(null);
+    setCreateImageFileName(file.name);
     const toastId = toast.loading("Uploading image...");
 
     try {
@@ -792,6 +806,7 @@ export function PortalEvents() {
 
     setEditImageUploading(true);
     setEditImageUploadError(null);
+    setEditImageFileName(file.name);
     const toastId = toast.loading("Uploading image...");
 
     try {
@@ -834,6 +849,7 @@ export function PortalEvents() {
                 idPrefix="event-create"
                 isUploadingImage={createImageUploading}
                 imageUploadError={createImageUploadError}
+                imageFileName={createImageFileName}
                 onImageUpload={(file) => {
                   void handleCreateImageUpload(file);
                 }}
@@ -1068,6 +1084,7 @@ export function PortalEvents() {
                 idPrefix="event-edit"
                 isUploadingImage={editImageUploading}
                 imageUploadError={editImageUploadError}
+                imageFileName={editImageFileName}
                 onImageUpload={(file) => {
                   void handleEditImageUpload(file);
                 }}
