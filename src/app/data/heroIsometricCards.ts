@@ -62,7 +62,7 @@ export const HERO_ISOMETRIC_CARDS: HeroIsometricCard[] = [
     location: "Sammamish River Trail",
     href: "/events/b6d3b78a-eb65-4987-b7d9-95725e4473f5",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/7/7f/SammamishRiverviewBothellLanding.jpg",
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80",
     accentColor: "#5E7FA1",
   },
   {
@@ -84,7 +84,7 @@ export const HERO_ISOMETRIC_CARDS: HeroIsometricCard[] = [
     location: "9919 NE 180th St, Bothell, WA 98011",
     href: "/resources/54734e3f-e2db-4e05-ada0-7765c7845da3",
     image:
-      "https://upload.wikimedia.org/wikipedia/commons/0/0c/Bothell_Landing_04.jpg",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80",
     accentColor: "#A65D46",
   },
 ];
