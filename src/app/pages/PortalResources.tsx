@@ -369,23 +369,13 @@ function ResourceFormFields({
           />
         </div>
         <div className="sm:col-span-2 lg:col-span-2">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
-            <div>
-              <Label htmlFor={imageId}>Image URL</Label>
-              <Input
-                id={imageId}
-                className="mt-1"
-                disabled={hasUploadedImage}
-                value={form.imageUrl}
-                onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[14rem_minmax(0,1fr)]">
             <div>
               <Label htmlFor={imageUploadId}>Upload image</Label>
               <input
                 id={imageUploadId}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                 disabled={isUploadingImage}
                 className="sr-only"
                 onChange={(event) => {
@@ -415,6 +405,16 @@ function ResourceFormFields({
                   </button>
                 ) : null}
               </div>
+            </div>
+            <div>
+              <Label htmlFor={imageId}>Image URL</Label>
+              <Input
+                id={imageId}
+                className="mt-1"
+                disabled={hasUploadedImage}
+                value={form.imageUrl}
+                onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+              />
             </div>
           </div>
           {imageUploadError ? <p className="mt-2 text-xs text-red-600">{imageUploadError}</p> : null}

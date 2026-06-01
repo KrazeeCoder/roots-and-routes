@@ -300,6 +300,18 @@ export function Suggest() {
     }
   };
 
+  const goToStep = (step: StepId) => {
+    if (step >= currentStep) return;
+    if (isCurrentKindImageUploading) {
+      setError("Please wait for the image upload to finish.");
+      return;
+    }
+
+    setError(null);
+    clearKindFieldErrors(kind);
+    setCurrentKindStep(step);
+  };
+
   const handleResourceImageUpload = async (file: File) => {
     setResourceImageUploading(true);
     setResourceImageUploadError(null);
@@ -595,22 +607,27 @@ export function Suggest() {
         {steps.map((step) => {
           const isActive = currentStep === step;
           const isDone = currentStep > step;
+          const canGoBackToStep = isDone && !submitting && !isCurrentKindImageUploading;
 
           return (
-            <div
+            <button
               key={step}
+              type="button"
               role="listitem"
+              aria-current={isActive ? "step" : undefined}
+              disabled={!canGoBackToStep}
+              onClick={() => goToStep(step)}
               className={`rounded-xl border px-3 py-2 text-center transition-colors ${
                 isActive
                   ? "border-[#B36A4C] bg-[#FFF8EE] text-[#334233]"
                   : isDone
                     ? "border-[#A7AE8A] bg-[#EEF4E4] text-[#334233]"
                     : "border-[#E7D9C3] bg-white text-[#6F7553]"
-              }`}
+              } ${canGoBackToStep ? "cursor-pointer hover:border-[#7F8A5F] hover:bg-[#E5EED8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B36A4C] focus-visible:ring-offset-2" : "cursor-default disabled:opacity-100"}`}
             >
               <div className="text-xs font-semibold uppercase tracking-wide">Step {step}</div>
               <div className="text-sm font-medium mt-0.5">{STEP_LABELS[step]}</div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -785,26 +802,14 @@ export function Suggest() {
                         <Input id="resource-organization" value={resourceForm.organizationName} onChange={(event) => setResourceForm((prev) => ({ ...prev, organizationName: event.target.value }))} />
                       </div>
                       <fieldset>
-                        <legend className="text-sm font-medium mb-2">Image</legend>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
-                          <div>
-                            <Label htmlFor="resource-image-url">Image URL</Label>
-                            <Input
-                              id="resource-image-url"
-                              className="mt-1"
-                              disabled={Boolean(resourceUploadedImageUrl)}
-                              value={resourceForm.imageUrl}
-                              onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-                              aria-invalid={!!resourceFieldErrors["resource-image-url"]}
-                              aria-describedby={resourceFieldErrors["resource-image-url"] ? getFieldErrorId("resource-image-url") : undefined}
-                            />
-                          </div>
+                        <legend className="sr-only">Image</legend>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[14rem_minmax(0,1fr)]">
                           <div>
                             <Label htmlFor="resource-image-upload">Upload image</Label>
                             <input
                               id="resource-image-upload"
                               type="file"
-                              accept="image/*"
+                              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                               disabled={resourceImageUploading}
                               className="sr-only"
                               onChange={(event) => {
@@ -838,6 +843,18 @@ export function Suggest() {
                                 </button>
                               ) : null}
                             </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="resource-image-url">Image URL</Label>
+                            <Input
+                              id="resource-image-url"
+                              className="mt-1"
+                              disabled={Boolean(resourceUploadedImageUrl)}
+                              value={resourceForm.imageUrl}
+                              onChange={(event) => setResourceForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+                              aria-invalid={!!resourceFieldErrors["resource-image-url"]}
+                              aria-describedby={resourceFieldErrors["resource-image-url"] ? getFieldErrorId("resource-image-url") : undefined}
+                            />
                           </div>
                           {resourceFieldErrors["resource-image-url"] ? <p id={getFieldErrorId("resource-image-url")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-image-url"]}</p> : null}
                           {resourceImageUploadError ? <p className="mt-1 text-xs text-red-600">{resourceImageUploadError}</p> : null}
@@ -941,26 +958,14 @@ export function Suggest() {
                         <div><Label htmlFor="event-ends-at">Ends at</Label><Input id="event-ends-at" type="datetime-local" value={eventForm.endsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, endsAt: event.target.value }))} /></div>
                       </div>
                       <fieldset>
-                        <legend className="text-sm font-medium mb-2">Image</legend>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
-                          <div>
-                            <Label htmlFor="event-image-url">Image URL</Label>
-                            <Input
-                              id="event-image-url"
-                              className="mt-1"
-                              disabled={Boolean(eventUploadedImageUrl)}
-                              value={eventForm.imageUrl}
-                              onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
-                              aria-invalid={!!eventFieldErrors["event-image-url"]}
-                              aria-describedby={eventFieldErrors["event-image-url"] ? getFieldErrorId("event-image-url") : undefined}
-                            />
-                          </div>
+                        <legend className="sr-only">Image</legend>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[14rem_minmax(0,1fr)]">
                           <div>
                             <Label htmlFor="event-image-upload">Upload image</Label>
                             <input
                               id="event-image-upload"
                               type="file"
-                              accept="image/*"
+                              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                               disabled={eventImageUploading}
                               className="sr-only"
                               onChange={(event) => {
@@ -994,6 +999,18 @@ export function Suggest() {
                                 </button>
                               ) : null}
                             </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="event-image-url">Image URL</Label>
+                            <Input
+                              id="event-image-url"
+                              className="mt-1"
+                              disabled={Boolean(eventUploadedImageUrl)}
+                              value={eventForm.imageUrl}
+                              onChange={(event) => setEventForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+                              aria-invalid={!!eventFieldErrors["event-image-url"]}
+                              aria-describedby={eventFieldErrors["event-image-url"] ? getFieldErrorId("event-image-url") : undefined}
+                            />
                           </div>
                           {eventFieldErrors["event-image-url"] ? <p id={getFieldErrorId("event-image-url")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-image-url"]}</p> : null}
                           {eventImageUploadError ? <p className="mt-1 text-xs text-red-600">{eventImageUploadError}</p> : null}

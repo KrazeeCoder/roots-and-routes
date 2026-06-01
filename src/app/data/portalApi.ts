@@ -17,6 +17,13 @@ import type {
 } from "../types/portal";
 
 const LISTING_IMAGE_BUCKET = "resource-images";
+const SUPPORTED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+]);
 
 function displayDateRange(startsAt: string, endsAt: string | null) {
   const start = new Date(startsAt);
@@ -130,8 +137,8 @@ function inferImageExtension(file: File) {
 type UploadScope = "resources" | "events" | "suggestions/resources" | "suggestions/events";
 
 async function uploadListingImage(file: File, scope: UploadScope, ownerKey: string) {
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Only image files can be uploaded.");
+  if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
+    throw new Error("Upload a JPG, PNG, WebP, GIF, or AVIF image.");
   }
 
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
