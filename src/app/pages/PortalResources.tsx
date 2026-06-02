@@ -85,6 +85,7 @@ type StatusFilter = "all" | ContentStatus;
 type ResourceSortOption = "updated_desc" | "updated_asc" | "name_asc" | "name_desc";
 type FeedbackSortOption = "recent_desc" | "recent_asc" | "rating_desc" | "rating_asc";
 type FeedbackRatingFilter = "all" | "1" | "2" | "3" | "4" | "5";
+type FieldErrors = Record<string, string>;
 const DROPDOWN_CONTROL_CLASS =
   "h-10 w-full rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20";
 
@@ -146,41 +147,40 @@ function mapResourceToForm(resource: ResourceRecord, canModerate: boolean): Reso
   };
 }
 
-function validateResourceForm(form: ResourceFormState): string | null {
-  const categoryError = validateRequired(form.category, "Category");
-  const invalidCategoryError =
-    form.category && !isResourceCategory(form.category)
-      ? "Category must be one of the approved resource categories."
-      : null;
+function validateResourceFormFields(form: ResourceFormState): FieldErrors {
+  const errors: FieldErrors = {};
+  const tagsForValidation = joinTagsForValidation(form.tags);
+  const markError = (field: string, message: string | null) => {
+    if (message && !errors[field]) errors[field] = message;
+  };
 
-  const firstError =
-    validateRequired(form.name, "Resource name")
-    || categoryError
-    || invalidCategoryError
-    || validateRequired(form.description, "Description")
-    || validateRequired(form.address, "Address")
-    || validateProfanity(form.name, "Resource name")
-    || validateProfanity(form.category, "Category")
-    || validateProfanity(form.description, "Description")
-    || validateProfanity(form.fullDescription, "Full description")
-    || validateProfanity(form.address, "Address")
-    || validateProfanity(form.hours, "Hours")
-    || validateProfanity(joinTagsForValidation(form.tags), "Tags")
-    || validateProfanity(form.spotlightSubtitle, "Spotlight subtitle")
-    || validateEmail(form.email)
-    || validatePhone(form.phone)
-    || validateUrl(form.website)
-    || validateUrl(form.imageUrl)
-    || validateMaxLength(form.name, "Resource name", 200)
-    || validateMaxLength(form.category, "Category", 100)
-    || validateMaxLength(form.description, "Description", 500)
-    || validateMaxLength(form.fullDescription, "Full description", 2000)
-    || validateMaxLength(form.address, "Address", 500)
-    || validateMaxLength(form.hours, "Hours", 200)
-    || validateMaxLength(joinTagsForValidation(form.tags), "Tags", 300)
-    || validateMaxLength(form.spotlightSubtitle, "Spotlight subtitle", 200);
+  markError("name", validateRequired(form.name, "Resource name"));
+  markError("name", validateProfanity(form.name, "Resource name"));
+  markError("name", validateMaxLength(form.name, "Resource name", 200));
+  markError("category", validateRequired(form.category, "Category"));
+  markError("category", form.category && !isResourceCategory(form.category) ? "Category must be one of the approved resource categories." : null);
+  markError("category", validateProfanity(form.category, "Category"));
+  markError("category", validateMaxLength(form.category, "Category", 100));
+  markError("description", validateRequired(form.description, "Description"));
+  markError("description", validateProfanity(form.description, "Description"));
+  markError("description", validateMaxLength(form.description, "Description", 500));
+  markError("fullDescription", validateProfanity(form.fullDescription, "Full description"));
+  markError("fullDescription", validateMaxLength(form.fullDescription, "Full description", 2000));
+  markError("address", validateRequired(form.address, "Address"));
+  markError("address", validateProfanity(form.address, "Address"));
+  markError("address", validateMaxLength(form.address, "Address", 500));
+  markError("hours", validateProfanity(form.hours, "Hours"));
+  markError("hours", validateMaxLength(form.hours, "Hours", 200));
+  markError("phone", validatePhone(form.phone));
+  markError("email", validateEmail(form.email));
+  markError("website", validateUrl(form.website));
+  markError("imageUrl", validateUrl(form.imageUrl));
+  markError("tags", validateProfanity(tagsForValidation, "Tags"));
+  markError("tags", validateMaxLength(tagsForValidation, "Tags", 300));
+  markError("spotlightSubtitle", validateProfanity(form.spotlightSubtitle, "Spotlight subtitle"));
+  markError("spotlightSubtitle", validateMaxLength(form.spotlightSubtitle, "Spotlight subtitle", 200));
 
-  return firstError;
+  return errors;
 }
 
 function toResourcePayload(form: ResourceFormState, canModerate: boolean): ResourcePayload {
@@ -242,6 +242,7 @@ interface ResourceFormFieldsProps {
   imageUploadError: string | null;
   imageFileName: string;
   hasUploadedImage: boolean;
+  fieldErrors: FieldErrors;
   onImageUpload: (file: File) => void;
   onClearImageUpload: () => void;
 }
@@ -256,6 +257,7 @@ function ResourceFormFields({
   imageUploadError,
   imageFileName,
   hasUploadedImage,
+  fieldErrors,
   onImageUpload,
   onClearImageUpload,
 }: ResourceFormFieldsProps) {
@@ -274,6 +276,9 @@ function ResourceFormFields({
   const statusId = `${idPrefix}-status`;
   const spotlightId = `${idPrefix}-spotlight`;
   const spotlightSubtitleId = `${idPrefix}-spotlight-subtitle`;
+  const getErrorId = (id: string) => `${id}-error`;
+  const renderError = (field: string, id: string) =>
+    fieldErrors[field] ? <p id={getErrorId(id)} className="mt-1 text-sm text-red-600">{fieldErrors[field]}</p> : null;
 
   return (
     <>
@@ -284,8 +289,11 @@ function ResourceFormFields({
             id={nameId}
             value={form.name}
             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+            aria-invalid={!!fieldErrors.name}
+            aria-describedby={fieldErrors.name ? getErrorId(nameId) : undefined}
             required
           />
+          {renderError("name", nameId)}
         </div>
         <div>
           <Label htmlFor={categoryId}>Category</Label>
@@ -299,7 +307,10 @@ function ResourceFormFields({
             allowCustom={false}
             placeholder="Choose a category"
             label="Resource category"
+            aria-invalid={!!fieldErrors.category}
+            aria-describedby={fieldErrors.category ? getErrorId(categoryId) : undefined}
           />
+          {renderError("category", categoryId)}
         </div>
       </div>
 
@@ -309,8 +320,11 @@ function ResourceFormFields({
           id={descriptionId}
           value={form.description}
           onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+          aria-invalid={!!fieldErrors.description}
+          aria-describedby={fieldErrors.description ? getErrorId(descriptionId) : undefined}
           required
         />
+        {renderError("description", descriptionId)}
       </div>
 
       <div>
@@ -319,7 +333,10 @@ function ResourceFormFields({
           id={fullDescriptionId}
           value={form.fullDescription}
           onChange={(event) => setForm((prev) => ({ ...prev, fullDescription: event.target.value }))}
+          aria-invalid={!!fieldErrors.fullDescription}
+          aria-describedby={fieldErrors.fullDescription ? getErrorId(fullDescriptionId) : undefined}
         />
+        {renderError("fullDescription", fullDescriptionId)}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -329,8 +346,11 @@ function ResourceFormFields({
             id={addressId}
             value={form.address}
             onChange={(next) => setForm((prev) => ({ ...prev, address: next }))}
+            aria-invalid={!!fieldErrors.address}
+            aria-describedby={fieldErrors.address ? getErrorId(addressId) : undefined}
             required
           />
+          {renderError("address", addressId)}
         </div>
         <div>
           <Label htmlFor={hoursId}>Hours</Label>
@@ -339,6 +359,7 @@ function ResourceFormFields({
             value={form.hours}
             onChange={(next) => setForm((prev) => ({ ...prev, hours: next }))}
           />
+          {renderError("hours", hoursId)}
         </div>
       </div>
 
@@ -349,7 +370,10 @@ function ResourceFormFields({
             id={phoneId}
             value={form.phone}
             onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
+            aria-invalid={!!fieldErrors.phone}
+            aria-describedby={fieldErrors.phone ? getErrorId(phoneId) : undefined}
           />
+          {renderError("phone", phoneId)}
         </div>
         <div>
           <Label htmlFor={emailId}>Email</Label>
@@ -358,7 +382,10 @@ function ResourceFormFields({
             type="email"
             value={form.email}
             onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+            aria-invalid={!!fieldErrors.email}
+            aria-describedby={fieldErrors.email ? getErrorId(emailId) : undefined}
           />
+          {renderError("email", emailId)}
         </div>
         <div>
           <Label htmlFor={websiteId}>Website</Label>
@@ -366,7 +393,10 @@ function ResourceFormFields({
             id={websiteId}
             value={form.website}
             onChange={(event) => setForm((prev) => ({ ...prev, website: event.target.value }))}
+            aria-invalid={!!fieldErrors.website}
+            aria-describedby={fieldErrors.website ? getErrorId(websiteId) : undefined}
           />
+          {renderError("website", websiteId)}
         </div>
         <div className="sm:col-span-2 lg:col-span-2">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[14rem_minmax(0,1fr)]">
@@ -414,7 +444,10 @@ function ResourceFormFields({
                 disabled={hasUploadedImage}
                 value={form.imageUrl}
                 onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+                aria-invalid={!!fieldErrors.imageUrl}
+                aria-describedby={fieldErrors.imageUrl ? getErrorId(imageId) : undefined}
               />
+              {renderError("imageUrl", imageId)}
             </div>
           </div>
           {imageUploadError ? <p className="mt-2 text-xs text-red-600">{imageUploadError}</p> : null}
@@ -430,6 +463,7 @@ function ResourceFormFields({
           maxChars={300}
           placeholder="Type a tag, then press Enter"
         />
+        {renderError("tags", tagsId)}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -476,7 +510,10 @@ function ResourceFormFields({
             onChange={(event) =>
               setForm((prev) => ({ ...prev, spotlightSubtitle: event.target.value }))
             }
+            aria-invalid={!!fieldErrors.spotlightSubtitle}
+            aria-describedby={fieldErrors.spotlightSubtitle ? getErrorId(spotlightSubtitleId) : undefined}
           />
+          {renderError("spotlightSubtitle", spotlightSubtitleId)}
         </div>
       ) : null}
     </>
@@ -489,6 +526,7 @@ export function PortalResources() {
   const [createForm, setCreateForm] = useState<ResourceFormState>(defaultForm);
   const [createSaving, setCreateSaving] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [createFieldErrors, setCreateFieldErrors] = useState<FieldErrors>({});
   const [createImageUploading, setCreateImageUploading] = useState(false);
   const [createImageUploadError, setCreateImageUploadError] = useState<string | null>(null);
   const [createImageFileName, setCreateImageFileName] = useState("");
@@ -501,6 +539,7 @@ export function PortalResources() {
   const [editForm, setEditForm] = useState<ResourceFormState>(defaultForm);
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [editFieldErrors, setEditFieldErrors] = useState<FieldErrors>({});
   const [editImageUploading, setEditImageUploading] = useState(false);
   const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
   const [editImageFileName, setEditImageFileName] = useState("");
@@ -697,6 +736,7 @@ export function PortalResources() {
     setEditId(null);
     setEditForm(defaultForm);
     setEditError(null);
+    setEditFieldErrors({});
     setEditImageUploading(false);
     setEditImageUploadError(null);
     setEditImageFileName("");
@@ -707,6 +747,7 @@ export function PortalResources() {
     setEditId(resource.id);
     setEditForm(mapResourceToForm(resource, canModerate));
     setEditError(null);
+    setEditFieldErrors({});
     setEditImageUploadError(null);
     setEditImageFileName("");
     setEditUploadedImageUrl("");
@@ -753,6 +794,7 @@ export function PortalResources() {
 
     setCreateSaving(true);
     setCreateError(null);
+    setCreateFieldErrors({});
     setCreateImageUploadError(null);
 
     if (createImageUploading) {
@@ -765,9 +807,9 @@ export function PortalResources() {
       ...createForm,
       imageUrl: createUploadedImageUrl || createForm.imageUrl,
     };
-    const validationError = validateResourceForm(createPayloadForm);
-    if (validationError) {
-      setCreateError(validationError);
+    const validationErrors = validateResourceFormFields(createPayloadForm);
+    if (Object.keys(validationErrors).length > 0) {
+      setCreateFieldErrors(validationErrors);
       setCreateSaving(false);
       return;
     }
@@ -777,6 +819,7 @@ export function PortalResources() {
     try {
       await createResource(toResourcePayload(createPayloadForm, canModerate));
       setCreateForm(defaultForm);
+      setCreateFieldErrors({});
       setCreateImageFileName("");
       setCreateUploadedImageUrl("");
       await loadResources();
@@ -797,6 +840,7 @@ export function PortalResources() {
 
     setEditSaving(true);
     setEditError(null);
+    setEditFieldErrors({});
     setEditImageUploadError(null);
 
     if (editImageUploading) {
@@ -809,9 +853,9 @@ export function PortalResources() {
       ...editForm,
       imageUrl: editUploadedImageUrl || editForm.imageUrl,
     };
-    const validationError = validateResourceForm(editPayloadForm);
-    if (validationError) {
-      setEditError(validationError);
+    const validationErrors = validateResourceFormFields(editPayloadForm);
+    if (Object.keys(validationErrors).length > 0) {
+      setEditFieldErrors(validationErrors);
       setEditSaving(false);
       return;
     }
@@ -924,6 +968,7 @@ export function PortalResources() {
                 imageUploadError={createImageUploadError}
                 imageFileName={createImageFileName}
                 hasUploadedImage={Boolean(createUploadedImageUrl)}
+                fieldErrors={createFieldErrors}
                 onImageUpload={(file) => {
                   void handleCreateImageUpload(file);
                 }}
@@ -1152,6 +1197,7 @@ export function PortalResources() {
                 imageUploadError={editImageUploadError}
                 imageFileName={editImageFileName}
                 hasUploadedImage={Boolean(editUploadedImageUrl)}
+                fieldErrors={editFieldErrors}
                 onImageUpload={(file) => {
                   void handleEditImageUpload(file);
                 }}

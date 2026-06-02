@@ -72,6 +72,7 @@ type EventSortOption =
   | "updated_asc"
   | "title_asc"
   | "title_desc";
+type FieldErrors = Record<string, string>;
 const DROPDOWN_CONTROL_CLASS =
   "h-10 w-full rounded-md border border-[#D9D0C1] bg-white px-3 text-sm text-[#334233] focus:outline-none focus:ring-2 focus:ring-[#B36A4C]/20";
 
@@ -166,19 +167,26 @@ function mapEventToForm(event: EventRecord, canModerate: boolean): EventFormStat
   };
 }
 
-function validateEventForm(form: EventFormState): string | null {
-  return validateRequired(form.title, "Event title")
-    || validateRequired(form.location, "Location")
-    || validateEventDateRange(form.startsAt, form.endsAt)
-    || validateProfanity(form.title, "Event title")
-    || validateProfanity(form.category, "Category")
-    || validateProfanity(form.description, "Description")
-    || validateProfanity(form.location, "Location")
-    || validateUrl(form.imageUrl)
-    || validateMaxLength(form.title, "Event title", 200)
-    || validateMaxLength(form.category, "Category", 100)
-    || validateMaxLength(form.description, "Description", 1000)
-    || validateMaxLength(form.location, "Location", 500);
+function validateEventFormFields(form: EventFormState): FieldErrors {
+  const errors: FieldErrors = {};
+  const markError = (field: string, message: string | null) => {
+    if (message && !errors[field]) errors[field] = message;
+  };
+
+  markError("title", validateRequired(form.title, "Event title"));
+  markError("title", validateProfanity(form.title, "Event title"));
+  markError("title", validateMaxLength(form.title, "Event title", 200));
+  markError("category", validateProfanity(form.category, "Category"));
+  markError("category", validateMaxLength(form.category, "Category", 100));
+  markError("description", validateProfanity(form.description, "Description"));
+  markError("description", validateMaxLength(form.description, "Description", 1000));
+  markError("location", validateRequired(form.location, "Location"));
+  markError("location", validateProfanity(form.location, "Location"));
+  markError("location", validateMaxLength(form.location, "Location", 500));
+  markError("startsAt", validateEventDateRange(form.startsAt, form.endsAt));
+  markError("imageUrl", validateUrl(form.imageUrl));
+
+  return errors;
 }
 
 interface EventFormFieldsProps {
@@ -191,6 +199,7 @@ interface EventFormFieldsProps {
   imageUploadError: string | null;
   imageFileName: string;
   hasUploadedImage: boolean;
+  fieldErrors: FieldErrors;
   onImageUpload: (file: File) => void;
   onClearImageUpload: () => void;
 }
@@ -205,6 +214,7 @@ function EventFormFields({
   imageUploadError,
   imageFileName,
   hasUploadedImage,
+  fieldErrors,
   onImageUpload,
   onClearImageUpload,
 }: EventFormFieldsProps) {
@@ -219,6 +229,9 @@ function EventFormFields({
   const statusId = `${idPrefix}-status`;
   const spotlightId = `${idPrefix}-spotlight`;
   const eventDateBounds = getEventDateBounds();
+  const getErrorId = (id: string) => `${id}-error`;
+  const renderError = (field: string, id: string) =>
+    fieldErrors[field] ? <p id={getErrorId(id)} className="mt-1 text-sm text-red-600">{fieldErrors[field]}</p> : null;
 
   return (
     <>
@@ -229,8 +242,11 @@ function EventFormFields({
             id={titleId}
             value={form.title}
             onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+            aria-invalid={!!fieldErrors.title}
+            aria-describedby={fieldErrors.title ? getErrorId(titleId) : undefined}
             required
           />
+          {renderError("title", titleId)}
         </div>
         <div>
           <Label htmlFor={categoryId}>Category</Label>
@@ -242,7 +258,10 @@ function EventFormFields({
             allowCustom
             placeholder="Choose or enter a category"
             label="Event category"
+            aria-invalid={!!fieldErrors.category}
+            aria-describedby={fieldErrors.category ? getErrorId(categoryId) : undefined}
           />
+          {renderError("category", categoryId)}
         </div>
       </div>
 
@@ -252,7 +271,10 @@ function EventFormFields({
           id={descriptionId}
           value={form.description}
           onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+          aria-invalid={!!fieldErrors.description}
+          aria-describedby={fieldErrors.description ? getErrorId(descriptionId) : undefined}
         />
+        {renderError("description", descriptionId)}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -277,8 +299,11 @@ function EventFormFields({
                 locationLng: detail.lng,
               }));
             }}
+            aria-invalid={!!fieldErrors.location}
+            aria-describedby={fieldErrors.location ? getErrorId(locationId) : undefined}
             required
           />
+          {renderError("location", locationId)}
         </div>
         <div className="sm:col-span-2">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[14rem_minmax(0,1fr)]">
@@ -326,7 +351,10 @@ function EventFormFields({
                 disabled={hasUploadedImage}
                 value={form.imageUrl}
                 onChange={(event) => setForm((prev) => ({ ...prev, imageUrl: event.target.value }))}
+                aria-invalid={!!fieldErrors.imageUrl}
+                aria-describedby={fieldErrors.imageUrl ? getErrorId(imageId) : undefined}
               />
+              {renderError("imageUrl", imageId)}
             </div>
           </div>
           {imageUploadError ? <p className="mt-2 text-xs text-red-600">{imageUploadError}</p> : null}
@@ -343,8 +371,11 @@ function EventFormFields({
             max={eventDateBounds.maxInput}
             value={form.startsAt}
             onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))}
+            aria-invalid={!!fieldErrors.startsAt}
+            aria-describedby={fieldErrors.startsAt ? getErrorId(startsAtId) : undefined}
             required
           />
+          {renderError("startsAt", startsAtId)}
         </div>
         <div>
           <Label htmlFor={endsAtId}>Ends at (optional)</Label>
@@ -355,6 +386,8 @@ function EventFormFields({
             max={eventDateBounds.maxInput}
             value={form.endsAt}
             onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))}
+            aria-invalid={!!fieldErrors.startsAt}
+            aria-describedby={fieldErrors.startsAt ? getErrorId(startsAtId) : undefined}
           />
         </div>
       </div>
@@ -414,6 +447,7 @@ export function PortalEvents() {
   const [createForm, setCreateForm] = useState<EventFormState>(defaultForm);
   const [createSaving, setCreateSaving] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [createFieldErrors, setCreateFieldErrors] = useState<FieldErrors>({});
   const [createGeoNotice, setCreateGeoNotice] = useState<string | null>(null);
   const [createImageUploading, setCreateImageUploading] = useState(false);
   const [createImageUploadError, setCreateImageUploadError] = useState<string | null>(null);
@@ -425,6 +459,7 @@ export function PortalEvents() {
   const [editForm, setEditForm] = useState<EventFormState>(defaultForm);
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [editFieldErrors, setEditFieldErrors] = useState<FieldErrors>({});
   const [editGeoNotice, setEditGeoNotice] = useState<string | null>(null);
   const [editImageUploading, setEditImageUploading] = useState(false);
   const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
@@ -555,6 +590,7 @@ export function PortalEvents() {
     setEditId(null);
     setEditForm(defaultForm);
     setEditError(null);
+    setEditFieldErrors({});
     setEditGeoNotice(null);
     setEditImageUploading(false);
     setEditImageUploadError(null);
@@ -568,6 +604,7 @@ export function PortalEvents() {
     setEditForm(mapEventToForm(event, canModerate));
     setEditOriginalLocation(event.location);
     setEditError(null);
+    setEditFieldErrors({});
     setEditGeoNotice(null);
     setEditImageUploadError(null);
     setEditImageFileName("");
@@ -666,6 +703,7 @@ export function PortalEvents() {
 
     setCreateSaving(true);
     setCreateError(null);
+    setCreateFieldErrors({});
     setCreateGeoNotice(null);
     setCreateImageUploadError(null);
 
@@ -680,9 +718,9 @@ export function PortalEvents() {
       ...createForm,
       imageUrl: createUploadedImageUrl || createForm.imageUrl,
     };
-    const validationError = validateEventForm(createPayloadForm);
-    if (validationError) {
-      setCreateError(validationError);
+    const validationErrors = validateEventFormFields(createPayloadForm);
+    if (Object.keys(validationErrors).length > 0) {
+      setCreateFieldErrors(validationErrors);
       setCreateSaving(false);
       return;
     }
@@ -695,14 +733,14 @@ export function PortalEvents() {
     if (createPayloadForm.imageUrl.trim() && !normalizedImageUrl) {
       const nextMessage = "Image URL must be a valid URL (for example: https://images.unsplash.com/...).";
       setCreateSaving(false);
-      setCreateError(nextMessage);
+      setCreateFieldErrors({ imageUrl: nextMessage });
       toast.error(nextMessage, { id: toastId });
       return;
     }
     if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
       const nextMessage = "Image URL cannot use placeholder domains like example.com or localhost.";
       setCreateSaving(false);
-      setCreateError(nextMessage);
+      setCreateFieldErrors({ imageUrl: nextMessage });
       toast.error(nextMessage, { id: toastId });
       return;
     }
@@ -711,7 +749,7 @@ export function PortalEvents() {
     if (!payload) {
       const nextMessage = "Image URL must be a valid URL.";
       setCreateSaving(false);
-      setCreateError(nextMessage);
+      setCreateFieldErrors({ imageUrl: nextMessage });
       toast.error(nextMessage, { id: toastId });
       return;
     }
@@ -719,6 +757,7 @@ export function PortalEvents() {
     try {
       await createEvent(payload);
       setCreateForm(defaultForm);
+      setCreateFieldErrors({});
       setCreateImageFileName("");
       setCreateUploadedImageUrl("");
       await loadEvents();
@@ -739,6 +778,7 @@ export function PortalEvents() {
 
     setEditSaving(true);
     setEditError(null);
+    setEditFieldErrors({});
     setEditGeoNotice(null);
     setEditImageUploadError(null);
 
@@ -753,9 +793,9 @@ export function PortalEvents() {
       ...editForm,
       imageUrl: editUploadedImageUrl || editForm.imageUrl,
     };
-    const validationError = validateEventForm(editPayloadForm);
-    if (validationError) {
-      setEditError(validationError);
+    const validationErrors = validateEventFormFields(editPayloadForm);
+    if (Object.keys(validationErrors).length > 0) {
+      setEditFieldErrors(validationErrors);
       setEditSaving(false);
       return;
     }
@@ -768,14 +808,14 @@ export function PortalEvents() {
     if (editPayloadForm.imageUrl.trim() && !normalizedImageUrl) {
       const nextMessage = "Image URL must be a valid URL (for example: https://images.unsplash.com/...).";
       setEditSaving(false);
-      setEditError(nextMessage);
+      setEditFieldErrors({ imageUrl: nextMessage });
       toast.error(nextMessage, { id: toastId });
       return;
     }
     if (normalizedImageUrl && hasPlaceholderHost(normalizedImageUrl)) {
       const nextMessage = "Image URL cannot use placeholder domains like example.com or localhost.";
       setEditSaving(false);
-      setEditError(nextMessage);
+      setEditFieldErrors({ imageUrl: nextMessage });
       toast.error(nextMessage, { id: toastId });
       return;
     }
@@ -784,7 +824,7 @@ export function PortalEvents() {
     if (!payload) {
       const nextMessage = "Image URL must be a valid URL.";
       setEditSaving(false);
-      setEditError(nextMessage);
+      setEditFieldErrors({ imageUrl: nextMessage });
       toast.error(nextMessage, { id: toastId });
       return;
     }
@@ -896,6 +936,7 @@ export function PortalEvents() {
                 imageUploadError={createImageUploadError}
                 imageFileName={createImageFileName}
                 hasUploadedImage={Boolean(createUploadedImageUrl)}
+                fieldErrors={createFieldErrors}
                 onImageUpload={(file) => {
                   void handleCreateImageUpload(file);
                 }}
@@ -1137,6 +1178,7 @@ export function PortalEvents() {
                 imageUploadError={editImageUploadError}
                 imageFileName={editImageFileName}
                 hasUploadedImage={Boolean(editUploadedImageUrl)}
+                fieldErrors={editFieldErrors}
                 onImageUpload={(file) => {
                   void handleEditImageUpload(file);
                 }}
