@@ -405,6 +405,28 @@ export function Suggest() {
     event.preventDefault();
   };
 
+  const getLiveFieldValue = (fieldId: string, fallback: string) => {
+    const node = document.getElementById(fieldId);
+    if (node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement) {
+      return node.value;
+    }
+    return fallback;
+  };
+
+  const getResourceSubmitSnapshot = (): ResourceFormState => ({
+    ...resourceForm,
+    submitterName: getLiveFieldValue("resource-submitter-name", resourceForm.submitterName),
+    submitterEmail: getLiveFieldValue("resource-submitter-email", resourceForm.submitterEmail),
+    submitterConnection: getLiveFieldValue("resource-connection", resourceForm.submitterConnection),
+  });
+
+  const getEventSubmitSnapshot = (): EventFormState => ({
+    ...eventForm,
+    submitterName: getLiveFieldValue("event-submitter-name", eventForm.submitterName),
+    submitterEmail: getLiveFieldValue("event-submitter-email", eventForm.submitterEmail),
+    submitterConnection: getLiveFieldValue("event-connection", eventForm.submitterConnection),
+  });
+
   const handleResourceSubmit = async () => {
     if (currentStep !== 3 || submitting) return;
 
@@ -421,70 +443,72 @@ export function Suggest() {
 
     const errors: FieldErrors = {};
     let firstInvalidFieldId: string | null = null;
-    const effectiveImageUrl = resourceUploadedImageUrl || resourceForm.imageUrl;
+    const form = getResourceSubmitSnapshot();
+    setResourceForm(form);
+    const effectiveImageUrl = resourceUploadedImageUrl || form.imageUrl;
     const markError = (fieldId: string, message: string | null) => {
       if (!message) return;
       if (!errors[fieldId]) errors[fieldId] = message;
       if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
     };
 
-    markError("resource-name", validateRequired(resourceForm.resourceName, "Resource name"));
-    markError("resource-name", validateProfanity(resourceForm.resourceName, "Resource name"));
-    markError("resource-name", validateMaxLength(resourceForm.resourceName, "Resource name", 200));
-    markError("resource-category", validateRequired(resourceForm.category, "Category"));
-    markError("resource-category", resourceForm.category && !isResourceCategory(resourceForm.category) ? "Category must be one of the approved resource categories." : null);
-    markError("resource-description", validateRequired(resourceForm.description, "Description"));
-    markError("resource-description", validateProfanity(resourceForm.description, "Description"));
-    markError("resource-description", validateMaxLength(resourceForm.description, "Description", 500));
-    markError("resource-organization", validateProfanity(resourceForm.organizationName, "Organization name"));
-    markError("resource-organization", validateMaxLength(resourceForm.organizationName, "Organization name", 200));
-    markError("resource-full-description", validateProfanity(resourceForm.fullDescription, "Full description"));
-    markError("resource-full-description", validateMaxLength(resourceForm.fullDescription, "Full description", 2000));
-    markError("resource-address", validateRequired(resourceForm.address, "Address"));
-    markError("resource-address", validateProfanity(resourceForm.address, "Address"));
-    markError("resource-address", validateMaxLength(resourceForm.address, "Address", 500));
-    markError("resource-hours", validateProfanity(resourceForm.hours, "Hours"));
-    markError("resource-hours", validateMaxLength(resourceForm.hours, "Hours", 200));
-    markError("resource-tags", validateProfanity(joinTagsForValidation(resourceForm.tags), "Tags"));
-    markError("resource-tags", validateMaxLength(joinTagsForValidation(resourceForm.tags), "Tags", 300));
-    markError("resource-submitter-name", validateRequired(resourceForm.submitterName, "Your name"));
-    markError("resource-submitter-name", validateProfanity(resourceForm.submitterName, "Your name"));
-    markError("resource-submitter-email", validateRequired(resourceForm.submitterEmail, "Your email"));
-    markError("resource-submitter-email", validateEmail(resourceForm.submitterEmail));
-    markError("resource-connection", validateProfanity(resourceForm.submitterConnection, "Connection"));
-    markError("resource-contact-email", validateEmail(resourceForm.contactEmail));
-    markError("resource-contact-phone", validatePhone(resourceForm.contactPhone));
-    markError("resource-website", validateUrl(resourceForm.website));
+    markError("resource-name", validateRequired(form.resourceName, "Resource name"));
+    markError("resource-name", validateProfanity(form.resourceName, "Resource name"));
+    markError("resource-name", validateMaxLength(form.resourceName, "Resource name", 200));
+    markError("resource-category", validateRequired(form.category, "Category"));
+    markError("resource-category", form.category && !isResourceCategory(form.category) ? "Category must be one of the approved resource categories." : null);
+    markError("resource-description", validateRequired(form.description, "Description"));
+    markError("resource-description", validateProfanity(form.description, "Description"));
+    markError("resource-description", validateMaxLength(form.description, "Description", 500));
+    markError("resource-organization", validateProfanity(form.organizationName, "Organization name"));
+    markError("resource-organization", validateMaxLength(form.organizationName, "Organization name", 200));
+    markError("resource-full-description", validateProfanity(form.fullDescription, "Full description"));
+    markError("resource-full-description", validateMaxLength(form.fullDescription, "Full description", 2000));
+    markError("resource-address", validateRequired(form.address, "Address"));
+    markError("resource-address", validateProfanity(form.address, "Address"));
+    markError("resource-address", validateMaxLength(form.address, "Address", 500));
+    markError("resource-hours", validateProfanity(form.hours, "Hours"));
+    markError("resource-hours", validateMaxLength(form.hours, "Hours", 200));
+    markError("resource-tags", validateProfanity(joinTagsForValidation(form.tags), "Tags"));
+    markError("resource-tags", validateMaxLength(joinTagsForValidation(form.tags), "Tags", 300));
+    markError("resource-submitter-name", validateRequired(form.submitterName, "Your name"));
+    markError("resource-submitter-name", validateProfanity(form.submitterName, "Your name"));
+    markError("resource-submitter-email", validateRequired(form.submitterEmail, "Your email"));
+    markError("resource-submitter-email", validateEmail(form.submitterEmail));
+    markError("resource-connection", validateProfanity(form.submitterConnection, "Connection"));
+    markError("resource-contact-email", validateEmail(form.contactEmail));
+    markError("resource-contact-phone", validatePhone(form.contactPhone));
+    markError("resource-website", validateUrl(form.website));
     markError("resource-image-url", validateUrl(effectiveImageUrl));
 
     const firstError =
-      validateRequired(resourceForm.resourceName, "Resource name")
-      || validateRequired(resourceForm.category, "Category")
-      || validateRequired(resourceForm.description, "Description")
-      || validateRequired(resourceForm.address, "Address")
-      || validateRequired(resourceForm.submitterName, "Your name")
-      || validateRequired(resourceForm.submitterEmail, "Your email")
-      || validateProfanity(resourceForm.resourceName, "Resource name")
-      || validateProfanity(resourceForm.organizationName, "Organization name")
-      || validateProfanity(resourceForm.description, "Description")
-      || validateProfanity(resourceForm.fullDescription, "Full description")
-      || validateProfanity(resourceForm.address, "Address")
-      || validateProfanity(resourceForm.hours, "Hours")
-      || validateProfanity(joinTagsForValidation(resourceForm.tags), "Tags")
-      || validateProfanity(resourceForm.submitterName, "Your name")
-      || validateProfanity(resourceForm.submitterConnection, "Connection")
-      || validateEmail(resourceForm.submitterEmail)
-      || validateEmail(resourceForm.contactEmail)
-      || validatePhone(resourceForm.contactPhone)
-      || validateUrl(resourceForm.website)
+      validateRequired(form.resourceName, "Resource name")
+      || validateRequired(form.category, "Category")
+      || validateRequired(form.description, "Description")
+      || validateRequired(form.address, "Address")
+      || validateRequired(form.submitterName, "Your name")
+      || validateRequired(form.submitterEmail, "Your email")
+      || validateProfanity(form.resourceName, "Resource name")
+      || validateProfanity(form.organizationName, "Organization name")
+      || validateProfanity(form.description, "Description")
+      || validateProfanity(form.fullDescription, "Full description")
+      || validateProfanity(form.address, "Address")
+      || validateProfanity(form.hours, "Hours")
+      || validateProfanity(joinTagsForValidation(form.tags), "Tags")
+      || validateProfanity(form.submitterName, "Your name")
+      || validateProfanity(form.submitterConnection, "Connection")
+      || validateEmail(form.submitterEmail)
+      || validateEmail(form.contactEmail)
+      || validatePhone(form.contactPhone)
+      || validateUrl(form.website)
       || validateUrl(effectiveImageUrl)
-      || validateMaxLength(resourceForm.resourceName, "Resource name", 200)
-      || validateMaxLength(resourceForm.organizationName, "Organization name", 200)
-      || validateMaxLength(resourceForm.description, "Description", 500)
-      || validateMaxLength(resourceForm.fullDescription, "Full description", 2000)
-      || validateMaxLength(resourceForm.address, "Address", 500)
-      || validateMaxLength(resourceForm.hours, "Hours", 200)
-      || validateMaxLength(joinTagsForValidation(resourceForm.tags), "Tags", 300);
+      || validateMaxLength(form.resourceName, "Resource name", 200)
+      || validateMaxLength(form.organizationName, "Organization name", 200)
+      || validateMaxLength(form.description, "Description", 500)
+      || validateMaxLength(form.fullDescription, "Full description", 2000)
+      || validateMaxLength(form.address, "Address", 500)
+      || validateMaxLength(form.hours, "Hours", 200)
+      || validateMaxLength(joinTagsForValidation(form.tags), "Tags", 300);
 
     if (Object.keys(errors).length > 0) {
       setResourceFieldErrors(errors);
@@ -502,7 +526,7 @@ export function Suggest() {
       return;
     }
 
-    if (!resourceForm.category || !isResourceCategory(resourceForm.category)) {
+    if (!form.category || !isResourceCategory(form.category)) {
       setError("Category must be one of the approved resource categories.");
       setSubmitting(false);
       return;
@@ -512,21 +536,21 @@ export function Suggest() {
 
     try {
       await createPublicResourceSubmission({
-        resource_name: resourceForm.resourceName.trim(),
-        organization_name: resourceForm.organizationName.trim() || null,
-        category: resourceForm.category,
-        description: resourceForm.description.trim(),
-        full_description: resourceForm.fullDescription.trim() || null,
-        address: resourceForm.address.trim(),
-        hours: resourceForm.hours.trim() || null,
-        website: normalizeHttpUrl(resourceForm.website),
-        contact_email: resourceForm.contactEmail.trim() || null,
-        contact_phone: resourceForm.contactPhone.trim() || null,
-        tags: resourceForm.tags,
+        resource_name: form.resourceName.trim(),
+        organization_name: form.organizationName.trim() || null,
+        category: form.category,
+        description: form.description.trim(),
+        full_description: form.fullDescription.trim() || null,
+        address: form.address.trim(),
+        hours: form.hours.trim() || null,
+        website: normalizeHttpUrl(form.website),
+        contact_email: form.contactEmail.trim() || null,
+        contact_phone: form.contactPhone.trim() || null,
+        tags: form.tags,
         image_url: normalizeHttpUrl(effectiveImageUrl),
-        submitter_name: resourceForm.submitterName.trim(),
-        submitter_email: resourceForm.submitterEmail.trim(),
-        submitter_connection: resourceForm.submitterConnection.trim() || null,
+        submitter_name: form.submitterName.trim(),
+        submitter_email: form.submitterEmail.trim(),
+        submitter_connection: form.submitterConnection.trim() || null,
       });
 
       setResourceForm(defaultResourceForm);
@@ -564,55 +588,57 @@ export function Suggest() {
 
     const errors: FieldErrors = {};
     let firstInvalidFieldId: string | null = null;
-    const effectiveImageUrl = eventUploadedImageUrl || eventForm.imageUrl;
+    const form = getEventSubmitSnapshot();
+    setEventForm(form);
+    const effectiveImageUrl = eventUploadedImageUrl || form.imageUrl;
     const markError = (fieldId: string, message: string | null) => {
       if (!message) return;
       if (!errors[fieldId]) errors[fieldId] = message;
       if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
     };
 
-    markError("event-title", validateRequired(eventForm.title, "Event title"));
-    markError("event-title", validateProfanity(eventForm.title, "Event title"));
-    markError("event-title", validateMaxLength(eventForm.title, "Event title", 200));
-    markError("event-category", validateProfanity(eventForm.category, "Category"));
-    markError("event-category", validateMaxLength(eventForm.category, "Category", 100));
-    markError("event-description", validateProfanity(eventForm.description, "Description"));
-    markError("event-description", validateMaxLength(eventForm.description, "Description", 1000));
-    markError("event-location", validateRequired(eventForm.location, "Location"));
-    markError("event-location", validateProfanity(eventForm.location, "Location"));
-    markError("event-location", validateMaxLength(eventForm.location, "Location", 500));
-    markError("event-starts-at", validateEventDateRange(eventForm.startsAt, eventForm.endsAt));
-    markError("event-organizer-name", validateProfanity(eventForm.organizerName, "Organizer name"));
-    markError("event-submitter-name", validateRequired(eventForm.submitterName, "Your name"));
-    markError("event-submitter-name", validateProfanity(eventForm.submitterName, "Your name"));
-    markError("event-submitter-email", validateRequired(eventForm.submitterEmail, "Your email"));
-    markError("event-submitter-email", validateEmail(eventForm.submitterEmail));
-    markError("event-connection", validateProfanity(eventForm.submitterConnection, "Connection"));
-    markError("event-organizer-email", validateEmail(eventForm.organizerEmail));
-    markError("event-organizer-phone", validatePhone(eventForm.organizerPhone));
+    markError("event-title", validateRequired(form.title, "Event title"));
+    markError("event-title", validateProfanity(form.title, "Event title"));
+    markError("event-title", validateMaxLength(form.title, "Event title", 200));
+    markError("event-category", validateProfanity(form.category, "Category"));
+    markError("event-category", validateMaxLength(form.category, "Category", 100));
+    markError("event-description", validateProfanity(form.description, "Description"));
+    markError("event-description", validateMaxLength(form.description, "Description", 1000));
+    markError("event-location", validateRequired(form.location, "Location"));
+    markError("event-location", validateProfanity(form.location, "Location"));
+    markError("event-location", validateMaxLength(form.location, "Location", 500));
+    markError("event-starts-at", validateEventDateRange(form.startsAt, form.endsAt));
+    markError("event-organizer-name", validateProfanity(form.organizerName, "Organizer name"));
+    markError("event-submitter-name", validateRequired(form.submitterName, "Your name"));
+    markError("event-submitter-name", validateProfanity(form.submitterName, "Your name"));
+    markError("event-submitter-email", validateRequired(form.submitterEmail, "Your email"));
+    markError("event-submitter-email", validateEmail(form.submitterEmail));
+    markError("event-connection", validateProfanity(form.submitterConnection, "Connection"));
+    markError("event-organizer-email", validateEmail(form.organizerEmail));
+    markError("event-organizer-phone", validatePhone(form.organizerPhone));
     markError("event-image-url", validateUrl(effectiveImageUrl));
 
     const firstError =
-      validateRequired(eventForm.title, "Event title")
-      || validateRequired(eventForm.location, "Location")
-      || validateEventDateRange(eventForm.startsAt, eventForm.endsAt)
-      || validateRequired(eventForm.submitterName, "Your name")
-      || validateRequired(eventForm.submitterEmail, "Your email")
-      || validateProfanity(eventForm.title, "Event title")
-      || validateProfanity(eventForm.category, "Category")
-      || validateProfanity(eventForm.description, "Description")
-      || validateProfanity(eventForm.location, "Location")
-      || validateProfanity(eventForm.organizerName, "Organizer name")
-      || validateProfanity(eventForm.submitterName, "Your name")
-      || validateProfanity(eventForm.submitterConnection, "Connection")
-      || validateEmail(eventForm.submitterEmail)
-      || validateEmail(eventForm.organizerEmail)
-      || validatePhone(eventForm.organizerPhone)
+      validateRequired(form.title, "Event title")
+      || validateRequired(form.location, "Location")
+      || validateEventDateRange(form.startsAt, form.endsAt)
+      || validateRequired(form.submitterName, "Your name")
+      || validateRequired(form.submitterEmail, "Your email")
+      || validateProfanity(form.title, "Event title")
+      || validateProfanity(form.category, "Category")
+      || validateProfanity(form.description, "Description")
+      || validateProfanity(form.location, "Location")
+      || validateProfanity(form.organizerName, "Organizer name")
+      || validateProfanity(form.submitterName, "Your name")
+      || validateProfanity(form.submitterConnection, "Connection")
+      || validateEmail(form.submitterEmail)
+      || validateEmail(form.organizerEmail)
+      || validatePhone(form.organizerPhone)
       || validateUrl(effectiveImageUrl)
-      || validateMaxLength(eventForm.title, "Event title", 200)
-      || validateMaxLength(eventForm.category, "Category", 100)
-      || validateMaxLength(eventForm.description, "Description", 1000)
-      || validateMaxLength(eventForm.location, "Location", 500);
+      || validateMaxLength(form.title, "Event title", 200)
+      || validateMaxLength(form.category, "Category", 100)
+      || validateMaxLength(form.description, "Description", 1000)
+      || validateMaxLength(form.location, "Location", 500);
 
     if (Object.keys(errors).length > 0) {
       setEventFieldErrors(errors);
@@ -630,14 +656,14 @@ export function Suggest() {
       return;
     }
 
-    const startsAtIso = toIso(eventForm.startsAt);
+    const startsAtIso = toIso(form.startsAt);
     if (!startsAtIso) {
       setError("Start date and time is required.");
       setSubmitting(false);
       return;
     }
 
-    const endsAtCandidate = toIso(eventForm.endsAt);
+    const endsAtCandidate = toIso(form.endsAt);
     const endsAtIso = endsAtCandidate && new Date(endsAtCandidate).getTime() > new Date(startsAtIso).getTime()
       ? endsAtCandidate
       : plusOneHour(startsAtIso);
@@ -646,19 +672,19 @@ export function Suggest() {
 
     try {
       await createPublicEventSubmission({
-        title: eventForm.title.trim(),
-        category: eventForm.category.trim() || null,
-        description: eventForm.description.trim() || null,
-        location: eventForm.location.trim(),
+        title: form.title.trim(),
+        category: form.category.trim() || null,
+        description: form.description.trim() || null,
+        location: form.location.trim(),
         starts_at: startsAtIso,
         ends_at: endsAtIso,
         image_url: normalizeHttpUrl(effectiveImageUrl),
-        organizer_name: eventForm.organizerName.trim() || null,
-        organizer_email: eventForm.organizerEmail.trim() || null,
-        organizer_phone: eventForm.organizerPhone.trim() || null,
-        submitter_name: eventForm.submitterName.trim(),
-        submitter_email: eventForm.submitterEmail.trim(),
-        submitter_connection: eventForm.submitterConnection.trim() || null,
+        organizer_name: form.organizerName.trim() || null,
+        organizer_email: form.organizerEmail.trim() || null,
+        organizer_phone: form.organizerPhone.trim() || null,
+        submitter_name: form.submitterName.trim(),
+        submitter_email: form.submitterEmail.trim(),
+        submitter_connection: form.submitterConnection.trim() || null,
       });
 
       setEventForm(defaultEventForm);
