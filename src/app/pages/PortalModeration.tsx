@@ -525,32 +525,32 @@ export function PortalModeration() {
       {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
 
       <Tabs defaultValue="accounts" className="space-y-6">
-        <TabsList className="bg-[#E7D9C3]/30 p-1">
-          <TabsTrigger value="accounts" className="data-[state=active]:bg-white">
+        <TabsList className="h-auto w-full flex-col items-stretch justify-start gap-1 bg-[#E7D9C3]/30 p-1 sm:h-9 sm:w-fit sm:flex-row sm:items-center sm:justify-center sm:gap-0">
+          <TabsTrigger value="accounts" className="h-10 w-full flex-none justify-between data-[state=active]:bg-white sm:h-[calc(100%-1px)] sm:w-auto sm:flex-1 sm:justify-center">
             Pending Accounts
             {pendingProfiles.length > 0 ? (
-              <span className="ml-2 rounded-full bg-[#B36A4C] px-1.5 py-0.5 text-[10px] text-white">
+              <span className="ml-auto rounded-full bg-[#B36A4C] px-1.5 py-0.5 text-[10px] text-white sm:ml-2">
                 {pendingProfiles.length}
               </span>
             ) : null}
           </TabsTrigger>
-          <TabsTrigger value="resource-submissions" className="data-[state=active]:bg-white">
+          <TabsTrigger value="resource-submissions" className="h-10 w-full flex-none justify-between data-[state=active]:bg-white sm:h-[calc(100%-1px)] sm:w-auto sm:flex-1 sm:justify-center">
             Resource Proposals
             {resourceSubmissions.length + pendingResourceContent.length > 0 ? (
-              <span className="ml-2 rounded-full bg-[#B36A4C] px-1.5 py-0.5 text-[10px] text-white">
+              <span className="ml-auto rounded-full bg-[#B36A4C] px-1.5 py-0.5 text-[10px] text-white sm:ml-2">
                 {resourceSubmissions.length + pendingResourceContent.length}
               </span>
             ) : null}
           </TabsTrigger>
-          <TabsTrigger value="event-submissions" className="data-[state=active]:bg-white">
+          <TabsTrigger value="event-submissions" className="h-10 w-full flex-none justify-between data-[state=active]:bg-white sm:h-[calc(100%-1px)] sm:w-auto sm:flex-1 sm:justify-center">
             Event Proposals
             {eventSubmissions.length + pendingEventContent.length > 0 ? (
-              <span className="ml-2 rounded-full bg-[#B36A4C] px-1.5 py-0.5 text-[10px] text-white">
+              <span className="ml-auto rounded-full bg-[#B36A4C] px-1.5 py-0.5 text-[10px] text-white sm:ml-2">
                 {eventSubmissions.length + pendingEventContent.length}
               </span>
             ) : null}
           </TabsTrigger>
-          <TabsTrigger value="content-library" className="data-[state=active]:bg-white">
+          <TabsTrigger value="content-library" className="h-10 w-full flex-none justify-start data-[state=active]:bg-white sm:h-[calc(100%-1px)] sm:w-auto sm:flex-1 sm:justify-center">
             Site Content
           </TabsTrigger>
         </TabsList>
@@ -860,11 +860,11 @@ export function PortalModeration() {
             Setting an existing resource/event to pending returns it to the moderation review tabs for another approve/reject cycle.
           </p>
           <Tabs defaultValue="resource-library" className="space-y-6">
-            <TabsList className="bg-[#E7D9C3]/30 p-1">
-              <TabsTrigger value="resource-library" className="data-[state=active]:bg-white">
+            <TabsList className="h-auto w-full flex-col items-stretch justify-start gap-1 bg-[#E7D9C3]/30 p-1 sm:h-9 sm:w-fit sm:flex-row sm:items-center sm:justify-center sm:gap-0">
+              <TabsTrigger value="resource-library" className="h-10 w-full flex-none justify-start data-[state=active]:bg-white sm:h-[calc(100%-1px)] sm:w-auto sm:flex-1 sm:justify-center">
                 Resource Library
               </TabsTrigger>
-              <TabsTrigger value="event-library" className="data-[state=active]:bg-white">
+              <TabsTrigger value="event-library" className="h-10 w-full flex-none justify-start data-[state=active]:bg-white sm:h-[calc(100%-1px)] sm:w-auto sm:flex-1 sm:justify-center">
                 Event Library
               </TabsTrigger>
             </TabsList>
