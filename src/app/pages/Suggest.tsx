@@ -192,6 +192,41 @@ export function Suggest() {
       node?.focus();
     });
   };
+  const getResourceStepForField = (fieldId: string): StepId => {
+    if (["resource-name", "resource-category", "resource-description"].includes(fieldId)) return 1;
+    if (
+      [
+        "resource-organization",
+        "resource-image-url",
+        "resource-full-description",
+        "resource-address",
+        "resource-hours",
+        "resource-website",
+        "resource-contact-email",
+        "resource-contact-phone",
+        "resource-tags",
+      ].includes(fieldId)
+    ) {
+      return 2;
+    }
+    return 3;
+  };
+  const getEventStepForField = (fieldId: string): StepId => {
+    if (["event-title", "event-category", "event-location", "event-starts-at"].includes(fieldId)) return 1;
+    if (
+      [
+        "event-description",
+        "event-ends-at",
+        "event-image-url",
+        "event-organizer-name",
+        "event-organizer-email",
+        "event-organizer-phone",
+      ].includes(fieldId)
+    ) {
+      return 2;
+    }
+    return 3;
+  };
 
   const clearKindFieldErrors = (nextKind: SubmissionKind) => {
     if (nextKind === "resource") {
@@ -389,17 +424,34 @@ export function Suggest() {
     const effectiveImageUrl = resourceUploadedImageUrl || resourceForm.imageUrl;
     const markError = (fieldId: string, message: string | null) => {
       if (!message) return;
-      errors[fieldId] = message;
+      if (!errors[fieldId]) errors[fieldId] = message;
       if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
     };
 
     markError("resource-name", validateRequired(resourceForm.resourceName, "Resource name"));
+    markError("resource-name", validateProfanity(resourceForm.resourceName, "Resource name"));
+    markError("resource-name", validateMaxLength(resourceForm.resourceName, "Resource name", 200));
     markError("resource-category", validateRequired(resourceForm.category, "Category"));
+    markError("resource-category", resourceForm.category && !isResourceCategory(resourceForm.category) ? "Category must be one of the approved resource categories." : null);
     markError("resource-description", validateRequired(resourceForm.description, "Description"));
+    markError("resource-description", validateProfanity(resourceForm.description, "Description"));
+    markError("resource-description", validateMaxLength(resourceForm.description, "Description", 500));
+    markError("resource-organization", validateProfanity(resourceForm.organizationName, "Organization name"));
+    markError("resource-organization", validateMaxLength(resourceForm.organizationName, "Organization name", 200));
+    markError("resource-full-description", validateProfanity(resourceForm.fullDescription, "Full description"));
+    markError("resource-full-description", validateMaxLength(resourceForm.fullDescription, "Full description", 2000));
     markError("resource-address", validateRequired(resourceForm.address, "Address"));
+    markError("resource-address", validateProfanity(resourceForm.address, "Address"));
+    markError("resource-address", validateMaxLength(resourceForm.address, "Address", 500));
+    markError("resource-hours", validateProfanity(resourceForm.hours, "Hours"));
+    markError("resource-hours", validateMaxLength(resourceForm.hours, "Hours", 200));
+    markError("resource-tags", validateProfanity(joinTagsForValidation(resourceForm.tags), "Tags"));
+    markError("resource-tags", validateMaxLength(joinTagsForValidation(resourceForm.tags), "Tags", 300));
     markError("resource-submitter-name", validateRequired(resourceForm.submitterName, "Your name"));
+    markError("resource-submitter-name", validateProfanity(resourceForm.submitterName, "Your name"));
     markError("resource-submitter-email", validateRequired(resourceForm.submitterEmail, "Your email"));
     markError("resource-submitter-email", validateEmail(resourceForm.submitterEmail));
+    markError("resource-connection", validateProfanity(resourceForm.submitterConnection, "Connection"));
     markError("resource-contact-email", validateEmail(resourceForm.contactEmail));
     markError("resource-contact-phone", validatePhone(resourceForm.contactPhone));
     markError("resource-website", validateUrl(resourceForm.website));
@@ -436,8 +488,10 @@ export function Suggest() {
 
     if (Object.keys(errors).length > 0) {
       setResourceFieldErrors(errors);
-      setError(Object.values(errors)[0]);
-      if (firstInvalidFieldId) focusFieldById(firstInvalidFieldId);
+      if (firstInvalidFieldId) {
+        setResourceStep(getResourceStepForField(firstInvalidFieldId));
+        focusFieldById(firstInvalidFieldId);
+      }
       setSubmitting(false);
       return;
     }
@@ -513,16 +567,27 @@ export function Suggest() {
     const effectiveImageUrl = eventUploadedImageUrl || eventForm.imageUrl;
     const markError = (fieldId: string, message: string | null) => {
       if (!message) return;
-      errors[fieldId] = message;
+      if (!errors[fieldId]) errors[fieldId] = message;
       if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
     };
 
     markError("event-title", validateRequired(eventForm.title, "Event title"));
+    markError("event-title", validateProfanity(eventForm.title, "Event title"));
+    markError("event-title", validateMaxLength(eventForm.title, "Event title", 200));
+    markError("event-category", validateProfanity(eventForm.category, "Category"));
+    markError("event-category", validateMaxLength(eventForm.category, "Category", 100));
+    markError("event-description", validateProfanity(eventForm.description, "Description"));
+    markError("event-description", validateMaxLength(eventForm.description, "Description", 1000));
     markError("event-location", validateRequired(eventForm.location, "Location"));
+    markError("event-location", validateProfanity(eventForm.location, "Location"));
+    markError("event-location", validateMaxLength(eventForm.location, "Location", 500));
     markError("event-starts-at", validateEventDateRange(eventForm.startsAt, eventForm.endsAt));
+    markError("event-organizer-name", validateProfanity(eventForm.organizerName, "Organizer name"));
     markError("event-submitter-name", validateRequired(eventForm.submitterName, "Your name"));
+    markError("event-submitter-name", validateProfanity(eventForm.submitterName, "Your name"));
     markError("event-submitter-email", validateRequired(eventForm.submitterEmail, "Your email"));
     markError("event-submitter-email", validateEmail(eventForm.submitterEmail));
+    markError("event-connection", validateProfanity(eventForm.submitterConnection, "Connection"));
     markError("event-organizer-email", validateEmail(eventForm.organizerEmail));
     markError("event-organizer-phone", validatePhone(eventForm.organizerPhone));
     markError("event-image-url", validateUrl(effectiveImageUrl));
@@ -551,8 +616,10 @@ export function Suggest() {
 
     if (Object.keys(errors).length > 0) {
       setEventFieldErrors(errors);
-      setError(Object.values(errors)[0]);
-      if (firstInvalidFieldId) focusFieldById(firstInvalidFieldId);
+      if (firstInvalidFieldId) {
+        setEventStep(getEventStepForField(firstInvalidFieldId));
+        focusFieldById(firstInvalidFieldId);
+      }
       setSubmitting(false);
       return;
     }
@@ -813,7 +880,8 @@ export function Suggest() {
                       <legend className="sr-only">Resource Details</legend>
                       <div>
                         <Label htmlFor="resource-organization">Organization name</Label>
-                        <Input id="resource-organization" value={resourceForm.organizationName} onChange={(event) => setResourceForm((prev) => ({ ...prev, organizationName: event.target.value }))} />
+                        <Input id="resource-organization" value={resourceForm.organizationName} onChange={(event) => setResourceForm((prev) => ({ ...prev, organizationName: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-organization"]} aria-describedby={resourceFieldErrors["resource-organization"] ? getFieldErrorId("resource-organization") : undefined} />
+                        {resourceFieldErrors["resource-organization"] ? <p id={getFieldErrorId("resource-organization")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-organization"]}</p> : null}
                       </div>
                       <fieldset>
                         <legend className="sr-only">Image</legend>
@@ -874,7 +942,7 @@ export function Suggest() {
                           {resourceImageUploadError ? <p className="mt-1 text-xs text-red-600">{resourceImageUploadError}</p> : null}
                         </div>
                       </fieldset>
-                      <div><Label htmlFor="resource-full-description">Full description</Label><Textarea id="resource-full-description" value={resourceForm.fullDescription} onChange={(event) => setResourceForm((prev) => ({ ...prev, fullDescription: event.target.value }))} /></div>
+                      <div><Label htmlFor="resource-full-description">Full description</Label><Textarea id="resource-full-description" value={resourceForm.fullDescription} onChange={(event) => setResourceForm((prev) => ({ ...prev, fullDescription: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-full-description"]} aria-describedby={resourceFieldErrors["resource-full-description"] ? getFieldErrorId("resource-full-description") : undefined} />{resourceFieldErrors["resource-full-description"] ? <p id={getFieldErrorId("resource-full-description")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-full-description"]}</p> : null}</div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                           <Label htmlFor="resource-address">Address</Label>
@@ -895,6 +963,7 @@ export function Suggest() {
                             value={resourceForm.hours}
                             onChange={(next) => setResourceForm((prev) => ({ ...prev, hours: next }))}
                           />
+                          {resourceFieldErrors["resource-hours"] ? <p id={getFieldErrorId("resource-hours")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-hours"]}</p> : null}
                         </div>
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -911,6 +980,7 @@ export function Suggest() {
                           maxChars={300}
                           placeholder="Type a tag, then press Enter"
                         />
+                        {resourceFieldErrors["resource-tags"] ? <p id={getFieldErrorId("resource-tags")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-tags"]}</p> : null}
                       </div>
                     </fieldset>
                   ) : null}
@@ -922,7 +992,7 @@ export function Suggest() {
                         <div><Label htmlFor="resource-submitter-name">Your name</Label><Input id="resource-submitter-name" value={resourceForm.submitterName} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterName: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-submitter-name"]} aria-describedby={resourceFieldErrors["resource-submitter-name"] ? getFieldErrorId("resource-submitter-name") : undefined} required />{resourceFieldErrors["resource-submitter-name"] ? <p id={getFieldErrorId("resource-submitter-name")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-submitter-name"]}</p> : null}</div>
                         <div><Label htmlFor="resource-submitter-email">Your email</Label><Input id="resource-submitter-email" type="email" value={resourceForm.submitterEmail} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-submitter-email"]} aria-describedby={resourceFieldErrors["resource-submitter-email"] ? getFieldErrorId("resource-submitter-email") : undefined} required />{resourceFieldErrors["resource-submitter-email"] ? <p id={getFieldErrorId("resource-submitter-email")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-submitter-email"]}</p> : null}</div>
                       </div>
-                      <div><Label htmlFor="resource-connection">Your connection to this resource</Label><Textarea id="resource-connection" value={resourceForm.submitterConnection} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} /></div>
+                      <div><Label htmlFor="resource-connection">Your connection to this resource</Label><Textarea id="resource-connection" value={resourceForm.submitterConnection} onChange={(event) => setResourceForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} aria-invalid={!!resourceFieldErrors["resource-connection"]} aria-describedby={resourceFieldErrors["resource-connection"] ? getFieldErrorId("resource-connection") : undefined} />{resourceFieldErrors["resource-connection"] ? <p id={getFieldErrorId("resource-connection")} className="mt-1 text-sm text-red-600">{resourceFieldErrors["resource-connection"]}</p> : null}</div>
                     </fieldset>
                   ) : null}
 
@@ -945,7 +1015,10 @@ export function Suggest() {
                             allowCustom
                             placeholder="Choose or enter a category"
                             label="Event category"
+                            aria-invalid={!!eventFieldErrors["event-category"]}
+                            aria-describedby={eventFieldErrors["event-category"] ? getFieldErrorId("event-category") : undefined}
                           />
+                          {eventFieldErrors["event-category"] ? <p id={getFieldErrorId("event-category")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-category"]}</p> : null}
                         </div>
                       </div>
                       <div>
@@ -967,7 +1040,7 @@ export function Suggest() {
                   {currentStep === 2 ? (
                     <fieldset>
                       <legend className="sr-only">Event Details</legend>
-                      <div><Label htmlFor="event-description">Description</Label><Textarea id="event-description" value={eventForm.description} onChange={(event) => setEventForm((prev) => ({ ...prev, description: event.target.value }))} /></div>
+                      <div><Label htmlFor="event-description">Description</Label><Textarea id="event-description" value={eventForm.description} onChange={(event) => setEventForm((prev) => ({ ...prev, description: event.target.value }))} aria-invalid={!!eventFieldErrors["event-description"]} aria-describedby={eventFieldErrors["event-description"] ? getFieldErrorId("event-description") : undefined} />{eventFieldErrors["event-description"] ? <p id={getFieldErrorId("event-description")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-description"]}</p> : null}</div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div><Label htmlFor="event-ends-at">Ends at</Label><Input id="event-ends-at" type="datetime-local" min={eventForm.startsAt || eventDateBounds.minInput} max={eventDateBounds.maxInput} value={eventForm.endsAt} onChange={(event) => setEventForm((prev) => ({ ...prev, endsAt: event.target.value }))} aria-invalid={!!eventFieldErrors["event-ends-at"]} aria-describedby={eventFieldErrors["event-ends-at"] ? getFieldErrorId("event-ends-at") : undefined} />{eventFieldErrors["event-ends-at"] ? <p id={getFieldErrorId("event-ends-at")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-ends-at"]}</p> : null}</div>
                       </div>
@@ -1033,7 +1106,7 @@ export function Suggest() {
                       <fieldset>
                         <legend className="text-sm font-medium mb-2">Organizer Information</legend>
                         <div className="grid gap-4 sm:grid-cols-3">
-                          <div><Label htmlFor="event-organizer-name">Organizer name</Label><Input id="event-organizer-name" value={eventForm.organizerName} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerName: event.target.value }))} /></div>
+                          <div><Label htmlFor="event-organizer-name">Organizer name</Label><Input id="event-organizer-name" value={eventForm.organizerName} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerName: event.target.value }))} aria-invalid={!!eventFieldErrors["event-organizer-name"]} aria-describedby={eventFieldErrors["event-organizer-name"] ? getFieldErrorId("event-organizer-name") : undefined} />{eventFieldErrors["event-organizer-name"] ? <p id={getFieldErrorId("event-organizer-name")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-organizer-name"]}</p> : null}</div>
                           <div><Label htmlFor="event-organizer-email">Organizer email</Label><Input id="event-organizer-email" value={eventForm.organizerEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerEmail: event.target.value }))} aria-invalid={!!eventFieldErrors["event-organizer-email"]} aria-describedby={eventFieldErrors["event-organizer-email"] ? getFieldErrorId("event-organizer-email") : undefined} />{eventFieldErrors["event-organizer-email"] ? <p id={getFieldErrorId("event-organizer-email")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-organizer-email"]}</p> : null}</div>
                           <div><Label htmlFor="event-organizer-phone">Organizer phone</Label><Input id="event-organizer-phone" value={eventForm.organizerPhone} onChange={(event) => setEventForm((prev) => ({ ...prev, organizerPhone: event.target.value }))} aria-invalid={!!eventFieldErrors["event-organizer-phone"]} aria-describedby={eventFieldErrors["event-organizer-phone"] ? getFieldErrorId("event-organizer-phone") : undefined} />{eventFieldErrors["event-organizer-phone"] ? <p id={getFieldErrorId("event-organizer-phone")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-organizer-phone"]}</p> : null}</div>
                         </div>
@@ -1048,7 +1121,7 @@ export function Suggest() {
                         <div><Label htmlFor="event-submitter-name">Your name</Label><Input id="event-submitter-name" value={eventForm.submitterName} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterName: event.target.value }))} aria-invalid={!!eventFieldErrors["event-submitter-name"]} aria-describedby={eventFieldErrors["event-submitter-name"] ? getFieldErrorId("event-submitter-name") : undefined} required />{eventFieldErrors["event-submitter-name"] ? <p id={getFieldErrorId("event-submitter-name")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-submitter-name"]}</p> : null}</div>
                         <div><Label htmlFor="event-submitter-email">Your email</Label><Input id="event-submitter-email" type="email" value={eventForm.submitterEmail} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterEmail: event.target.value }))} aria-invalid={!!eventFieldErrors["event-submitter-email"]} aria-describedby={eventFieldErrors["event-submitter-email"] ? getFieldErrorId("event-submitter-email") : undefined} required />{eventFieldErrors["event-submitter-email"] ? <p id={getFieldErrorId("event-submitter-email")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-submitter-email"]}</p> : null}</div>
                       </div>
-                      <div><Label htmlFor="event-connection">Your connection to this event</Label><Textarea id="event-connection" value={eventForm.submitterConnection} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} /></div>
+                      <div><Label htmlFor="event-connection">Your connection to this event</Label><Textarea id="event-connection" value={eventForm.submitterConnection} onChange={(event) => setEventForm((prev) => ({ ...prev, submitterConnection: event.target.value }))} aria-invalid={!!eventFieldErrors["event-connection"]} aria-describedby={eventFieldErrors["event-connection"] ? getFieldErrorId("event-connection") : undefined} />{eventFieldErrors["event-connection"] ? <p id={getFieldErrorId("event-connection")} className="mt-1 text-sm text-red-600">{eventFieldErrors["event-connection"]}</p> : null}</div>
                     </fieldset>
                   ) : null}
 
