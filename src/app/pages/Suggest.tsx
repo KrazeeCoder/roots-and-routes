@@ -255,7 +255,7 @@ export function Suggest() {
     setSearchParams(nextKind === "event" ? { type: "event" } : { type: "resource" });
   };
 
-  const validateResourceStep = (step: StepId) => {
+  const validateResourceStep = (step: StepId, form: ResourceFormState = resourceForm) => {
     const errors: FieldErrors = {};
     let firstInvalidFieldId: string | null = null;
 
@@ -266,13 +266,13 @@ export function Suggest() {
     };
 
     if (step === 1) {
-      markError("resource-name", validateRequired(resourceForm.resourceName, "Resource name"));
-      markError("resource-category", validateRequired(resourceForm.category, "Category"));
-      markError("resource-description", validateRequired(resourceForm.description, "Description"));
+      markError("resource-name", validateRequired(form.resourceName, "Resource name"));
+      markError("resource-category", validateRequired(form.category, "Category"));
+      markError("resource-description", validateRequired(form.description, "Description"));
     }
 
     if (step === 2) {
-      markError("resource-address", validateRequired(resourceForm.address, "Address"));
+      markError("resource-address", validateRequired(form.address, "Address"));
     }
 
     setResourceFieldErrors(errors);
@@ -283,7 +283,7 @@ export function Suggest() {
     };
   };
 
-  const validateEventStep = (step: StepId) => {
+  const validateEventStep = (step: StepId, form: EventFormState = eventForm) => {
     const errors: FieldErrors = {};
     let firstInvalidFieldId: string | null = null;
 
@@ -294,13 +294,13 @@ export function Suggest() {
     };
 
     if (step === 1) {
-      markError("event-title", validateRequired(eventForm.title, "Event title"));
-      markError("event-location", validateRequired(eventForm.location, "Location"));
-      markError("event-starts-at", validateEventDateRange(eventForm.startsAt, ""));
+      markError("event-title", validateRequired(form.title, "Event title"));
+      markError("event-location", validateRequired(form.location, "Location"));
+      markError("event-starts-at", validateEventDateRange(form.startsAt, ""));
     }
 
     if (step === 2) {
-      markError("event-ends-at", validateEventDateRange(eventForm.startsAt, eventForm.endsAt));
+      markError("event-ends-at", validateEventDateRange(form.startsAt, form.endsAt));
     }
 
     setEventFieldErrors(errors);
@@ -317,7 +317,17 @@ export function Suggest() {
       return;
     }
 
-    const validation = kind === "resource" ? validateResourceStep(currentStep) : validateEventStep(currentStep);
+    const validation = kind === "resource"
+      ? (() => {
+          const form = getResourceStepSnapshot(currentStep);
+          setResourceForm(form);
+          return validateResourceStep(currentStep, form);
+        })()
+      : (() => {
+          const form = getEventStepSnapshot(currentStep);
+          setEventForm(form);
+          return validateEventStep(currentStep, form);
+        })();
     if (!validation.isValid) {
       setError(validation.firstError);
       if (validation.firstInvalidFieldId) focusFieldById(validation.firstInvalidFieldId);
@@ -413,18 +423,86 @@ export function Suggest() {
     return fallback;
   };
 
+  const getLiveTags = (fieldId: string, fallback: string[]) => {
+    const draft = getLiveFieldValue(fieldId, "").trim();
+    if (!draft) return fallback;
+
+    const nextTags = [...fallback];
+    for (const tag of draft.split(",").map((value) => value.trim()).filter(Boolean)) {
+      if (!nextTags.some((existing) => existing.toLowerCase() === tag.toLowerCase())) {
+        nextTags.push(tag);
+      }
+    }
+    return nextTags;
+  };
+
+  const getResourceStepSnapshot = (step: StepId): ResourceFormState => {
+    if (step === 1) {
+      return {
+        ...resourceForm,
+        resourceName: getLiveFieldValue("resource-name", resourceForm.resourceName),
+        description: getLiveFieldValue("resource-description", resourceForm.description),
+      };
+    }
+
+    if (step === 2) {
+      return {
+        ...resourceForm,
+        organizationName: getLiveFieldValue("resource-organization", resourceForm.organizationName),
+        fullDescription: getLiveFieldValue("resource-full-description", resourceForm.fullDescription),
+        address: getLiveFieldValue("resource-address", resourceForm.address),
+        website: getLiveFieldValue("resource-website", resourceForm.website),
+        contactEmail: getLiveFieldValue("resource-contact-email", resourceForm.contactEmail),
+        contactPhone: getLiveFieldValue("resource-contact-phone", resourceForm.contactPhone),
+        imageUrl: getLiveFieldValue("resource-image-url", resourceForm.imageUrl),
+        tags: getLiveTags("resource-tags", resourceForm.tags),
+      };
+    }
+
+    return {
+      ...resourceForm,
+      submitterName: getLiveFieldValue("resource-submitter-name", resourceForm.submitterName),
+      submitterEmail: getLiveFieldValue("resource-submitter-email", resourceForm.submitterEmail),
+      submitterConnection: getLiveFieldValue("resource-connection", resourceForm.submitterConnection),
+    };
+  };
+
+  const getEventStepSnapshot = (step: StepId): EventFormState => {
+    if (step === 1) {
+      return {
+        ...eventForm,
+        title: getLiveFieldValue("event-title", eventForm.title),
+        location: getLiveFieldValue("event-location", eventForm.location),
+        startsAt: getLiveFieldValue("event-starts-at", eventForm.startsAt),
+      };
+    }
+
+    if (step === 2) {
+      return {
+        ...eventForm,
+        description: getLiveFieldValue("event-description", eventForm.description),
+        endsAt: getLiveFieldValue("event-ends-at", eventForm.endsAt),
+        imageUrl: getLiveFieldValue("event-image-url", eventForm.imageUrl),
+        organizerName: getLiveFieldValue("event-organizer-name", eventForm.organizerName),
+        organizerEmail: getLiveFieldValue("event-organizer-email", eventForm.organizerEmail),
+        organizerPhone: getLiveFieldValue("event-organizer-phone", eventForm.organizerPhone),
+      };
+    }
+
+    return {
+      ...eventForm,
+      submitterName: getLiveFieldValue("event-submitter-name", eventForm.submitterName),
+      submitterEmail: getLiveFieldValue("event-submitter-email", eventForm.submitterEmail),
+      submitterConnection: getLiveFieldValue("event-connection", eventForm.submitterConnection),
+    };
+  };
+
   const getResourceSubmitSnapshot = (): ResourceFormState => ({
-    ...resourceForm,
-    submitterName: getLiveFieldValue("resource-submitter-name", resourceForm.submitterName),
-    submitterEmail: getLiveFieldValue("resource-submitter-email", resourceForm.submitterEmail),
-    submitterConnection: getLiveFieldValue("resource-connection", resourceForm.submitterConnection),
+    ...getResourceStepSnapshot(3),
   });
 
   const getEventSubmitSnapshot = (): EventFormState => ({
-    ...eventForm,
-    submitterName: getLiveFieldValue("event-submitter-name", eventForm.submitterName),
-    submitterEmail: getLiveFieldValue("event-submitter-email", eventForm.submitterEmail),
-    submitterConnection: getLiveFieldValue("event-connection", eventForm.submitterConnection),
+    ...getEventStepSnapshot(3),
   });
 
   const handleResourceSubmit = async () => {
